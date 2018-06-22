@@ -33,7 +33,6 @@ public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DB_NAME = "dynamic_data_entry";
 
-
     public abstract UserDao getUserDao();
 
     public abstract DDE_FormsDao getDDE_FormsDao();
