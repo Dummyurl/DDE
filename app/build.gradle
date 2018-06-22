@@ -37,7 +37,8 @@ dependencies {
 
     //Volley
     implementation 'com.android.volley:volley:1.0.0'
-
+    //Android Networking Library
+    implementation 'com.amitshekhar.android:android-networking:1.0.1'
     //GSON
     implementation 'com.google.code.gson:gson:2.8.2'
 
