@@ -2,6 +2,7 @@ package pratham.dde.activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.WindowManager;
 
 import pratham.dde.BaseActivity;
 import pratham.dde.R;
