@@ -85,7 +85,7 @@ public class MainActivity extends BaseActivity {
             e.printStackTrace();
         }*/
 
-      /*  Intent intent=new Intent(this,HomeScreen.class);
-        startActivity(intent);*/
+        Intent intent=new Intent(this,HomeScreen.class);
+        startActivity(intent);
     }
 }

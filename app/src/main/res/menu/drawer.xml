@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_get_new_forms"
+            android:icon="@drawable/ic_cloud_download_black_24dp"
+            android:title="Get New Forms" />
+        <item
+            android:id="@+id/nav_fill_forms"
+            android:icon="@drawable/ic_edit_black_24dp"
+            android:title="Fill Forms" />
+        <item
+            android:id="@+id/nav_submit_old_forms"
+            android:icon="@drawable/ic_cloud_upload_black_24dp"
+            android:title="Submit Old Forms" />
+        <item
+            android:id="@+id/nav_logout"
+            android:icon="@drawable/ic_power_settings_new_black_24dp"
+            android:title="Log Out" />
+    </group>
+</menu>

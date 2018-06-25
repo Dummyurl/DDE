@@ -29,9 +29,11 @@
         </activity>
         <activity
             android:name=".BaseActivity"
-            android:label="@string/title_activity_base"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".activities.HomeScreen"></activity>
+            android:label="@string/title_activity_base" />
+        <activity android:name=".activities.HomeScreen"
+            android:theme="@style/AppTheme.NoActionBar">
+
+        </activity>
     </application>
 
 </manifest>
