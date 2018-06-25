@@ -9,28 +9,40 @@ public class User {
 
     @PrimaryKey
     @NonNull
-    private String Id;
+    private int Id;
+    private String Name;
     private String UserName;
-    private String PhoneNumber;
-    private String programids;
+    private String Password;
+    private String ProgramIds;
+    private String ProgramNames;
 
     @Override
     public String toString() {
         return "User{" +
-                "Id='" + Id + '\'' +
+                "Id=" + Id +
+                ", Name='" + Name + '\'' +
                 ", UserName='" + UserName + '\'' +
-                ", PhoneNumber='" + PhoneNumber + '\'' +
-                ", programids='" + programids + '\'' +
+                ", Password='" + Password + '\'' +
+                ", ProgramIds='" + ProgramIds + '\'' +
+                ", ProgramNames='" + ProgramNames + '\'' +
                 '}';
     }
 
     @NonNull
-    public String getId() {
+    public int getId() {
         return Id;
     }
 
-    public void setId(@NonNull String id) {
+    public void setId(@NonNull int id) {
         Id = id;
+    }
+
+    public String getName() {
+        return Name;
+    }
+
+    public void setName(String name) {
+        Name = name;
     }
 
     public String getUserName() {
@@ -41,19 +53,27 @@ public class User {
         UserName = userName;
     }
 
-    public String getPhoneNumber() {
-        return PhoneNumber;
+    public String getPassword() {
+        return Password;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        PhoneNumber = phoneNumber;
+    public void setPassword(String password) {
+        Password = password;
     }
 
-    public String getProgramids() {
-        return programids;
+    public String getProgramIds() {
+        return ProgramIds;
     }
 
-    public void setProgramids(String programids) {
-        this.programids = programids;
+    public void setProgramIds(String programIds) {
+        ProgramIds = programIds;
+    }
+
+    public String getProgramNames() {
+        return ProgramNames;
+    }
+
+    public void setProgramNames(String programNames) {
+        ProgramNames = programNames;
     }
 }
