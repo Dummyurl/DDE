@@ -1,6 +1,9 @@
 package pratham.dde.utils;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.AssetManager;
 
 import java.io.InputStream;
@@ -61,5 +64,18 @@ public class Utility {
         catch (Exception ex){
             return null;
         }
+    }
+
+    public static void showDialogue(Activity act, String msg){
+        AlertDialog alertDialog = new AlertDialog.Builder(act).create();
+        alertDialog.setTitle("Alert");
+        alertDialog.setMessage(msg);
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
     }
 }

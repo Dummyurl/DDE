@@ -19,7 +19,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import pratham.dde.BaseActivity;
 import pratham.dde.R;
-import pratham.dde.utils.APIs;
+import pratham.dde.domain.User;
 import pratham.dde.utils.Utility;
 
 public class MainActivity extends BaseActivity {
@@ -45,11 +45,37 @@ public class MainActivity extends BaseActivity {
     public void checkLogin() {
         String userName = input_email.getText().toString();
         String password = input_password.getText().toString();
-        validateUser(Utility.getProperty("checkCredentials", mContext), userName, password);
+       /*User user = new User();
+        user.setId(1);
+        user.setExpiryDate("date");
+        user.setName("name");
+        user.setPassword(password);
+        user.setProgramIds("1,2,3");
+        user.setProgramNames("one,two,three");
+        user.setUserName(userName);
+        user.setUserToken("token");*/
+/*try {
+    appDatabase.getUserDao().insert(user);
+}catch (Exception e){
+    e.printStackTrace();
+}*/
+        if (!validateUserFromLocalDatabase(userName, password))
+            getNewTokenFromServer(Utility.getProperty("checkCredentials", mContext), userName, password);
+        else {
+            // Move ahead
+        }
     }
 
-    public void validateUser(String Url, String userName, String password) {
-        AndroidNetworking.post(Url)
+    User user;
+    private boolean validateUserFromLocalDatabase(String userName, String password) {
+        user = appDatabase.getUserDao().getUserDetails(userName, password);
+        if (user != null)
+            return true;
+        return false;
+    }
+
+    private void getNewTokenFromServer(String url, String userName, String password) {
+        AndroidNetworking.post(url)
                 .addBodyParameter("username", userName)
                 .addBodyParameter("password", password)
                 .addBodyParameter("grant_type", "password")
@@ -71,10 +97,15 @@ public class MainActivity extends BaseActivity {
 
     private void validateResult(JSONObject response) {
         try {
-            String token = response.getString(".access_token");
+            if(response.length()>2) {
+                String access_token = response.getString("access_token");
+                String Name = response.getString("Name");
+                String token_type = response.getString("token_type");
+                Intent intent = new Intent(this, HomeScreen.class);
+                startActivity(intent);
+            } else {
 
-            Intent intent = new Intent(this, HomeScreen.class);
-            startActivity(intent);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

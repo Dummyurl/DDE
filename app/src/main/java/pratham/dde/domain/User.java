@@ -7,7 +7,7 @@ import android.support.annotation.NonNull;
 @Entity
 public class User {
 
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     @NonNull
     private int Id;
     private String Name;
@@ -15,6 +15,8 @@ public class User {
     private String Password;
     private String ProgramIds;
     private String ProgramNames;
+    private String UserToken;
+    private String ExpiryDate;
 
     @Override
     public String toString() {
@@ -25,6 +27,8 @@ public class User {
                 ", Password='" + Password + '\'' +
                 ", ProgramIds='" + ProgramIds + '\'' +
                 ", ProgramNames='" + ProgramNames + '\'' +
+                ", UserToken='" + UserToken + '\'' +
+                ", ExpiryDate='" + ExpiryDate + '\'' +
                 '}';
     }
 
@@ -75,5 +79,21 @@ public class User {
 
     public void setProgramNames(String programNames) {
         ProgramNames = programNames;
+    }
+
+    public String getUserToken() {
+        return UserToken;
+    }
+
+    public void setUserToken(String userToken) {
+        UserToken = userToken;
+    }
+
+    public String getExpiryDate() {
+        return ExpiryDate;
+    }
+
+    public void setExpiryDate(String expiryDate) {
+        ExpiryDate = expiryDate;
     }
 }
