@@ -75,6 +75,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void getNewTokenFromServer(String url) {
+        //TODO checkNetwork
         AndroidNetworking.post(url)
                 .addBodyParameter("username", userName)
                 .addBodyParameter("password", password)
@@ -104,23 +105,7 @@ public class MainActivity extends BaseActivity {
                 String token_type = response.getString("token_type");
                 String expiryDate = response.getString(".expires");
 
-                callAPIForPrograms(token_type+" "+access_token, Utility.getProperty("getPrograms", mContext));
-                String programIds = getProgramIds();
-                String programNames = getProgramNames();
-                user = appDatabase.getUserDao().getUserDetails(userName, password);
-                if (user != null) {
-                    appDatabase.getUserDao().UpdateTokenAndExpiry(access_token, expiryDate, userName, password);
-                } else {
-                    user.setUserName(userName);
-                    user.setUserToken(access_token);
-                    user.setProgramNames(programNames);
-                    user.setProgramIds(programIds);
-                    user.setPassword(password);
-                    user.setName(Name);
-                    user.setExpiryDate(expiryDate);
-                    appDatabase.getUserDao().insert(user);
-                }
-                startNextActivity();
+                callAPIForPrograms(token_type+" "+access_token, Utility.getProperty("getPrograms", mContext),expiryDate,Name,userName);
             } else {
                 Utility.showDialogue(this, "Invalid User! Try registering.");
             }
@@ -131,7 +116,8 @@ public class MainActivity extends BaseActivity {
 
     JSONArray programsJson;
 
-    private void callAPIForPrograms(String access_token, String url) {
+    private void callAPIForPrograms(final String access_token, String url, final String expiryDate, final String Name, final String userName) {
+        //TODO checkNetwork
         AndroidNetworking.get(url)
                 .addPathParameter("Content-Type","application/json")
                 .addPathParameter("Authorization",access_token)
@@ -141,6 +127,7 @@ public class MainActivity extends BaseActivity {
                     public void onResponse(JSONArray response) {
                         // do anything with response
                         programsJson = response;
+                        setUserEntries(access_token,expiryDate,Name,userName);
                     }
 
                     @Override
@@ -149,6 +136,26 @@ public class MainActivity extends BaseActivity {
                         Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void setUserEntries(String access_token, String expiryDate, String Name, String userName) {
+        String programIds = getProgramIds();
+        String programNames = getProgramNames();
+        user = appDatabase.getUserDao().getUserDetails(userName, password);
+        if (user != null) {
+            appDatabase.getUserDao().UpdateTokenAndExpiry(access_token, expiryDate, userName, password);
+        } else {
+            user = new User();
+            user.setUserName(userName);
+            user.setUserToken(access_token);
+            user.setProgramNames(programNames);
+            user.setProgramIds(programIds);
+            user.setPassword(password);
+            user.setName(Name);
+            user.setExpiryDate(expiryDate);
+            appDatabase.getUserDao().insert(user);
+        }
+        startNextActivity();
     }
 
     private String getProgramIds() {
