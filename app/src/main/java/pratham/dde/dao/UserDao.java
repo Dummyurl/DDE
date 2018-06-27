@@ -14,4 +14,7 @@ public interface UserDao {
 
     @Query("select * from User where UserName = :UserName and Password = :Password")
     User getUserDetails(String UserName, String Password);
+
+    @Query("UPDATE User SET UserToken = :UserToken , ExpiryDate = :ExpiryDate where UserName = :UserName and Password = :Password")
+    void UpdateTokenAndExpiry(String UserToken, String ExpiryDate, String UserName, String Password);
 }

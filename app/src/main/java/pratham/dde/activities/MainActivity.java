@@ -9,8 +9,10 @@ import android.widget.Toast;
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.common.Priority;
 import com.androidnetworking.error.ANError;
+import com.androidnetworking.interfaces.JSONArrayRequestListener;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -116,14 +118,23 @@ public class MainActivity extends BaseActivity {
                 String token_type = response.getString("token_type");
                 String expiryDate = response.getString(".expires");
 
-                callAPIForPrograms(access_token);
-                String programs = getProgramIds();
+                callAPIForPrograms(access_token,Utility.getProperty("getPrograms",mContext));
+                String programIds = getProgramIds();
                 String programNames = getProgramNames();
                 user = appDatabase.getUserDao().getUserDetails(userName, password);
                 if (user != null) {
-                    updateTokenAndExpiryDate();
+                    appDatabase.getUserDao().UpdateTokenAndExpiry(access_token,expiryDate,userName,password);
                 }
-
+                else {
+                    user.setUserName(userName);
+                    user.setUserToken(access_token);
+                    user.setProgramNames(programNames);
+                    user.setProgramIds(programIds);
+                    user.setPassword(password);
+                    user.setName(Name);
+                    user.setExpiryDate(expiryDate);
+                    appDatabase.getUserDao().insert(user);
+                }
                 Intent intent = new Intent(this, HomeScreen.class);
                 startActivity(intent);
             } else {
@@ -134,18 +145,18 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    JSONObject programsJson;
-    private void callAPIForPrograms(String access_token) {
-        AndroidNetworking.get()
+    JSONArray programsJson;
+    private void callAPIForPrograms(String access_token,String url) {
+        AndroidNetworking.get(url)
                 .addPathParameter("pageNumber", "0")
                 .addQueryParameter("limit", "3")
                 .addHeaders("token", "1234")
                 .setTag("test")
                 .setPriority(Priority.LOW)
                 .build()
-                .getAsJSONObject(new JSONObjectRequestListener() {
+                .getAsJSONArray(new JSONArrayRequestListener() {
                     @Override
-                    public void onResponse(JSONObject response) {
+                    public void onResponse(JSONArray response) {
                         // do anything with response
                         programsJson = response;
                     }
@@ -158,9 +169,31 @@ public class MainActivity extends BaseActivity {
     }
 
     private String getProgramIds() {
+        String programIds = "";
+        int i;
+        try {
+            for (i = 0; i < programsJson.length()-1; i++) {
+                programIds += programsJson.getJSONObject(i).getString("progid")+ ",";
+            }
+            programIds += programsJson.getJSONObject(i).getString("progid");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return programIds;
     }
 
     private String getProgramNames() {
+        String programNames = "";
+        int i;
+        try {
+            for (i = 0; i < programsJson.length()-1; i++) {
+                programNames += programsJson.getJSONObject(i).getString("programname")+ ",";
+            }
+            programNames += programsJson.getJSONObject(i).getString("programname");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return programNames;
     }
 
     private void updateTokenAndExpiryDate() {
