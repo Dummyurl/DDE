@@ -41,10 +41,13 @@ public class MainActivity extends BaseActivity {
         input_password.setText("Admin@1234");
     }
 
+    String userName;
+    String password;
+
     @OnClick(R.id.btn_login)
     public void checkLogin() {
-        String userName = input_email.getText().toString();
-        String password = input_password.getText().toString();
+        userName = input_email.getText().toString();
+        password = input_password.getText().toString();
        /*User user = new User();
         user.setId(1);
         user.setExpiryDate("date");
@@ -59,22 +62,31 @@ public class MainActivity extends BaseActivity {
 }catch (Exception e){
     e.printStackTrace();
 }*/
-        if (!validateUserFromLocalDatabase(userName, password))
-            getNewTokenFromServer(Utility.getProperty("checkCredentials", mContext), userName, password);
+        if (!validateUserFromLocalDatabase())
+            getNewTokenFromServer(Utility.getProperty("checkCredentials", mContext));
         else {
             // Move ahead
+            startNextActivity();
         }
     }
 
     User user;
-    private boolean validateUserFromLocalDatabase(String userName, String password) {
+    private boolean validateUserFromLocalDatabase() {
         user = appDatabase.getUserDao().getUserDetails(userName, password);
-        if (user != null)
+        if (user != null) {
+            if(!isTokenValid(user.getExpiryDate())){
+                Utility.showDialogue(this,"Token for this user has expired. Get new token by registering again.");
+                return false;
+            }
             return true;
+        }
         return false;
     }
 
-    private void getNewTokenFromServer(String url, String userName, String password) {
+    private boolean isTokenValid(String expiryDate) {
+    }
+
+    private void getNewTokenFromServer(String url) {
         AndroidNetworking.post(url)
                 .addBodyParameter("username", userName)
                 .addBodyParameter("password", password)
@@ -100,15 +112,60 @@ public class MainActivity extends BaseActivity {
             if(response.length()>2) {
                 String access_token = response.getString("access_token");
                 String Name = response.getString("Name");
+                String userName = response.getString("userName");
                 String token_type = response.getString("token_type");
+                String expiryDate = response.getString(".expires");
+
+                callAPIForPrograms(access_token);
+                String programs = getProgramIds();
+                String programNames = getProgramNames();
+                user = appDatabase.getUserDao().getUserDetails(userName, password);
+                if (user != null) {
+                    updateTokenAndExpiryDate();
+                }
+
                 Intent intent = new Intent(this, HomeScreen.class);
                 startActivity(intent);
-
             } else {
-
+                Utility.showDialogue(this,"Invalid User! Try registering.");
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    JSONObject programsJson;
+    private void callAPIForPrograms(String access_token) {
+        AndroidNetworking.get()
+                .addPathParameter("pageNumber", "0")
+                .addQueryParameter("limit", "3")
+                .addHeaders("token", "1234")
+                .setTag("test")
+                .setPriority(Priority.LOW)
+                .build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // do anything with response
+                        programsJson = response;
+                    }
+                    @Override
+                    public void onError(ANError error) {
+                        // handle error
+                        Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private String getProgramIds() {
+    }
+
+    private String getProgramNames() {
+    }
+
+    private void updateTokenAndExpiryDate() {
+    }
+
+    private void startNextActivity() {
     }
 }
