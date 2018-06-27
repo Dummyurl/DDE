@@ -118,9 +118,10 @@ public class MainActivity extends BaseActivity {
 
     private void callAPIForPrograms(final String access_token, String url, final String expiryDate, final String Name, final String userName) {
         //TODO checkNetwork
+        String token = "bearer NnssXop1Bel18qXNb0cWIFailO6wIPCGnuU2dqnTRGKlzFsmbhXCdkaNZIURnkdGFCwvVM0WI9FnoR7kCjvu5WDE-vUvaAMAsTsWRquvptazmCoLWhvaJWYIdcorMSfHi_SAK1j4SjG7WonvOL-8ecrG8qoDP7yZFavHr72WXXFKmOAOnlyj4jxujVXRctYyPO-UU6-bVLTHYxzTN3DxLExERxippbWoOUac6Uu0J8Be_kF__TdXqQ_r35oK9VjjtmAK-p62Aw_0z8HXimoMO51SU4JyCKTxYHjmv-Yz1iXrtCVAXxingEn9QlINGetWxVN1apM3AyHHtiU3ovxOehMDsWrHUS-DqyX3k3CfQCHOxOUFtwW0o4jiNPEjvd5yuktdYupBpfhi3lOg9a1Dk6-vIz0GmAo2kv9t738ue_-O8AsIGcS6LJHqiNFE7E3K5nGHaIX_9yCW4syidN4oxH7WbXtvg-z1c_y_v0Er1q66YDqHdybEzZBJhjyiJuTCO4VZVjEJ5VbeTI0BFW9rzs5bGvPBOC5plMXTO73qjvvxR-OfeebCgBWOLCmeEpKOcD_jWJf_oW_yeBvyvtSD9lsHpQW3OB1W0eXeSTCYK0A8KKcLv45ebMIam1O9DzdCLKhaiYrj7PzPe12e1OqlTOM7kp3Cj9vEEy5WQYpEVo1ss9r9HfpT60gRKE8yG90T6sDPeWW8Tak_A_kC_esG_LYa5Rh6bUKeoHm2tYrK3ag8RCUys3HGHv6I28hsH-mnk170OwiJPBkbAxguS_dbIfyHuL_ZZU2pIt6MVedU3d-w2I83Z_1Wtvo8Jo-g3PF9";
         AndroidNetworking.get(url)
                 .addPathParameter("Content-Type","application/json")
-                .addPathParameter("Authorization",access_token)
+                .addPathParameter("Authorization",/*access_*/token)
                 .build()
                 .getAsJSONArray(new JSONArrayRequestListener() {
                     @Override
