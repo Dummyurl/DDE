@@ -24,6 +24,8 @@ import pratham.dde.R;
 import pratham.dde.domain.User;
 import pratham.dde.utils.Utility;
 
+import static pratham.dde.utils.Utility.isTokenValid;
+
 public class MainActivity extends BaseActivity {
 
     @BindView(R.id.input_email)
@@ -50,20 +52,7 @@ public class MainActivity extends BaseActivity {
     public void checkLogin() {
         userName = input_email.getText().toString();
         password = input_password.getText().toString();
-       /*User user = new User();
-        user.setId(1);
-        user.setExpiryDate("date");
-        user.setName("name");
-        user.setPassword(password);
-        user.setProgramIds("1,2,3");
-        user.setProgramNames("one,two,three");
-        user.setUserName(userName);
-        user.setUserToken("token");*/
-/*try {
-    appDatabase.getUserDao().insert(user);
-}catch (Exception e){
-    e.printStackTrace();
-}*/
+
         if (!validateUserFromLocalDatabase())
             getNewTokenFromServer(Utility.getProperty("checkCredentials", mContext));
         else {
@@ -76,16 +65,13 @@ public class MainActivity extends BaseActivity {
     private boolean validateUserFromLocalDatabase() {
         user = appDatabase.getUserDao().getUserDetails(userName, password);
         if (user != null) {
-            if(!isTokenValid(user.getExpiryDate())){
-                Utility.showDialogue(this,"Token for this user has expired. Get new token by registering again.");
+            if (!isTokenValid(user.getExpiryDate())) {
+                Utility.showDialogue(this, "Token for this user has expired. Get new token by registering again.");
                 return false;
             }
             return true;
         }
         return false;
-    }
-
-    private boolean isTokenValid(String expiryDate) {
     }
 
     private void getNewTokenFromServer(String url) {
@@ -111,21 +97,20 @@ public class MainActivity extends BaseActivity {
 
     private void validateResult(JSONObject response) {
         try {
-            if(response.length()>2) {
+            if (response.length() > 2) {
                 String access_token = response.getString("access_token");
                 String Name = response.getString("Name");
                 String userName = response.getString("userName");
                 String token_type = response.getString("token_type");
                 String expiryDate = response.getString(".expires");
 
-                callAPIForPrograms(access_token,Utility.getProperty("getPrograms",mContext));
+                callAPIForPrograms(token_type+" "+access_token, Utility.getProperty("getPrograms", mContext));
                 String programIds = getProgramIds();
                 String programNames = getProgramNames();
                 user = appDatabase.getUserDao().getUserDetails(userName, password);
                 if (user != null) {
-                    appDatabase.getUserDao().UpdateTokenAndExpiry(access_token,expiryDate,userName,password);
-                }
-                else {
+                    appDatabase.getUserDao().UpdateTokenAndExpiry(access_token, expiryDate, userName, password);
+                } else {
                     user.setUserName(userName);
                     user.setUserToken(access_token);
                     user.setProgramNames(programNames);
@@ -135,10 +120,9 @@ public class MainActivity extends BaseActivity {
                     user.setExpiryDate(expiryDate);
                     appDatabase.getUserDao().insert(user);
                 }
-                Intent intent = new Intent(this, HomeScreen.class);
-                startActivity(intent);
+                startNextActivity();
             } else {
-                Utility.showDialogue(this,"Invalid User! Try registering.");
+                Utility.showDialogue(this, "Invalid User! Try registering.");
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -146,13 +130,11 @@ public class MainActivity extends BaseActivity {
     }
 
     JSONArray programsJson;
-    private void callAPIForPrograms(String access_token,String url) {
+
+    private void callAPIForPrograms(String access_token, String url) {
         AndroidNetworking.get(url)
-                .addPathParameter("pageNumber", "0")
-                .addQueryParameter("limit", "3")
-                .addHeaders("token", "1234")
-                .setTag("test")
-                .setPriority(Priority.LOW)
+                .addPathParameter("Content-Type","application/json")
+                .addPathParameter("Authorization",access_token)
                 .build()
                 .getAsJSONArray(new JSONArrayRequestListener() {
                     @Override
@@ -160,6 +142,7 @@ public class MainActivity extends BaseActivity {
                         // do anything with response
                         programsJson = response;
                     }
+
                     @Override
                     public void onError(ANError error) {
                         // handle error
@@ -172,11 +155,11 @@ public class MainActivity extends BaseActivity {
         String programIds = "";
         int i;
         try {
-            for (i = 0; i < programsJson.length()-1; i++) {
-                programIds += programsJson.getJSONObject(i).getString("progid")+ ",";
+            for (i = 0; i < programsJson.length() - 1; i++) {
+                programIds += programsJson.getJSONObject(i).getString("progid") + ",";
             }
             programIds += programsJson.getJSONObject(i).getString("progid");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return programIds;
@@ -186,19 +169,18 @@ public class MainActivity extends BaseActivity {
         String programNames = "";
         int i;
         try {
-            for (i = 0; i < programsJson.length()-1; i++) {
-                programNames += programsJson.getJSONObject(i).getString("programname")+ ",";
+            for (i = 0; i < programsJson.length() - 1; i++) {
+                programNames += programsJson.getJSONObject(i).getString("programname") + ",";
             }
             programNames += programsJson.getJSONObject(i).getString("programname");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return programNames;
     }
 
-    private void updateTokenAndExpiryDate() {
-    }
-
     private void startNextActivity() {
+        Intent intent = new Intent(this, HomeScreen.class);
+        startActivity(intent);
     }
 }

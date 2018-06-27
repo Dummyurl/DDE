@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
@@ -54,19 +55,18 @@ public class Utility {
 
 
     public static String getProperty(String key, Context context) {
-        try{
+        try {
             Properties properties = new Properties();
             AssetManager assetManager = context.getAssets();
             InputStream inputStream = assetManager.open("config.properties");
             properties.load(inputStream);
             return properties.getProperty(key);
-        }
-        catch (Exception ex){
+        } catch (Exception ex) {
             return null;
         }
     }
 
-    public static void showDialogue(Activity act, String msg){
+    public static void showDialogue(Activity act, String msg) {
         AlertDialog alertDialog = new AlertDialog.Builder(act).create();
         alertDialog.setTitle("Alert");
         alertDialog.setMessage(msg);
@@ -77,5 +77,19 @@ public class Utility {
                     }
                 });
         alertDialog.show();
+    }
+
+    public static boolean isTokenValid(String expiryDate) {
+        try {
+//            SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            Date strDate = sdf.parse(expiryDate);
+            if (new Date().after(strDate))
+                return false;
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
     }
 }
