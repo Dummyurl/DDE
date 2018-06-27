@@ -103,6 +103,7 @@ public class MainActivity extends BaseActivity {
                 String token_type = response.getString("token_type");
                 Intent intent = new Intent(this, HomeScreen.class);
                 startActivity(intent);
+
             } else {
 
             }
