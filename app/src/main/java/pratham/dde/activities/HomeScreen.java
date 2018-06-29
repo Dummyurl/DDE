@@ -1,6 +1,7 @@
 package pratham.dde.activities;
 
 import android.app.FragmentManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -8,6 +9,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -17,13 +19,17 @@ import com.androidnetworking.interfaces.JSONArrayRequestListener;
 
 import org.json.JSONArray;
 
+import java.io.Console;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
+import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.OldFormsFragment;
-import pratham.dde.utils.FusedLocationAPI;
 import pratham.dde.utils.Utility;
+
+import static pratham.dde.BaseActivity.appDatabase;
 
 public class HomeScreen extends AppCompatActivity/* implements LocationLisner */ {
 
@@ -36,8 +42,9 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     @BindView(R.id.nav_view)
     NavigationView navigationView;
 
-//    FusedLocationAPI fusedLocationAPI;
-    String userName,password;
+    //    FusedLocationAPI fusedLocationAPI;
+    String userName, password;
+    Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +55,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
+        mContext = this;
         userName = this.getIntent().getStringExtra("userName");
         password = this.getIntent().getStringExtra("password");
 
@@ -58,7 +66,11 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
                         switch (menuItem.getItemId()) {
                             case R.id.nav_get_new_forms:
-                                getNewForms();
+                                User user = appDatabase.getUserDao().getUserDetails(userName, password);
+                                if (user != null)
+                                    getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
+                                else
+                                    Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();
                                 break;
 
                             case R.id.nav_fill_forms:
@@ -85,7 +97,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     }
 
     /* getFormsfromServer */
-    private void getNewForms(String url) {
+    private void getNewForms(String url, String access_token) {
         //TODO checkNetwork
 
         AndroidNetworking.get(url)
@@ -96,8 +108,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                     @Override
                     public void onResponse(JSONArray response) {
                         // do anything with response
-                        programsJson = response;
-                        setUserEntries(access_token, expiryDate, Name, userName);
+                        Log.d("pk-log",""+ response.length());
                     }
 
                     @Override
