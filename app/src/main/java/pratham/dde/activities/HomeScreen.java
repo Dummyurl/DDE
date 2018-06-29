@@ -9,6 +9,13 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import com.androidnetworking.AndroidNetworking;
+import com.androidnetworking.error.ANError;
+import com.androidnetworking.interfaces.JSONArrayRequestListener;
+
+import org.json.JSONArray;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -16,8 +23,10 @@ import pratham.dde.R;
 import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.OldFormsFragment;
 import pratham.dde.utils.FusedLocationAPI;
+import pratham.dde.utils.Utility;
 
 public class HomeScreen extends AppCompatActivity/* implements LocationLisner */ {
+
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.drawer_layout)
@@ -26,7 +35,9 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
      TextView geo;*/
     @BindView(R.id.nav_view)
     NavigationView navigationView;
-    FusedLocationAPI fusedLocationAPI;
+
+//    FusedLocationAPI fusedLocationAPI;
+    String userName,password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +48,8 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
+        userName = this.getIntent().getStringExtra("userName");
+        password = this.getIntent().getStringExtra("password");
 
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
@@ -45,7 +58,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
                         switch (menuItem.getItemId()) {
                             case R.id.nav_get_new_forms:
-                                getNewFormsAsync();
+                                getNewForms();
                                 break;
 
                             case R.id.nav_fill_forms:
@@ -71,9 +84,28 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         fusedLocationAPI.startLocationButtonClick();*/
     }
 
-    /*getFormsfromServer*/
-    private void getNewFormsAsync() {
+    /* getFormsfromServer */
+    private void getNewForms(String url) {
+        //TODO checkNetwork
 
+        AndroidNetworking.get(url)
+                .addHeaders("Content-Type", "application/json")
+                .addHeaders("Authorization", access_token)
+                .build()
+                .getAsJSONArray(new JSONArrayRequestListener() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        // do anything with response
+                        programsJson = response;
+                        setUserEntries(access_token, expiryDate, Name, userName);
+                    }
+
+                    @Override
+                    public void onError(ANError error) {
+                        // handle error
+                        Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     @Override
