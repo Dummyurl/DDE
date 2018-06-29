@@ -57,7 +57,7 @@ public class MainActivity extends BaseActivity {
             Utility.showDialogue(this, "Insert Username and Password correctly");
         else if (!validateUserFromLocalDatabase())
             getNewTokenFromServer(Utility.getProperty("checkCredentials", mContext));
-             else
+        else
             startNextActivity();
     }
 
