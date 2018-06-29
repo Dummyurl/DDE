@@ -39,9 +39,15 @@ dependencies {
     implementation 'com.android.volley:volley:1.0.0'
     //Android Networking Library
     implementation 'com.amitshekhar.android:android-networking:1.0.1'
+    //GPS
+    implementation 'com.google.android.gms:play-services-location:15.0.1'
+    // dexter runtime permissions
+    implementation 'com.karumi:dexter:4.2.0'
     //GSON
     implementation 'com.google.code.gson:gson:2.8.2'
 
+    //eventbus 
+    implementation 'org.greenrobot:eventbus:3.1.1'
     // Room (use 1.1.0-alpha2 for latest alpha)
     implementation 'android.arch.persistence.room:runtime:1.1.1'
     annotationProcessor "android.arch.persistence.room:compiler:1.1.1"
