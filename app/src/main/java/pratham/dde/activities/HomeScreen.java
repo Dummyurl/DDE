@@ -12,12 +12,11 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
+
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
-import com.androidnetworking.interfaces.JSONArrayRequestListener;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import butterknife.BindView;
@@ -73,11 +72,14 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                                 break;
 
                             case R.id.nav_fill_forms:
+                                Bundle bundle = new Bundle();
+                                bundle.putString("userName", userName);
+                                bundle.putString("password", password);
                                 FillFormsFragment fillFormsFragment = new FillFormsFragment();
+                                fillFormsFragment.setArguments(bundle);
                                 FragmentManager manager = getFragmentManager();
                                 manager.beginTransaction().replace(R.id.fragment, fillFormsFragment).commit();
                                 break;
-
                             case R.id.nav_old_forms:
                                 OldFormsFragment oldFormsFragment = new OldFormsFragment();
                                 FragmentManager fragmentManager = getFragmentManager();
@@ -107,7 +109,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                     @Override
                     public void onResponse(JSONObject response) {
                         // do anything with response
-                        Log.d("pk-log",""+ response.length());
+                        Log.d("pk-log", "" + response.length());
                     }
 
                     @Override
