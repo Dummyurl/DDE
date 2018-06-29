@@ -19,6 +19,7 @@ import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleCondition;
 import pratham.dde.domain.DDE_RuleMaster;
 import pratham.dde.domain.DDE_RuleQuestion;
+import pratham.dde.domain.Status;
 import pratham.dde.domain.User;
 
 @Database(entities = {User.class,
@@ -28,6 +29,7 @@ import pratham.dde.domain.User;
         DDE_RuleQuestion.class,
         DDE_RuleMaster.class,
         DDE_RuleCondition.class,
+        Status.class,
         Answer.class}, version = 1)
 
 public abstract class AppDatabase extends RoomDatabase {
