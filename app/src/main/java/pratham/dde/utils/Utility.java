@@ -17,7 +17,8 @@ import java.util.UUID;
 
 public class Utility {
 
-    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+//    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+    private final DateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
 
     /**
      * Returns the current datetime as a string.
@@ -81,7 +82,9 @@ public class Utility {
 
     public static boolean isTokenValid(String expiryDate) {
         try {
+            expiryDate = "";
             SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
+         //   SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             Date strDate = sdf.parse(expiryDate);
             if (new Date().after(strDate))
                 return false;

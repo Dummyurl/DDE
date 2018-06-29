@@ -17,6 +17,7 @@ import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import butterknife.BindView;
@@ -109,9 +110,8 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                 .getAsJSONObject(new JSONObjectRequestListener() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        // do anything with response
                         Log.d("pk-log", "" + response.length());
-                        updateFormsInDatabase();
+                        updateFormsInDatabase(response);
                     }
 
                     @Override
@@ -122,8 +122,22 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                 });
     }
 
-    private void updateFormsInDatabase() {
-
+    private void updateFormsInDatabase(JSONObject response) {
+        try {
+            JSONArray formData = new JSONArray();
+            if (response.length() > 1) {
+                JSONObject result = response.getJSONObject("Result");
+                if (result.getString("success").equals("true")) {
+                    formData = result.getJSONArray("Data");
+                } else {
+                    Utility.showDialogue(this, "Problem with server");
+                }
+            } else {
+                Utility.showDialogue(this, "Problem in updating Forms in database");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
