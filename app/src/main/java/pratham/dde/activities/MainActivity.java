@@ -21,6 +21,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import pratham.dde.BaseActivity;
 import pratham.dde.R;
+import pratham.dde.domain.Status;
 import pratham.dde.domain.User;
 import pratham.dde.utils.Utility;
 
@@ -41,8 +42,24 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         mContext = MainActivity.this;
         ButterKnife.bind(this);
+        initialiseStatusTable();
         input_email.setText("prathamdde@dde.com");
         input_password.setText("Admin@1234");
+    }
+
+    private void initialiseStatusTable() {
+        Status[] statuses = new Status[3];
+        Status status = new Status();
+        status.setKey("LastPulledDate");
+        status.setValue("");
+        statuses[0] = status;
+        status.setKey("GPSLocation");
+        status.setValue("");
+        statuses[1] = status;
+        status.setKey("DeviceId");
+        status.setValue("");
+        statuses[2] = status;
+        appDatabase.getStatusDao().initialiseAppStatus(statuses);
     }
 
     String userName;

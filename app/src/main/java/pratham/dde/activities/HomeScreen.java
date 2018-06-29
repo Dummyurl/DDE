@@ -80,6 +80,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                                 FragmentManager manager = getFragmentManager();
                                 manager.beginTransaction().replace(R.id.fragment, fillFormsFragment).commit();
                                 break;
+
                             case R.id.nav_old_forms:
                                 OldFormsFragment oldFormsFragment = new OldFormsFragment();
                                 FragmentManager fragmentManager = getFragmentManager();
@@ -110,6 +111,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                     public void onResponse(JSONObject response) {
                         // do anything with response
                         Log.d("pk-log", "" + response.length());
+                        updateFormsInDatabase();
                     }
 
                     @Override
@@ -118,6 +120,9 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                         Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void updateFormsInDatabase() {
     }
 
     @Override

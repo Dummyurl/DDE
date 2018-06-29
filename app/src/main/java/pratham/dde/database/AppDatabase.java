@@ -10,6 +10,7 @@ import pratham.dde.dao.DDE_QuestionsDao;
 import pratham.dde.dao.DDE_RuleConditionDao;
 import pratham.dde.dao.DDE_RuleMasterDao;
 import pratham.dde.dao.DDE_RuleQuestionDao;
+import pratham.dde.dao.StatusDao;
 import pratham.dde.dao.UserDao;
 import pratham.dde.domain.Answer;
 import pratham.dde.domain.DDE_FormWiseDataSource;
@@ -48,5 +49,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract DDE_RuleConditionDao getDDE_RuleConditionDao();
 
     public abstract AnswerDao getAnswerDao();
+
+    public abstract StatusDao getStatusDao();
 
 }
