@@ -123,6 +123,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     }
 
     private void updateFormsInDatabase() {
+
     }
 
     @Override
