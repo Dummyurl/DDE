@@ -1,6 +1,5 @@
 package pratham.dde.activities;
 
-import android.location.Location;
 import android.app.FragmentManager;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -10,23 +9,21 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.widget.TextView;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
-import pratham.dde.interfaces.LocationLisner;
-import pratham.dde.utils.FusedLocationAPI;
 import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.OldFormsFragment;
+import pratham.dde.utils.FusedLocationAPI;
 
-public class HomeScreen extends AppCompatActivity/* implements LocationLisner */{
+public class HomeScreen extends AppCompatActivity/* implements LocationLisner */ {
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.drawer_layout)
     DrawerLayout drawer_layout;
-   /* @BindView(R.id.geo)
-    TextView geo;*/
+    /* @BindView(R.id.geo)
+     TextView geo;*/
     @BindView(R.id.nav_view)
     NavigationView navigationView;
     FusedLocationAPI fusedLocationAPI;
