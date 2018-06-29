@@ -82,7 +82,6 @@ public class Utility {
     public static boolean isTokenValid(String expiryDate) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
-         //   SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             Date strDate = sdf.parse(expiryDate);
             if (new Date().after(strDate))
                 return false;
