@@ -64,17 +64,15 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         userName = this.getIntent().getStringExtra("userName");
         password = this.getIntent().getStringExtra("password");
 
+        updateFormEntries();
+
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
 
                 switch (menuItem.getItemId()) {
                     case R.id.nav_get_new_forms:
-                        User user = appDatabase.getUserDao().getUserDetails(userName, password);
-                        if (user != null)
-                            getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
-                        else
-                            Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();
+                        getQuestionsAndData();
                         break;
 
                     case R.id.nav_fill_forms:
@@ -102,6 +100,20 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
        /* fusedLocationAPI = new FusedLocationAPI(this);
         fusedLocationAPI.startLocationButtonClick();*/
+    }
+
+    private void getQuestionsAndData() {
+        Toast.makeText(mContext, "Getting questions and data", Toast.LENGTH_SHORT).show();
+        // TODO get questions and data if required
+    }
+
+    private void updateFormEntries() {
+        User user = appDatabase.getUserDao().getUserDetails(userName, password);
+        if (user != null)
+            getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
+        else
+            Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();
+
     }
 
     /* getFormsfromServer */
