@@ -105,7 +105,6 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     /* getFormsfromServer */
     private void getNewForms(String url, String access_token) {
         //TODO checkNetwork
-<<<<<<< HEAD
         if (SyncUtility.isDataConnectionAvailable(this)) {
             Utility.showDialoginApiCalling(dialog, mContext, "getNewForms");
             AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONObject(new JSONObjectRequestListener() {
@@ -114,7 +113,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                     // do anything with response
                     Utility.dismissShownDialog(dialog);
                     Log.d("pk-log", "" + response.length());
-                    updateFormsInDatabase();
+                    updateFormsInDatabase(response);
                 }
 
                 @Override
@@ -125,9 +124,8 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                 }
             });
         } else {
-            Toast.makeText(mContext, "Internate not available", Toast.LENGTH_SHORT);
+            Toast.makeText(mContext, "Internet not available", Toast.LENGTH_SHORT);
         }
-=======
 
         AndroidNetworking.get(url)
                 .addHeaders("Content-Type", "application/json")
@@ -146,7 +144,6 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                         Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
                     }
                 });
->>>>>>> d44276df02d524ad6906d55ab88798f262892c6d
     }
 
     private void updateFormsInDatabase(JSONObject response) {

@@ -11,15 +11,6 @@ public class Status {
     @NonNull
     private int EntryId;
     private String keys;
-
-    public String getKeys() {
-        return keys;
-    }
-
-    public void setKeys(String keys) {
-        this.keys = keys;
-    }
-
     private String value;
 
     @NonNull
@@ -31,7 +22,13 @@ public class Status {
         EntryId = entryId;
     }
 
+    public String getKeys() {
+        return keys;
+    }
 
+    public void setKeys(String keys) {
+        this.keys = keys;
+    }
 
     public String getValue() {
         return value;
