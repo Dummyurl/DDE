@@ -19,6 +19,7 @@ import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import butterknife.BindView;
@@ -104,6 +105,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     /* getFormsfromServer */
     private void getNewForms(String url, String access_token) {
         //TODO checkNetwork
+<<<<<<< HEAD
         if (SyncUtility.isDataConnectionAvailable(this)) {
             Utility.showDialoginApiCalling(dialog, mContext, "getNewForms");
             AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONObject(new JSONObjectRequestListener() {
@@ -125,10 +127,44 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         } else {
             Toast.makeText(mContext, "Internate not available", Toast.LENGTH_SHORT);
         }
+=======
+
+        AndroidNetworking.get(url)
+                .addHeaders("Content-Type", "application/json")
+                .addHeaders("Authorization", access_token)
+                .build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d("pk-log", "" + response.length());
+                        updateFormsInDatabase(response);
+                    }
+
+                    @Override
+                    public void onError(ANError error) {
+                        // handle error
+                        Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+>>>>>>> d44276df02d524ad6906d55ab88798f262892c6d
     }
 
-    private void updateFormsInDatabase() {
-
+    private void updateFormsInDatabase(JSONObject response) {
+        try {
+            JSONArray formData = new JSONArray();
+            if (response.length() > 1) {
+                JSONObject result = response.getJSONObject("Result");
+                if (result.getString("success").equals("true")) {
+                    formData = result.getJSONArray("Data");
+                } else {
+                    Utility.showDialogue(this, "Problem with server");
+                }
+            } else {
+                Utility.showDialogue(this, "Problem in updating Forms in database");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
