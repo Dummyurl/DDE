@@ -10,7 +10,7 @@ import pratham.dde.domain.Status;
 @Dao
 public interface StatusDao {
 
-    @Query("UPDATE Status SET value = :value where value= :value")
+    @Query("UPDATE Status SET value = :value where keys = :key")
     void updateValue(String key, String value);
 
     @Insert

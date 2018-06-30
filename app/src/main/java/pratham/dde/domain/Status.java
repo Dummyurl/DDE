@@ -10,7 +10,16 @@ public class Status {
     @PrimaryKey(autoGenerate = true)
     @NonNull
     private int EntryId;
-    private String key;
+    private String keys;
+
+    public String getKeys() {
+        return keys;
+    }
+
+    public void setKeys(String keys) {
+        this.keys = keys;
+    }
+
     private String value;
 
     @NonNull
@@ -22,13 +31,7 @@ public class Status {
         EntryId = entryId;
     }
 
-    public String getKey() {
-        return key;
-    }
 
-    public void setKey(String key) {
-        this.key = key;
-    }
 
     public String getValue() {
         return value;
@@ -42,7 +45,7 @@ public class Status {
     public String toString() {
         return "Status{" +
                 "EntryId=" + EntryId +
-                ", key='" + key + '\'' +
+                ", key='" + keys + '\'' +
                 ", value='" + value + '\'' +
                 '}';
     }

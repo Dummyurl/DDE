@@ -19,20 +19,14 @@ import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleCondition;
 import pratham.dde.domain.DDE_RuleMaster;
 import pratham.dde.domain.DDE_RuleQuestion;
+import pratham.dde.domain.Status;
 import pratham.dde.domain.User;
 
-@Database(entities = {User.class,
-        DDE_Forms.class,
-        DDE_Questions.class,
-        DDE_FormWiseDataSource.class,
-        DDE_RuleQuestion.class,
-        DDE_RuleMaster.class,
-        DDE_RuleCondition.class,
-        Answer.class}, version = 1)
+@Database(entities = {User.class, Status.class, DDE_Forms.class, DDE_Questions.class, DDE_FormWiseDataSource.class, DDE_RuleQuestion.class, DDE_RuleMaster.class, DDE_RuleCondition.class, Answer.class}, version = 1)
 
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final String DB_NAME = "dynamic_data_entry";
+    public static final String DB_NAME = "dynamic_data.db";
 
     public abstract UserDao getUserDao();
 
