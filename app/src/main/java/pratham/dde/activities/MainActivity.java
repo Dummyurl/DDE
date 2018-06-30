@@ -1,5 +1,7 @@
 package pratham.dde.activities;
 
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,6 +25,7 @@ import pratham.dde.BaseActivity;
 import pratham.dde.R;
 import pratham.dde.domain.Status;
 import pratham.dde.domain.User;
+import pratham.dde.services.SyncUtility;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.utils.Utility.isTokenValid;
@@ -35,6 +38,7 @@ public class MainActivity extends BaseActivity {
     TextView input_password;
 
     Context mContext;
+    Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +46,7 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         mContext = MainActivity.this;
         ButterKnife.bind(this);
+        dialog =new ProgressDialog(mContext);
         initialiseStatusTable();
         input_email.setText("prathamdde@dde.com");
         input_password.setText("Admin@1234");
@@ -50,13 +55,13 @@ public class MainActivity extends BaseActivity {
     private void initialiseStatusTable() {
         Status[] statuses = new Status[3];
         Status status = new Status();
-        status.setKey("LastPulledDate");
+        status.setKeys("LastPulledDate");
         status.setValue("");
         statuses[0] = status;
-        status.setKey("GPSLocation");
+        status.setKeys("GPSLocation");
         status.setValue("");
         statuses[1] = status;
-        status.setKey("DeviceId");
+        status.setKeys("DeviceId");
         status.setValue("");
         statuses[2] = status;
         appDatabase.getStatusDao().initialiseAppStatus(statuses);
@@ -74,8 +79,7 @@ public class MainActivity extends BaseActivity {
             Utility.showDialogue(this, "Insert Username and Password correctly");
         else if (!validateUserFromLocalDatabase())
             getNewTokenFromServer(Utility.getProperty("checkCredentials", mContext));
-        else
-            startNextActivity();
+        else startNextActivity();
     }
 
     User user;
@@ -94,24 +98,25 @@ public class MainActivity extends BaseActivity {
 
     private void getNewTokenFromServer(String url) {
         //TODO checkNetwork
-        AndroidNetworking.post(url)
-                .addBodyParameter("username", userName)
-                .addBodyParameter("password", password)
-                .addBodyParameter("grant_type", "password")
-                .setTag("test").setPriority(Priority.MEDIUM)
-                .build()
-                .getAsJSONObject(new JSONObjectRequestListener() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        validateResult(response);
-                    }
+        if (SyncUtility.isDataConnectionAvailable(this)) {
+            Utility.showDialoginApiCalling(dialog,mContext,"getNewTokenFromServer");
+            AndroidNetworking.post(url).addBodyParameter("username", userName).addBodyParameter("password", password).addBodyParameter("grant_type", "password").setTag("test").setPriority(Priority.MEDIUM).build().getAsJSONObject(new JSONObjectRequestListener() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Utility.dismissShownDialog(dialog);
+                    validateResult(response);
 
-                    @Override
-                    public void onError(ANError error) {
-                        // handle error
-                        Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                }
+
+                @Override
+                public void onError(ANError error) {
+                    Utility.dismissShownDialog(dialog);
+                    Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(mContext, "Internate not available", Toast.LENGTH_SHORT);
+        }
     }
 
     private void validateResult(JSONObject response) {
@@ -136,24 +141,29 @@ public class MainActivity extends BaseActivity {
 
     private void callAPIForPrograms(final String access_token, String url, final String expiryDate, final String Name, final String userName) {
         //TODO checkNetwork
-        AndroidNetworking.get(url)
-                .addHeaders("Content-Type", "application/json")
-                .addHeaders("Authorization", access_token)
-                .build()
-                .getAsJSONArray(new JSONArrayRequestListener() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        // do anything with response
-                        programsJson = response;
-                        setUserEntries(access_token, expiryDate, Name, userName);
-                    }
 
-                    @Override
-                    public void onError(ANError error) {
-                        // handle error
-                        Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+        if (SyncUtility.isDataConnectionAvailable(this)) {
+            Utility.showDialoginApiCalling(dialog,mContext,"callAPIForPrograms ");
+            AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONArray(new JSONArrayRequestListener() {
+                @Override
+                public void onResponse(JSONArray response) {
+                    // do anything with response
+                    programsJson = response;
+                    Utility.dismissShownDialog(dialog);
+                    setUserEntries(access_token, expiryDate, Name, userName);
+
+                }
+
+                @Override
+                public void onError(ANError error) {
+                    // handle error
+                    Utility.dismissShownDialog(dialog);
+                    Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(mContext, "Internate not available", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setUserEntries(String access_token, String expiryDate, String Name, String userName) {
@@ -173,6 +183,7 @@ public class MainActivity extends BaseActivity {
             user.setName(Name);
             user.setExpiryDate(expiryDate);
             appDatabase.getUserDao().insert(user);
+
         }
         startNextActivity();
     }

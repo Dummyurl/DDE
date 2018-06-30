@@ -2,6 +2,8 @@ package pratham.dde.utils;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.AssetManager;
@@ -91,4 +93,20 @@ public class Utility {
             return false;
         }
     }
+    /*show loader */
+    public static void showDialoginApiCalling(Dialog dialog, Context context,String msg) {
+        if (dialog == null) {
+            dialog = new ProgressDialog(context);
+        }
+        dialog.setTitle(msg+"Loading...");
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
+    }
+    /*Dismiss loader */
+    public static  void dismissShownDialog(Dialog dialog) {
+        if (dialog != null) dialog.dismiss();
+        dialog = null;
+    }
+
 }

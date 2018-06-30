@@ -1,6 +1,8 @@
 package pratham.dde.activities;
 
+import android.app.Dialog;
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -25,6 +27,7 @@ import pratham.dde.R;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.OldFormsFragment;
+import pratham.dde.services.SyncUtility;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.BaseActivity.appDatabase;
@@ -39,7 +42,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
      TextView geo;*/
     @BindView(R.id.nav_view)
     NavigationView navigationView;
-
+    Dialog dialog;
     //    FusedLocationAPI fusedLocationAPI;
     String userName, password;
     Context mContext;
@@ -54,44 +57,44 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
         mContext = this;
+        dialog = new ProgressDialog(mContext);
         userName = this.getIntent().getStringExtra("userName");
         password = this.getIntent().getStringExtra("password");
 
-        navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(MenuItem menuItem) {
 
-                        switch (menuItem.getItemId()) {
-                            case R.id.nav_get_new_forms:
-                                User user = appDatabase.getUserDao().getUserDetails(userName, password);
-                                if (user != null)
-                                    getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
-                                else
-                                    Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();
-                                break;
+                switch (menuItem.getItemId()) {
+                    case R.id.nav_get_new_forms:
+                        User user = appDatabase.getUserDao().getUserDetails(userName, password);
+                        if (user != null)
+                            getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
+                        else
+                            Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();
+                        break;
 
-                            case R.id.nav_fill_forms:
-                                Bundle bundle = new Bundle();
-                                bundle.putString("userName", userName);
-                                bundle.putString("password", password);
-                                FillFormsFragment fillFormsFragment = new FillFormsFragment();
-                                fillFormsFragment.setArguments(bundle);
-                                FragmentManager manager = getFragmentManager();
-                                manager.beginTransaction().replace(R.id.fragment, fillFormsFragment).commit();
-                                break;
+                    case R.id.nav_fill_forms:
+                        Bundle bundle = new Bundle();
+                        bundle.putString("userName", userName);
+                        bundle.putString("password", password);
+                        FillFormsFragment fillFormsFragment = new FillFormsFragment();
+                        fillFormsFragment.setArguments(bundle);
+                        FragmentManager manager = getFragmentManager();
+                        manager.beginTransaction().replace(R.id.fragment, fillFormsFragment).commit();
+                        break;
 
-                            case R.id.nav_old_forms:
-                                OldFormsFragment oldFormsFragment = new OldFormsFragment();
-                                FragmentManager fragmentManager = getFragmentManager();
-                                fragmentManager.beginTransaction().replace(R.id.fragment, oldFormsFragment).commit();
-                                break;
+                    case R.id.nav_old_forms:
+                        OldFormsFragment oldFormsFragment = new OldFormsFragment();
+                        FragmentManager fragmentManager = getFragmentManager();
+                        fragmentManager.beginTransaction().replace(R.id.fragment, oldFormsFragment).commit();
+                        break;
 
-                        }
-                        drawer_layout.closeDrawer(GravityCompat.START);
-                        return true;
-                    }
-                });
+                }
+                drawer_layout.closeDrawer(GravityCompat.START);
+                return true;
+            }
+        });
 
 
        /* fusedLocationAPI = new FusedLocationAPI(this);
@@ -101,25 +104,27 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     /* getFormsfromServer */
     private void getNewForms(String url, String access_token) {
         //TODO checkNetwork
+        if (SyncUtility.isDataConnectionAvailable(this)) {
+            Utility.showDialoginApiCalling(dialog, mContext, "getNewForms");
+            AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONObject(new JSONObjectRequestListener() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    // do anything with response
+                    Utility.dismissShownDialog(dialog);
+                    Log.d("pk-log", "" + response.length());
+                    updateFormsInDatabase();
+                }
 
-        AndroidNetworking.get(url)
-                .addHeaders("Content-Type", "application/json")
-                .addHeaders("Authorization", access_token)
-                .build()
-                .getAsJSONObject(new JSONObjectRequestListener() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        // do anything with response
-                        Log.d("pk-log", "" + response.length());
-                        updateFormsInDatabase();
-                    }
-
-                    @Override
-                    public void onError(ANError error) {
-                        // handle error
-                        Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                @Override
+                public void onError(ANError error) {
+                    // handle error
+                    Utility.dismissShownDialog(dialog);
+                    Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(mContext, "Internate not available", Toast.LENGTH_SHORT);
+        }
     }
 
     private void updateFormsInDatabase() {
