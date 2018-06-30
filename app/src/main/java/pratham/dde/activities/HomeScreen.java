@@ -49,7 +49,6 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     //    FusedLocationAPI fusedLocationAPI;
     String userName, password;
     Context mContext;
-    int i;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
