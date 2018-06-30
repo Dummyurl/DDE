@@ -166,6 +166,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
                         @Override
                         protected void onPostExecute(String s) {
+                            appDatabase.getStatusDao().updateValue("LastPulledDate",Utility.getCurrentDateTime());
                             Utility.dismissDilog(dialog);
                             Log.d("pk-size", "pk-length:-"+appDatabase.getDDE_FormsDao().getAllForms().length);
                         }
