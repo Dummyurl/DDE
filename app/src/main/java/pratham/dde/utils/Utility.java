@@ -19,8 +19,8 @@ import java.util.UUID;
 
 public class Utility {
 
-//    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
-    private final DateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+    //    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+    private static final DateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
 
     /**
      * Returns the current datetime as a string.
@@ -29,7 +29,7 @@ public class Utility {
      *
      * @return Current Datetime as a string object.
      */
-    public String GetCurrentDateTime() {
+    public static String getCurrentDateTime() {
         Calendar cal = Calendar.getInstance();
         return dateFormat.format(cal.getTime());
     }
@@ -84,32 +84,41 @@ public class Utility {
 
     public static boolean isTokenValid(String expiryDate) {
         try {
-            expiryDate = "";
             SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
-         //   SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            //   SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             Date strDate = sdf.parse(expiryDate);
             if (new Date().after(strDate))
                 return false;
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
+
     /*show loader */
-    public static void showDialoginApiCalling(Dialog dialog, Context context,String msg) {
+    public static void showDialogInApiCalling(Dialog dialog, Context context, String msg) {
         if (dialog == null) {
             dialog = new ProgressDialog(context);
         }
-        dialog.setTitle(msg+"Loading...");
+        dialog.setTitle(msg);
         dialog.setCancelable(false);
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();
     }
+
+    /* Set Message */
+    public static void setMessage(Dialog dialog, String message){
+        if (dialog != null)
+            dialog.setTitle(message);
+    }
+
     /*Dismiss loader */
-    public static  void dismissShownDialog(Dialog dialog) {
-        if (dialog != null) dialog.dismiss();
-        dialog = null;
+    public static void dismissDilog(Dialog dialog) {
+        if (dialog != null) {
+            dialog.dismiss();
+            dialog = null;
+        }
     }
 
 }

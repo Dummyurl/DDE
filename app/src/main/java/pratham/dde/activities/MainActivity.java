@@ -99,18 +99,17 @@ public class MainActivity extends BaseActivity {
     private void getNewTokenFromServer(String url) {
         //TODO checkNetwork
         if (SyncUtility.isDataConnectionAvailable(this)) {
-            Utility.showDialoginApiCalling(dialog,mContext,"getNewTokenFromServer");
+            Utility.showDialogInApiCalling(dialog,mContext,"getNewTokenFromServer");
             AndroidNetworking.post(url).addBodyParameter("username", userName).addBodyParameter("password", password).addBodyParameter("grant_type", "password").setTag("test").setPriority(Priority.MEDIUM).build().getAsJSONObject(new JSONObjectRequestListener() {
                 @Override
                 public void onResponse(JSONObject response) {
-                    Utility.dismissShownDialog(dialog);
+                    Utility.dismissDilog(dialog);
                     validateResult(response);
-
                 }
 
                 @Override
                 public void onError(ANError error) {
-                    Utility.dismissShownDialog(dialog);
+                    Utility.dismissDilog(dialog);
                     Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -143,13 +142,13 @@ public class MainActivity extends BaseActivity {
         //TODO checkNetwork
 
         if (SyncUtility.isDataConnectionAvailable(this)) {
-            Utility.showDialoginApiCalling(dialog,mContext,"callAPIForPrograms ");
+            Utility.showDialogInApiCalling(dialog,mContext,"callAPIForPrograms ");
             AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONArray(new JSONArrayRequestListener() {
                 @Override
                 public void onResponse(JSONArray response) {
                     // do anything with response
                     programsJson = response;
-                    Utility.dismissShownDialog(dialog);
+                    Utility.dismissDilog(dialog);
                     setUserEntries(access_token, expiryDate, Name, userName);
 
                 }
@@ -157,7 +156,7 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onError(ANError error) {
                     // handle error
-                    Utility.dismissShownDialog(dialog);
+                    Utility.dismissDilog(dialog);
                     Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
                 }
             });

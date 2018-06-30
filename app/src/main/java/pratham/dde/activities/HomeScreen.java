@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -25,6 +26,7 @@ import org.json.JSONObject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
+import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.OldFormsFragment;
@@ -106,53 +108,73 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     private void getNewForms(String url, String access_token) {
         //TODO checkNetwork
         if (SyncUtility.isDataConnectionAvailable(this)) {
-            Utility.showDialoginApiCalling(dialog, mContext, "getNewForms");
-            AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONObject(new JSONObjectRequestListener() {
-                @Override
-                public void onResponse(JSONObject response) {
-                    // do anything with response
-                    Utility.dismissShownDialog(dialog);
-                    Log.d("pk-log", "" + response.length());
-                    updateFormsInDatabase(response);
-                }
+            Utility.showDialogInApiCalling(dialog, mContext, "Getting new forms... Please wait.");
+            AndroidNetworking.get(url)
+                    .addHeaders("Content-Type", "application/json")
+                    .addHeaders("Authorization", access_token)
+                    .build()
+                    .getAsJSONObject(new JSONObjectRequestListener() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            Log.d("pk-log", "" + response.length());
+                            Utility.setMessage(dialog,"Updating forms in Database... Please wait.");
+                            updateFormsInDatabase(response);
+                        }
 
-                @Override
-                public void onError(ANError error) {
-                    // handle error
-                    Utility.dismissShownDialog(dialog);
-                    Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
-                }
-            });
+                        @Override
+                        public void onError(ANError error) {
+                            Utility.dismissDilog(dialog);
+                            Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         } else {
             Toast.makeText(mContext, "Internet not available", Toast.LENGTH_SHORT);
         }
-
-        AndroidNetworking.get(url)
-                .addHeaders("Content-Type", "application/json")
-                .addHeaders("Authorization", access_token)
-                .build()
-                .getAsJSONObject(new JSONObjectRequestListener() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d("pk-log", "" + response.length());
-                        updateFormsInDatabase(response);
-                    }
-
-                    @Override
-                    public void onError(ANError error) {
-                        // handle error
-                        Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
-                    }
-                });
     }
 
     private void updateFormsInDatabase(JSONObject response) {
         try {
-            JSONArray formData = new JSONArray();
+            JSONArray formData;
+            JSONObject tempObj;
+            DDE_Forms dde_form;
+            final DDE_Forms[] dde_forms;
+
             if (response.length() > 1) {
                 JSONObject result = response.getJSONObject("Result");
                 if (result.getString("success").equals("true")) {
                     formData = result.getJSONArray("Data");
+                    dde_forms = new DDE_Forms[formData.length()];
+                    for (int i = 0; i < formData.length(); i++){
+                        dde_form = new DDE_Forms();
+                        tempObj = formData.getJSONObject(i);
+                        dde_form.setFormid(tempObj.getInt("formid"));
+                        dde_form.setFormname(tempObj.getString("formname"));
+                        dde_form.setFormpassword(tempObj.getString("formpassword"));
+                        dde_form.setProgramid(tempObj.getString("programid"));
+                        dde_form.setTablename(tempObj.getString("tablename"));
+                        dde_form.setUpdateddate(tempObj.getString("updateddate"));
+                        dde_form.setPulledDateTime(Utility.getCurrentDateTime());
+                        dde_forms[i] = dde_form;
+                    }
+
+                    new AsyncTask<Void, Void, String>() {
+                        @Override
+                        protected String doInBackground(Void... voids) {
+                            appDatabase.getDDE_FormsDao().insertForms(dde_forms);
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(String s) {
+                            Utility.dismissDilog(dialog);
+                            Log.d("pk-size", "pk-length:-"+appDatabase.getDDE_FormsDao().getAllForms().length);
+                        }
+
+                        @Override
+                        protected void onCancelled() {
+                            Utility.dismissDilog(dialog);
+                        }
+                    }.execute();
                 } else {
                     Utility.showDialogue(this, "Problem with server");
                 }
