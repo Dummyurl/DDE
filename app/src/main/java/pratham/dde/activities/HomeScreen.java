@@ -28,11 +28,8 @@ import org.json.JSONObject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
-<<<<<<< HEAD
 import pratham.dde.database.BackupDatabase;
-=======
 import pratham.dde.dao.GenericDao;
->>>>>>> 8189c5633f0e2fae9e28b42c9f019a591cd8ff52
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
@@ -111,7 +108,6 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         fusedLocationAPI.startLocationButtonClick();*/
     }
 
-<<<<<<< HEAD
     private void getQuestionsAndData() {
         Toast.makeText(mContext, "Getting questions and data", Toast.LENGTH_SHORT).show();
         // TODO get questions and data if required
@@ -125,8 +121,6 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
             Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();
     }
 
-=======
->>>>>>> 8189c5633f0e2fae9e28b42c9f019a591cd8ff52
     /* getFormsfromServer */
     private void getNewForms(String url, String access_token) {
         //TODO checkNetwork
@@ -189,13 +183,9 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
                         @Override
                         protected void onPostExecute(String s) {
-<<<<<<< HEAD
                             appDatabase.getStatusDao().updateValue("LastPulledDate",Utility.getCurrentDateTime());
-                            Utility.dismissDilog(dialog);
                             BackupDatabase.backup(mContext);
-=======
                             Utility.dismissDialog(dialog);
->>>>>>> 8189c5633f0e2fae9e28b42c9f019a591cd8ff52
                             Log.d("pk-size", "pk-length:-"+appDatabase.getDDE_FormsDao().getAllForms().length);
                         }
 
