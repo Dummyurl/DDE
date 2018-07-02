@@ -3,7 +3,9 @@ package pratham.dde.activities;
 import android.app.Dialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
+import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -26,6 +28,7 @@ import org.json.JSONObject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
+import pratham.dde.dao.GenericDao;
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
@@ -123,7 +126,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
                         @Override
                         public void onError(ANError error) {
-                            Utility.dismissDilog(dialog);
+                            Utility.dismissDialog(dialog);
                             Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -166,13 +169,13 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
                         @Override
                         protected void onPostExecute(String s) {
-                            Utility.dismissDilog(dialog);
+                            Utility.dismissDialog(dialog);
                             Log.d("pk-size", "pk-length:-"+appDatabase.getDDE_FormsDao().getAllForms().length);
                         }
 
                         @Override
                         protected void onCancelled() {
-                            Utility.dismissDilog(dialog);
+                            Utility.dismissDialog(dialog);
                         }
                     }.execute();
                 } else {
@@ -190,6 +193,8 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
+                GenericDao genericDao=new GenericDao();
+                 genericDao.createTable("Employee","name,age,work");
                 drawer_layout.openDrawer(GravityCompat.START);
                 return true;
         }

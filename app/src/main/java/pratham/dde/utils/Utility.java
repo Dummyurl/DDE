@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
 
-public class Utility {
+public class Utility{
 
     //    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
     private static final DateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
@@ -114,7 +114,7 @@ public class Utility {
     }
 
     /*Dismiss loader */
-    public static void dismissDilog(Dialog dialog) {
+    public static void dismissDialog(Dialog dialog) {
         if (dialog != null) {
             dialog.dismiss();
             dialog = null;
