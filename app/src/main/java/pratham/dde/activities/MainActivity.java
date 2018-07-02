@@ -105,13 +105,13 @@ public class MainActivity extends BaseActivity {
             AndroidNetworking.post(url).addBodyParameter("username", userName).addBodyParameter("password", password).addBodyParameter("grant_type", "password").setTag("test").setPriority(Priority.MEDIUM).build().getAsJSONObject(new JSONObjectRequestListener() {
                 @Override
                 public void onResponse(JSONObject response) {
-                    Utility.dismissDilog(dialog);
+                    Utility.dismissDialog(dialog);
                     validateResult(response);
                 }
 
                 @Override
                 public void onError(ANError error) {
-                    Utility.dismissDilog(dialog);
+                    Utility.dismissDialog(dialog);
                     Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -150,7 +150,7 @@ public class MainActivity extends BaseActivity {
                 public void onResponse(JSONArray response) {
                     // do anything with response
                     programsJson = response;
-                    Utility.dismissDilog(dialog);
+                    Utility.dismissDialog(dialog);
                     setUserEntries(access_token, expiryDate, Name, userName);
 
                 }
@@ -158,7 +158,7 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onError(ANError error) {
                     // handle error
-                    Utility.dismissDilog(dialog);
+                    Utility.dismissDialog(dialog);
                     Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
                 }
             });

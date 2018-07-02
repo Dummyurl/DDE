@@ -3,7 +3,9 @@ package pratham.dde.activities;
 import android.app.Dialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
+import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -26,7 +28,11 @@ import org.json.JSONObject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
+<<<<<<< HEAD
 import pratham.dde.database.BackupDatabase;
+=======
+import pratham.dde.dao.GenericDao;
+>>>>>>> 8189c5633f0e2fae9e28b42c9f019a591cd8ff52
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
@@ -65,15 +71,17 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         userName = this.getIntent().getStringExtra("userName");
         password = this.getIntent().getStringExtra("password");
 
-        updateFormEntries();
-
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
 
                 switch (menuItem.getItemId()) {
                     case R.id.nav_get_new_forms:
-                        getQuestionsAndData();
+                        User user = appDatabase.getUserDao().getUserDetails(userName, password);
+                        if (user != null)
+                            getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
+                        else
+                            Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();
                         break;
 
                     case R.id.nav_fill_forms:
@@ -103,6 +111,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         fusedLocationAPI.startLocationButtonClick();*/
     }
 
+<<<<<<< HEAD
     private void getQuestionsAndData() {
         Toast.makeText(mContext, "Getting questions and data", Toast.LENGTH_SHORT).show();
         // TODO get questions and data if required
@@ -116,6 +125,8 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
             Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();
     }
 
+=======
+>>>>>>> 8189c5633f0e2fae9e28b42c9f019a591cd8ff52
     /* getFormsfromServer */
     private void getNewForms(String url, String access_token) {
         //TODO checkNetwork
@@ -135,7 +146,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
                         @Override
                         public void onError(ANError error) {
-                            Utility.dismissDilog(dialog);
+                            Utility.dismissDialog(dialog);
                             Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -178,15 +189,19 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
                         @Override
                         protected void onPostExecute(String s) {
+<<<<<<< HEAD
                             appDatabase.getStatusDao().updateValue("LastPulledDate",Utility.getCurrentDateTime());
                             Utility.dismissDilog(dialog);
                             BackupDatabase.backup(mContext);
+=======
+                            Utility.dismissDialog(dialog);
+>>>>>>> 8189c5633f0e2fae9e28b42c9f019a591cd8ff52
                             Log.d("pk-size", "pk-length:-"+appDatabase.getDDE_FormsDao().getAllForms().length);
                         }
 
                         @Override
                         protected void onCancelled() {
-                            Utility.dismissDilog(dialog);
+                            Utility.dismissDialog(dialog);
                         }
                     }.execute();
                 } else {
@@ -204,6 +219,8 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
+                GenericDao genericDao=new GenericDao();
+                 genericDao.createTable("Employee","name,age,work");
                 drawer_layout.openDrawer(GravityCompat.START);
                 return true;
         }
