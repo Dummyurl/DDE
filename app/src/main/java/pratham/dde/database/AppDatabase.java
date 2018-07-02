@@ -26,7 +26,7 @@ import pratham.dde.domain.User;
 
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final String DB_NAME = "dynamic_data.db";
+    public static final String DB_NAME = "dynamic_data";
 
     public abstract UserDao getUserDao();
 

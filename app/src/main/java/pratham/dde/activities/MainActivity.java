@@ -116,7 +116,7 @@ public class MainActivity extends BaseActivity {
                 }
             });
         } else {
-            Toast.makeText(mContext, "Internate not available", Toast.LENGTH_SHORT);
+            Toast.makeText(mContext, "Internet not available", Toast.LENGTH_SHORT);
         }
     }
 

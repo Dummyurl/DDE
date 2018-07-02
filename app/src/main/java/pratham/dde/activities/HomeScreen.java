@@ -26,6 +26,7 @@ import org.json.JSONObject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
+import pratham.dde.database.BackupDatabase;
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
@@ -113,7 +114,6 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
             getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
         else
             Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();
-
     }
 
     /* getFormsfromServer */
@@ -180,6 +180,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                         protected void onPostExecute(String s) {
                             appDatabase.getStatusDao().updateValue("LastPulledDate",Utility.getCurrentDateTime());
                             Utility.dismissDilog(dialog);
+                            BackupDatabase.backup(mContext);
                             Log.d("pk-size", "pk-length:-"+appDatabase.getDDE_FormsDao().getAllForms().length);
                         }
 
