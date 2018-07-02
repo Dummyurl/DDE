@@ -209,8 +209,13 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
+
                 GenericDao genericDao=new GenericDao();
                  genericDao.createTable("Employee","name,age,work");
+                 genericDao.getTableCount();
+
+
+
                 drawer_layout.openDrawer(GravityCompat.START);
                 return true;
         }
