@@ -4,7 +4,9 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,7 +64,7 @@ public class MainActivity extends BaseActivity {
         status.setValue("");
         statuses[1] = status;
         status.setKeys("DeviceId");
-        status.setValue("");
+        status.setValue(Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID));
         statuses[2] = status;
         appDatabase.getStatusDao().initialiseAppStatus(statuses);
     }
