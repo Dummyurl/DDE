@@ -20,4 +20,7 @@ public interface UserDao {
 
     @Query("SELECT ProgramIds from User where UserName = :UserName and Password = :Password")
     String getProgramIDs( String UserName, String Password);
+
+    @Query("SELECT UserToken from User where UserName = :UserName and Password = :Password")
+    String getToken(String UserName, String Password);
 }
