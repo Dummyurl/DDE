@@ -3,9 +3,7 @@ package pratham.dde.activities;
 import android.app.Dialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
-import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -28,8 +26,8 @@ import org.json.JSONObject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
-import pratham.dde.database.BackupDatabase;
 import pratham.dde.dao.GenericDao;
+import pratham.dde.database.BackupDatabase;
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
@@ -74,7 +72,11 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
                 switch (menuItem.getItemId()) {
                     case R.id.nav_get_new_forms:
-                        getQuestionsAndData();
+                        String token = appDatabase.getUserDao().getToken(userName, password);
+                        DDE_Forms[] forms = appDatabase.getDDE_FormsDao().getAllForms();
+                        for (int i = 0; i < forms.length; i++) {
+                            getQuestionsAndData(forms[i].getProgramid(), token);
+                        }
                         break;
 
                     case R.id.nav_fill_forms:
@@ -110,9 +112,21 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         updateFormEntries();
     }
 
-    private void getQuestionsAndData() {
-        Toast.makeText(mContext, "Getting questions and data", Toast.LENGTH_SHORT).show();
+    private void getQuestionsAndData(String formId, String token) {
         // TODO get questions and data if required
+        String url = "http://www.ddeapi.prathamskills.org/api/ddeforms/getquestions?Id=" + formId;
+        AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
+            @Override
+            public void onResponse(JSONObject response) {
+                String s = response.toString();
+            }
+
+            @Override
+            public void onError(ANError anError) {
+                String s = anError.toString();
+
+            }
+        });
     }
 
     private void updateFormEntries() {
@@ -127,24 +141,20 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
     private void getNewForms(String url, String access_token) {
         if (SyncUtility.isDataConnectionAvailable(this)) {
             Utility.showDialogInApiCalling(dialog, mContext, "Getting new forms... Please wait.");
-            AndroidNetworking.get(url)
-                    .addHeaders("Content-Type", "application/json")
-                    .addHeaders("Authorization", access_token)
-                    .build()
-                    .getAsJSONObject(new JSONObjectRequestListener() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            Log.d("pk-log", "" + response.length());
-                            Utility.setMessage(dialog,"Updating forms in Database... Please wait.");
-                            updateFormsInDatabase(response);
-                        }
+            AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONObject(new JSONObjectRequestListener() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.d("pk-log", "" + response.length());
+                    Utility.setMessage(dialog, "Updating forms in Database... Please wait.");
+                    updateFormsInDatabase(response);
+                }
 
-                        @Override
-                        public void onError(ANError error) {
-                            Utility.dismissDialog(dialog);
-                            Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                @Override
+                public void onError(ANError error) {
+                    Utility.dismissDialog(dialog);
+                    Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                }
+            });
         } else {
             Toast.makeText(mContext, "Internet not available", Toast.LENGTH_SHORT);
         }
@@ -162,7 +172,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                 if (result.getString("success").equals("true")) {
                     formData = result.getJSONArray("Data");
                     dde_forms = new DDE_Forms[formData.length()];
-                    for (int i = 0; i < formData.length(); i++){
+                    for (int i = 0; i < formData.length(); i++) {
                         dde_form = new DDE_Forms();
                         tempObj = formData.getJSONObject(i);
                         dde_form.setFormid(tempObj.getInt("formid"));
@@ -184,10 +194,10 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
                         @Override
                         protected void onPostExecute(String s) {
-                            appDatabase.getStatusDao().updateValue("LastPulledDate",Utility.getCurrentDateTime());
+                            appDatabase.getStatusDao().updateValue("LastPulledDate", Utility.getCurrentDateTime());
                             BackupDatabase.backup(mContext);
                             Utility.dismissDialog(dialog);
-                            Log.d("pk-size", "pk-length:-"+appDatabase.getDDE_FormsDao().getAllForms().length);
+                            Log.d("pk-size", "pk-length:-" + appDatabase.getDDE_FormsDao().getAllForms().length);
                         }
 
                         @Override
@@ -211,10 +221,9 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         switch (item.getItemId()) {
             case android.R.id.home:
 
-                GenericDao genericDao=new GenericDao();
-                 genericDao.createTable("Employee","name,age,work");
-                 genericDao.getTableCount();
-
+                GenericDao genericDao = new GenericDao();
+                genericDao.createTable("Employee", "name,age,work");
+                genericDao.getTableCount();
 
 
                 drawer_layout.openDrawer(GravityCompat.START);
