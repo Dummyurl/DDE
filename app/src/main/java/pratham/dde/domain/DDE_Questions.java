@@ -9,16 +9,16 @@ public class DDE_Questions {
 
     @PrimaryKey
     @NonNull
-    private String QuestionId;
-    private int FieldSeqNo;
-    private String QuestionType;
-    private String Question;
-    private String Validations;
-    private String DestColumname;
-    private int FormId;
-    private String Dependency;
-    private String DataSource;
-    private String Associate;
+    private String QuestionId;//QuestionIdentifier
+    private int FieldSeqNo;//QuestionSequenceNumber
+    private String QuestionType;//QuestionType
+    private String Question;//QuestionTitle
+    private String Validations;//QuestionValidation
+    private String DestColumname;//QuestionKeyword
+    private int FormId;//FormId
+    private String Dependency;//QuestionDependValueOperator
+    private String DataSource;//DataSourceValue
+    private String Associate;//
     private String ViewStyle;
 
     @Override

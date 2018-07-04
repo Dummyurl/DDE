@@ -74,11 +74,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
 
                 switch (menuItem.getItemId()) {
                     case R.id.nav_get_new_forms:
-                        User user = appDatabase.getUserDao().getUserDetails(userName, password);
-                        if (user != null)
-                            getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
-                        else
-                            Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();
+                        getQuestionsAndData();
                         break;
 
                     case R.id.nav_fill_forms:
@@ -108,6 +104,12 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         fusedLocationAPI.startLocationButtonClick();*/
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateFormEntries();
+    }
+
     private void getQuestionsAndData() {
         Toast.makeText(mContext, "Getting questions and data", Toast.LENGTH_SHORT).show();
         // TODO get questions and data if required
@@ -117,13 +119,12 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         User user = appDatabase.getUserDao().getUserDetails(userName, password);
         if (user != null)
             getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
-        else
-            Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();
+        /*else
+            Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();*/
     }
 
     /* getFormsfromServer */
     private void getNewForms(String url, String access_token) {
-        //TODO checkNetwork
         if (SyncUtility.isDataConnectionAvailable(this)) {
             Utility.showDialogInApiCalling(dialog, mContext, "Getting new forms... Please wait.");
             AndroidNetworking.get(url)
