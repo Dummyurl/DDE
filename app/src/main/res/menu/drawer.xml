@@ -2,6 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/nav_saved_forms"
+            android:icon="@drawable/form"
+            android:title="Saved Forms" />
+        <item
             android:id="@+id/nav_get_new_forms"
             android:icon="@drawable/ic_cloud_download_black_24dp"
             android:title="Get New Forms" />

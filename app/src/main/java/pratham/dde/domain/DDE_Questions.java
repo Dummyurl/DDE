@@ -4,22 +4,107 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+import com.google.gson.annotations.SerializedName;
+
 @Entity
 public class DDE_Questions {
 
     @PrimaryKey
     @NonNull
-    private String QuestionId;//QuestionIdentifier
-    private int FieldSeqNo;//QuestionSequenceNumber
-    private String QuestionType;//QuestionType
-    private String Question;//QuestionTitle
-    private String Validations;//QuestionValidation
-    private String DestColumname;//QuestionKeyword
-    private int FormId;//FormId
-    private String Dependency;//QuestionDependValueOperator
-    private String DataSource;//DataSourceValue
-    private String Associate;//
-    private String ViewStyle;
+    @SerializedName("QuestionIdentifier")
+    private String QuestionId;
+
+    @SerializedName("QuestionSequenceNumber")
+    private int FieldSeqNo;
+
+    @SerializedName("QuestionType")
+    private String QuestionType;
+
+    @SerializedName("QuestionTitle")
+    private String Question;
+
+    @SerializedName("")
+    private String Validations;
+
+
+    @SerializedName("QuestionKeyword")
+    private String DestColumname;
+
+    @SerializedName("FormId")
+    private int FormId;
+
+    @SerializedName("DataSourceValue")
+    private String DataSource;
+
+    @SerializedName("QuestionDescription")
+    private String QuestionDescription;
+
+    @SerializedName("QuestionOption")
+    private String QuestionOption;
+
+
+    @SerializedName("QuestionIsRequired")
+    private Boolean QuestionIsRequired;
+
+    @SerializedName("QuestionAllowDecimal")
+    private Boolean QuestionAllowDecimal;
+
+    @SerializedName("QuestionValueDependsOn")
+    private String QuestionValueDependsOn;
+
+    @SerializedName("QuestionDependValueOperator")
+    private String QuestionDependValueOperator;
+
+    @SerializedName("IncludeNoneOfTheAbove")
+    private Boolean IncludeNoneOfTheAbove;
+
+    @SerializedName("NoneOfTheAboveVal")
+    private String NoneOfTheAboveVal;
+
+    @SerializedName("SelectFromDataSource")
+    private Boolean SelectFromDataSource;
+
+    @SerializedName("DataSourceValue")
+    private String DataSourceValue;
+
+    @SerializedName("ValidationJson")
+    private String ValidationJson;
+
+    @SerializedName("OptionJson")
+    private String OptionJson;
+
+    @SerializedName("DefaultValue")
+    private String DefaultValue;
+
+    @SerializedName("MAXCHARACTERSALLOWED")
+    private String MAXCHARACTERSALLOWED;
+
+    @SerializedName("MINCHARACTERSALLOWED")
+    private String MINCHARACTERSALLOWED;
+
+    @SerializedName("MINLENGTH")
+    private String MINLENGTH;
+
+    @SerializedName("MAXLENGTH")
+    private String MAXLENGTH;
+
+    @SerializedName("MINRANGE")
+    private String MINRANGE;
+
+    @SerializedName("MAXRANGE")
+    private String MAXRANGE;
+
+    @SerializedName("DEPENDESONVALUE")
+    private String DEPENDESONVALUE;
+
+    @SerializedName("DEPENDSONOPERATOR")
+    private String DEPENDSONOPERATOR;
+
+    @SerializedName("MINIMUMSELECT")
+    private String MINIMUMSELECT;
+
+    @SerializedName("MAXIMUMSELECT")
+    private String MAXIMUMSELECT;
 
     @Override
     public String toString() {
@@ -31,11 +116,31 @@ public class DDE_Questions {
                 ", Validations='" + Validations + '\'' +
                 ", DestColumname='" + DestColumname + '\'' +
                 ", FormId=" + FormId +
-                ", Dependency='" + Dependency + '\'' +
                 ", DataSource='" + DataSource + '\'' +
-                ", Associate='" + Associate + '\'' +
-                ", ViewStyle='" + ViewStyle + '\'' +
-                '}';
+                ", QuestionDescription='" + QuestionDescription + '\'' +
+                ", QuestionOption='" + QuestionOption + '\'' +
+                ", QuestionIsRequired='" + QuestionIsRequired + '\'' +
+                ", QuestionAllowDecimal='" + QuestionAllowDecimal + '\'' +
+                ", QuestionValueDependsOn='" + QuestionValueDependsOn + '\'' +
+                ", QuestionDependValueOperator='" + QuestionDependValueOperator + '\'' +
+                ", IncludeNoneOfTheAbove='" + IncludeNoneOfTheAbove + '\'' +
+                ", NoneOfTheAboveVal='" + NoneOfTheAboveVal + '\'' +
+                ", SelectFromDataSource='" + SelectFromDataSource + '\'' +
+                ", DataSourceValue='" + DataSourceValue + '\'' +
+                ", ValidationJson='" + ValidationJson + '\'' +
+                ", OptionJson='" + OptionJson + '\'' +
+                ", DefaultValue='" + DefaultValue + '\'' +
+                ", MAXCHARACTERSALLOWED='" + MAXCHARACTERSALLOWED + '\'' +
+                ", MINCHARACTERSALLOWED='" + MINCHARACTERSALLOWED + '\'' +
+                ", MINLENGTH='" + MINLENGTH + '\'' +
+                ", MAXLENGTH='" + MAXLENGTH + '\'' +
+                ", MINRANGE='" + MINRANGE + '\'' +
+                ", MAXRANGE='" + MAXRANGE + '\'' +
+                ", DEPENDESONVALUE='" + DEPENDESONVALUE + '\'' +
+                ", DEPENDSONOPERATOR='" + DEPENDSONOPERATOR + '\'' +
+                ", MINIMUMSELECT='" + MINIMUMSELECT + '\'' +
+                ", MAXIMUMSELECT='" + MAXIMUMSELECT + '\'' +
+                        '}';
     }
 
     @NonNull
@@ -95,14 +200,6 @@ public class DDE_Questions {
         FormId = formId;
     }
 
-    public String getDependency() {
-        return Dependency;
-    }
-
-    public void setDependency(String dependency) {
-        Dependency = dependency;
-    }
-
     public String getDataSource() {
         return DataSource;
     }
@@ -111,19 +208,187 @@ public class DDE_Questions {
         DataSource = dataSource;
     }
 
-    public String getAssociate() {
-        return Associate;
+    public String getQuestionDescription() {
+        return QuestionDescription;
     }
 
-    public void setAssociate(String associate) {
-        Associate = associate;
+    public void setQuestionDescription(String questionDescription) {
+        QuestionDescription = questionDescription;
     }
 
-    public String getViewStyle() {
-        return ViewStyle;
+    public String getQuestionOption() {
+        return QuestionOption;
     }
 
-    public void setViewStyle(String viewStyle) {
-        ViewStyle = viewStyle;
+    public void setQuestionOption(String questionOption) {
+        QuestionOption = questionOption;
+    }
+
+    public Boolean getQuestionIsRequired() {
+        return QuestionIsRequired;
+    }
+
+    public void setQuestionIsRequired(Boolean questionIsRequired) {
+        QuestionIsRequired = questionIsRequired;
+    }
+
+    public Boolean getQuestionAllowDecimal() {
+        return QuestionAllowDecimal;
+    }
+
+    public void setQuestionAllowDecimal(Boolean questionAllowDecimal) {
+        QuestionAllowDecimal = questionAllowDecimal;
+    }
+
+    public String getQuestionValueDependsOn() {
+        return QuestionValueDependsOn;
+    }
+
+    public void setQuestionValueDependsOn(String questionValueDependsOn) {
+        QuestionValueDependsOn = questionValueDependsOn;
+    }
+
+    public String getQuestionDependValueOperator() {
+        return QuestionDependValueOperator;
+    }
+
+    public void setQuestionDependValueOperator(String questionDependValueOperator) {
+        QuestionDependValueOperator = questionDependValueOperator;
+    }
+
+    public Boolean getIncludeNoneOfTheAbove() {
+        return IncludeNoneOfTheAbove;
+    }
+
+    public void setIncludeNoneOfTheAbove(Boolean includeNoneOfTheAbove) {
+        IncludeNoneOfTheAbove = includeNoneOfTheAbove;
+    }
+
+    public String getNoneOfTheAboveVal() {
+        return NoneOfTheAboveVal;
+    }
+
+    public void setNoneOfTheAboveVal(String noneOfTheAboveVal) {
+        NoneOfTheAboveVal = noneOfTheAboveVal;
+    }
+
+    public Boolean getSelectFromDataSource() {
+        return SelectFromDataSource;
+    }
+
+    public void setSelectFromDataSource(Boolean selectFromDataSource) {
+        SelectFromDataSource = selectFromDataSource;
+    }
+
+    public String getDataSourceValue() {
+        return DataSourceValue;
+    }
+
+    public void setDataSourceValue(String dataSourceValue) {
+        DataSourceValue = dataSourceValue;
+    }
+
+    public String getValidationJson() {
+        return ValidationJson;
+    }
+
+    public void setValidationJson(String validationJson) {
+        ValidationJson = validationJson;
+    }
+
+    public String getOptionJson() {
+        return OptionJson;
+    }
+
+    public void setOptionJson(String optionJson) {
+        OptionJson = optionJson;
+    }
+
+    public String getDefaultValue() {
+        return DefaultValue;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        DefaultValue = defaultValue;
+    }
+
+    public String getMAXCHARACTERSALLOWED() {
+        return MAXCHARACTERSALLOWED;
+    }
+
+    public void setMAXCHARACTERSALLOWED(String MAXCHARACTERSALLOWED) {
+        this.MAXCHARACTERSALLOWED = MAXCHARACTERSALLOWED;
+    }
+
+    public String getMINCHARACTERSALLOWED() {
+        return MINCHARACTERSALLOWED;
+    }
+
+    public void setMINCHARACTERSALLOWED(String MINCHARACTERSALLOWED) {
+        this.MINCHARACTERSALLOWED = MINCHARACTERSALLOWED;
+    }
+
+    public String getMINLENGTH() {
+        return MINLENGTH;
+    }
+
+    public void setMINLENGTH(String MINLENGTH) {
+        this.MINLENGTH = MINLENGTH;
+    }
+
+    public String getMAXLENGTH() {
+        return MAXLENGTH;
+    }
+
+    public void setMAXLENGTH(String MAXLENGTH) {
+        this.MAXLENGTH = MAXLENGTH;
+    }
+
+    public String getMINRANGE() {
+        return MINRANGE;
+    }
+
+    public void setMINRANGE(String MINRANGE) {
+        this.MINRANGE = MINRANGE;
+    }
+
+    public String getMAXRANGE() {
+        return MAXRANGE;
+    }
+
+    public void setMAXRANGE(String MAXRANGE) {
+        this.MAXRANGE = MAXRANGE;
+    }
+
+    public String getDEPENDESONVALUE() {
+        return DEPENDESONVALUE;
+    }
+
+    public void setDEPENDESONVALUE(String DEPENDESONVALUE) {
+        this.DEPENDESONVALUE = DEPENDESONVALUE;
+    }
+
+    public String getDEPENDSONOPERATOR() {
+        return DEPENDSONOPERATOR;
+    }
+
+    public void setDEPENDSONOPERATOR(String DEPENDSONOPERATOR) {
+        this.DEPENDSONOPERATOR = DEPENDSONOPERATOR;
+    }
+
+    public String getMINIMUMSELECT() {
+        return MINIMUMSELECT;
+    }
+
+    public void setMINIMUMSELECT(String MINIMUMSELECT) {
+        this.MINIMUMSELECT = MINIMUMSELECT;
+    }
+
+    public String getMAXIMUMSELECT() {
+        return MAXIMUMSELECT;
+    }
+
+    public void setMAXIMUMSELECT(String MAXIMUMSELECT) {
+        this.MAXIMUMSELECT = MAXIMUMSELECT;
     }
 }

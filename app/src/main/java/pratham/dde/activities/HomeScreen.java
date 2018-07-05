@@ -32,12 +32,14 @@ import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.OldFormsFragment;
+import pratham.dde.fragments.SavedFormsFragment;
+import pratham.dde.interfaces.FabInterface;
 import pratham.dde.services.SyncUtility;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.BaseActivity.appDatabase;
 
-public class HomeScreen extends AppCompatActivity/* implements LocationLisner */ {
+public class HomeScreen extends AppCompatActivity implements FabInterface/* implements LocationLisner */ {
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -71,22 +73,29 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
             public boolean onNavigationItemSelected(MenuItem menuItem) {
 
                 switch (menuItem.getItemId()) {
+                    case R.id.nav_saved_forms:
+                        SavedFormsFragment savedFormsFragment = new SavedFormsFragment();
+                        FragmentManager fm = getFragmentManager();
+                        fm.beginTransaction().replace(R.id.fragment, savedFormsFragment).commit();
+                        break;
+
                     case R.id.nav_get_new_forms:
                         String token = appDatabase.getUserDao().getToken(userName, password);
                         DDE_Forms[] forms = appDatabase.getDDE_FormsDao().getAllForms();
                         for (int i = 0; i < forms.length; i++) {
-                            getQuestionsAndData(forms[i].getProgramid(), token);
+                            getQuestionsAndData(forms[i].getFormid(), token);
                         }
                         break;
 
                     case R.id.nav_fill_forms:
-                        Bundle bundle = new Bundle();
+                       /* Bundle bundle = new Bundle();
                         bundle.putString("userName", userName);
                         bundle.putString("password", password);
                         FillFormsFragment fillFormsFragment = new FillFormsFragment();
                         fillFormsFragment.setArguments(bundle);
                         FragmentManager manager = getFragmentManager();
-                        manager.beginTransaction().replace(R.id.fragment, fillFormsFragment).commit();
+                        manager.beginTransaction().replace(R.id.fragment, fillFormsFragment).commit();*/
+                        callFillforms();
                         break;
 
                     case R.id.nav_old_forms:
@@ -112,7 +121,7 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
         updateFormEntries();
     }
 
-    private void getQuestionsAndData(String formId, String token) {
+    private void getQuestionsAndData(int formId, String token) {
         // TODO get questions and data if required
         String url = "http://www.ddeapi.prathamskills.org/api/ddeforms/getquestions?Id=" + formId;
         AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
@@ -155,9 +164,9 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                     Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
                 }
             });
-        } else {
+        } /*else {
             Toast.makeText(mContext, "Internet not available", Toast.LENGTH_SHORT);
-        }
+        }*/
     }
 
     private void updateFormsInDatabase(JSONObject response) {
@@ -230,6 +239,21 @@ public class HomeScreen extends AppCompatActivity/* implements LocationLisner */
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void fabOnClick() {
+        callFillforms();
+    }
+
+    private void callFillforms() {
+        Bundle bundle = new Bundle();
+        bundle.putString("userName", userName);
+        bundle.putString("password", password);
+        FillFormsFragment fillFormsFragment = new FillFormsFragment();
+        fillFormsFragment.setArguments(bundle);
+        FragmentManager manager = getFragmentManager();
+        manager.beginTransaction().replace(R.id.fragment, fillFormsFragment).commit();
     }
 
    /* @Override
