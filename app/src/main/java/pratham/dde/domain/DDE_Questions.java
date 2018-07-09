@@ -1,14 +1,16 @@
 package pratham.dde.domain;
 
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.PrimaryKey;
+import android.arch.persistence.room.TypeConverters;
 import android.support.annotation.NonNull;
 
+import com.google.gson.JsonArray;
 import com.google.gson.annotations.SerializedName;
 
-@Entity
+@Entity(foreignKeys = @ForeignKey(entity = DDE_Forms.class, parentColumns = "formid", childColumns = "FormId"))
 public class DDE_Questions {
-
     @PrimaryKey
     @NonNull
     @SerializedName("QuestionIdentifier")
@@ -23,24 +25,25 @@ public class DDE_Questions {
     @SerializedName("QuestionTitle")
     private String Question;
 
-    @SerializedName("")
-    private String Validations;
+    @TypeConverters(JSONArrayToStrintg.class)
+    @SerializedName("QuestionValidation")
+    private JsonArray Validations;
 
 
     @SerializedName("QuestionKeyword")
     private String DestColumname;
 
     @SerializedName("FormId")
-    private int FormId;
+    private String FormId;
 
     @SerializedName("DataSourceValue")
     private String DataSource;
 
     @SerializedName("QuestionDescription")
     private String QuestionDescription;
-
+    @TypeConverters(JSONArrayToStrintg.class)
     @SerializedName("QuestionOption")
-    private String QuestionOption;
+    private JsonArray QuestionOption;
 
 
     @SerializedName("QuestionIsRequired")
@@ -64,8 +67,6 @@ public class DDE_Questions {
     @SerializedName("SelectFromDataSource")
     private Boolean SelectFromDataSource;
 
-    @SerializedName("DataSourceValue")
-    private String DataSourceValue;
 
     @SerializedName("ValidationJson")
     private String ValidationJson;
@@ -106,41 +107,18 @@ public class DDE_Questions {
     @SerializedName("MAXIMUMSELECT")
     private String MAXIMUMSELECT;
 
+
+    public JsonArray getQuestionOption() {
+        return QuestionOption;
+    }
+
+    public void setQuestionOption(JsonArray questionOption) {
+        QuestionOption = questionOption;
+    }
+
     @Override
     public String toString() {
-        return "DDE_Questions{" +
-                "QuestionId='" + QuestionId + '\'' +
-                ", FieldSeqNo=" + FieldSeqNo +
-                ", QuestionType='" + QuestionType + '\'' +
-                ", Question='" + Question + '\'' +
-                ", Validations='" + Validations + '\'' +
-                ", DestColumname='" + DestColumname + '\'' +
-                ", FormId=" + FormId +
-                ", DataSource='" + DataSource + '\'' +
-                ", QuestionDescription='" + QuestionDescription + '\'' +
-                ", QuestionOption='" + QuestionOption + '\'' +
-                ", QuestionIsRequired='" + QuestionIsRequired + '\'' +
-                ", QuestionAllowDecimal='" + QuestionAllowDecimal + '\'' +
-                ", QuestionValueDependsOn='" + QuestionValueDependsOn + '\'' +
-                ", QuestionDependValueOperator='" + QuestionDependValueOperator + '\'' +
-                ", IncludeNoneOfTheAbove='" + IncludeNoneOfTheAbove + '\'' +
-                ", NoneOfTheAboveVal='" + NoneOfTheAboveVal + '\'' +
-                ", SelectFromDataSource='" + SelectFromDataSource + '\'' +
-                ", DataSourceValue='" + DataSourceValue + '\'' +
-                ", ValidationJson='" + ValidationJson + '\'' +
-                ", OptionJson='" + OptionJson + '\'' +
-                ", DefaultValue='" + DefaultValue + '\'' +
-                ", MAXCHARACTERSALLOWED='" + MAXCHARACTERSALLOWED + '\'' +
-                ", MINCHARACTERSALLOWED='" + MINCHARACTERSALLOWED + '\'' +
-                ", MINLENGTH='" + MINLENGTH + '\'' +
-                ", MAXLENGTH='" + MAXLENGTH + '\'' +
-                ", MINRANGE='" + MINRANGE + '\'' +
-                ", MAXRANGE='" + MAXRANGE + '\'' +
-                ", DEPENDESONVALUE='" + DEPENDESONVALUE + '\'' +
-                ", DEPENDSONOPERATOR='" + DEPENDSONOPERATOR + '\'' +
-                ", MINIMUMSELECT='" + MINIMUMSELECT + '\'' +
-                ", MAXIMUMSELECT='" + MAXIMUMSELECT + '\'' +
-                        '}';
+        return "DDE_Questions{" + "QuestionId='" + QuestionId + '\'' + ", FieldSeqNo=" + FieldSeqNo + ", QuestionType='" + QuestionType + '\'' + ", Question='" + Question + '\'' + ", Validations='" + Validations + '\'' + ", DestColumname='" + DestColumname + '\'' + ", FormId=" + FormId + ", DataSource='" + DataSource + '\'' + ", QuestionDescription='" + QuestionDescription + '\'' + ", QuestionOption='" + QuestionOption + '\'' + ", QuestionIsRequired='" + QuestionIsRequired + '\'' + ", QuestionAllowDecimal='" + QuestionAllowDecimal + '\'' + ", QuestionValueDependsOn='" + QuestionValueDependsOn + '\'' + ", QuestionDependValueOperator='" + QuestionDependValueOperator + '\'' + ", IncludeNoneOfTheAbove='" + IncludeNoneOfTheAbove + '\'' + ", NoneOfTheAboveVal='" + NoneOfTheAboveVal + '\'' + ", SelectFromDataSource='" + SelectFromDataSource + '\'' + ", ValidationJson='" + ValidationJson + '\'' + ", OptionJson='" + OptionJson + '\'' + ", DefaultValue='" + DefaultValue + '\'' + ", MAXCHARACTERSALLOWED='" + MAXCHARACTERSALLOWED + '\'' + ", MINCHARACTERSALLOWED='" + MINCHARACTERSALLOWED + '\'' + ", MINLENGTH='" + MINLENGTH + '\'' + ", MAXLENGTH='" + MAXLENGTH + '\'' + ", MINRANGE='" + MINRANGE + '\'' + ", MAXRANGE='" + MAXRANGE + '\'' + ", DEPENDESONVALUE='" + DEPENDESONVALUE + '\'' + ", DEPENDSONOPERATOR='" + DEPENDSONOPERATOR + '\'' + ", MINIMUMSELECT='" + MINIMUMSELECT + '\'' + ", MAXIMUMSELECT='" + MAXIMUMSELECT + '\'' + '}';
     }
 
     @NonNull
@@ -176,11 +154,11 @@ public class DDE_Questions {
         Question = question;
     }
 
-    public String getValidations() {
+    public JsonArray getValidations() {
         return Validations;
     }
 
-    public void setValidations(String validations) {
+    public void setValidations(JsonArray validations) {
         Validations = validations;
     }
 
@@ -192,11 +170,11 @@ public class DDE_Questions {
         DestColumname = destColumname;
     }
 
-    public int getFormId() {
+    public String getFormId() {
         return FormId;
     }
 
-    public void setFormId(int formId) {
+    public void setFormId(String formId) {
         FormId = formId;
     }
 
@@ -216,13 +194,6 @@ public class DDE_Questions {
         QuestionDescription = questionDescription;
     }
 
-    public String getQuestionOption() {
-        return QuestionOption;
-    }
-
-    public void setQuestionOption(String questionOption) {
-        QuestionOption = questionOption;
-    }
 
     public Boolean getQuestionIsRequired() {
         return QuestionIsRequired;
@@ -278,14 +249,6 @@ public class DDE_Questions {
 
     public void setSelectFromDataSource(Boolean selectFromDataSource) {
         SelectFromDataSource = selectFromDataSource;
-    }
-
-    public String getDataSourceValue() {
-        return DataSourceValue;
-    }
-
-    public void setDataSourceValue(String dataSourceValue) {
-        DataSourceValue = dataSourceValue;
     }
 
     public String getValidationJson() {

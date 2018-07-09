@@ -1,25 +1,25 @@
 package pratham.dde.domain;
 
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
-@Entity
-public class DDE_RuleQuestion {
+import com.google.gson.annotations.SerializedName;
 
-    @PrimaryKey
+@Entity/* (foreignKeys = {@ForeignKey(entity = DDE_RuleMaster.class, parentColumns = "RuleId", childColumns = "RuleId"), @ForeignKey(entity = DDE_RuleCondition.class, parentColumns = "RuleQuestion", childColumns = "RuleQuestion")})*/
+public class DDE_RuleQuestion {
     @NonNull
+    @PrimaryKey(autoGenerate = true)
     private int RuleQuestionId;
+    @SerializedName("RuleId")
     private String RuleId;
+    @SerializedName("ShowQuestionIdentifier")
     private String RuleQuestion;
 
     @Override
     public String toString() {
-        return "DDE_RuleQuestion{" +
-                "RuleQuestionId=" + RuleQuestionId +
-                ", RuleId='" + RuleId + '\'' +
-                ", RuleQuestion='" + RuleQuestion + '\'' +
-                '}';
+        return "DDE_RuleQuestion{" + "RuleQuestionId=" + RuleQuestionId + ", RuleId='" + RuleId + '\'' + ", RuleQuestion='" + RuleQuestion + '\'' + '}';
     }
 
     @NonNull
@@ -28,6 +28,7 @@ public class DDE_RuleQuestion {
     }
 
     public void setRuleQuestionId(@NonNull int ruleQuestionId) {
+
         RuleQuestionId = ruleQuestionId;
     }
 

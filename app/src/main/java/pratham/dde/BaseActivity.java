@@ -23,4 +23,8 @@ public class BaseActivity extends AppCompatActivity {
                 .build();
     }
 
+    protected void closeDatabase(){
+        appDatabase.close();
+    }
+
 }

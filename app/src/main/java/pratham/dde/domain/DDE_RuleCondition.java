@@ -1,33 +1,43 @@
 package pratham.dde.domain;
 
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
-@Entity
+import com.google.gson.annotations.SerializedName;
+
+@Entity(indices = {@Index(value = "RuleQuestion",unique = true)},foreignKeys = @ForeignKey(entity = DDE_RuleMaster.class, parentColumns = "RuleId", childColumns = "RuleId"))
 public class DDE_RuleCondition {
 
     @PrimaryKey
     @NonNull
+    @SerializedName("ConditionId")
     private String ConditionId;
-    private String Conditiontype;
-    private String RuleId;
-    private String RuleQuestion;
+
+    @SerializedName("QuestionIdentifier")
     private String QuestionIdentifier;
+
+    @SerializedName("ConditionType")
+    private String Conditiontype;
+
+    @SerializedName("SelectValue")
     private String SelectValue;
+
+    @SerializedName("SelectValueQuestion")
     private String SelectValueQuestion;
+
+    @SerializedName("ShowQuestionIdentifier")
+    private String RuleQuestion;
+
+    @SerializedName("RuleId")
+    private String RuleId;
+
 
     @Override
     public String toString() {
-        return "DDE_RuleCondition{" +
-                "ConditionId='" + ConditionId + '\'' +
-                ", Conditiontype='" + Conditiontype + '\'' +
-                ", RuleId='" + RuleId + '\'' +
-                ", RuleQuestion='" + RuleQuestion + '\'' +
-                ", QuestionIdentifier='" + QuestionIdentifier + '\'' +
-                ", SelectValue='" + SelectValue + '\'' +
-                ", SelectValueQuestion='" + SelectValueQuestion + '\'' +
-                '}';
+        return "DDE_RuleCondition{" + "ConditionId='" + ConditionId + '\'' + ", Conditiontype='" + Conditiontype + '\'' + ", RuleId='" + RuleId + '\'' + ", RuleQuestion='" + RuleQuestion + '\'' + ", QuestionIdentifier='" + QuestionIdentifier + '\'' + ", SelectValue='" + SelectValue + '\'' + ", SelectValueQuestion='" + SelectValueQuestion + '\'' + '}';
     }
 
     @NonNull

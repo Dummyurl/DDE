@@ -22,7 +22,7 @@ import pratham.dde.domain.DDE_RuleQuestion;
 import pratham.dde.domain.Status;
 import pratham.dde.domain.User;
 
-@Database(entities = {User.class, Status.class, DDE_Forms.class, DDE_Questions.class, DDE_FormWiseDataSource.class, DDE_RuleQuestion.class, DDE_RuleMaster.class, DDE_RuleCondition.class, Answer.class}, version = 1)
+@Database(entities = {User.class, Status.class,DDE_Questions.class, DDE_Forms.class, DDE_FormWiseDataSource.class,/*DDE_Questions.class,*/ DDE_RuleQuestion.class, DDE_RuleMaster.class, DDE_RuleCondition.class, Answer.class}, version = 1)
 
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -45,5 +45,6 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract AnswerDao getAnswerDao();
 
     public abstract StatusDao getStatusDao();
+
 
 }

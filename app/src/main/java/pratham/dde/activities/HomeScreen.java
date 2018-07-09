@@ -19,9 +19,15 @@ import android.widget.Toast;
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -29,6 +35,10 @@ import pratham.dde.R;
 import pratham.dde.dao.GenericDao;
 import pratham.dde.database.BackupDatabase;
 import pratham.dde.domain.DDE_Forms;
+import pratham.dde.domain.DDE_Questions;
+import pratham.dde.domain.DDE_RuleCondition;
+import pratham.dde.domain.DDE_RuleMaster;
+import pratham.dde.domain.DDE_RuleQuestion;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.OldFormsFragment;
@@ -71,9 +81,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
-
                 switch (menuItem.getItemId()) {
                     case R.id.nav_saved_forms:
+                        //appDatabase.close();
                         SavedFormsFragment savedFormsFragment = new SavedFormsFragment();
                         FragmentManager fm = getFragmentManager();
                         fm.beginTransaction().replace(R.id.fragment, savedFormsFragment).commit();
@@ -82,19 +92,13 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                     case R.id.nav_get_new_forms:
                         String token = appDatabase.getUserDao().getToken(userName, password);
                         DDE_Forms[] forms = appDatabase.getDDE_FormsDao().getAllForms();
+                     //   Log.d("forms",forms.toString());
                         for (int i = 0; i < forms.length; i++) {
                             getQuestionsAndData(forms[i].getFormid(), token);
                         }
                         break;
 
                     case R.id.nav_fill_forms:
-                       /* Bundle bundle = new Bundle();
-                        bundle.putString("userName", userName);
-                        bundle.putString("password", password);
-                        FillFormsFragment fillFormsFragment = new FillFormsFragment();
-                        fillFormsFragment.setArguments(bundle);
-                        FragmentManager manager = getFragmentManager();
-                        manager.beginTransaction().replace(R.id.fragment, fillFormsFragment).commit();*/
                         callFillforms();
                         break;
 
@@ -103,7 +107,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         FragmentManager fragmentManager = getFragmentManager();
                         fragmentManager.beginTransaction().replace(R.id.fragment, oldFormsFragment).commit();
                         break;
-
                 }
                 drawer_layout.closeDrawer(GravityCompat.START);
                 return true;
@@ -127,7 +130,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
             @Override
             public void onResponse(JSONObject response) {
-                String s = response.toString();
+                saveData(response);
             }
 
             @Override
@@ -136,6 +139,87 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
 
             }
         });
+    }
+
+    private void saveData(JSONObject response) {
+        saveQuestion(response);
+        //   saveRule(response);
+    }
+
+   /* private void saveRule(JSONObject response) {
+
+        try {
+            JSONObject data = response.getJSONObject("Data");
+            JSONArray rules= data.getJSONArray("Rules");
+            DDE_RuleMaster dde_ruleMaster=new DDE_RuleMaster();
+            for (int i=0;i<rules.length();i++){
+                dde_ruleMaster.setFormId();
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }*/
+
+    private void saveQuestion(JSONObject response) {
+        try {
+            JSONObject data = response.getJSONObject("Data");
+            String questions = data.getString("Questions");
+        //    Log.d("json","DAta==>  "+data.toString());
+       //     Log.d("json","questions==>  "+questions.toString());
+            String formId;
+            Gson gson = new Gson();
+            Type listType = new TypeToken<ArrayList<DDE_Questions>>() {
+            }.getType();
+            ArrayList<DDE_Questions> questionList = gson.fromJson(questions, listType);
+            appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
+            if (questionList.size() > 0) {
+                formId = questionList.get(0).getFormId();
+                appDatabase.getDDE_FormsDao().updatePulledDate(questionList.get(0).getFormId(), "" + Utility.getCurrentDateTime());
+
+                //save Rules to database
+                JSONArray rules = data.getJSONArray("Rules");
+            //    Log.d("json","rules==>  "+rules.toString());
+
+                for (int i = 0; i < rules.length(); i++) {
+                    JSONObject singleRule = rules.getJSONObject(i);
+                 //   Log.d("json","singleRule==>  "+singleRule.toString());
+
+                    DDE_RuleMaster dde_ruleMaster = new DDE_RuleMaster();
+                    dde_ruleMaster.setFormId(formId);
+                    dde_ruleMaster.setRuleId(singleRule.getString("RuleId"));
+                    JSONArray questionConditionArray = singleRule.getJSONArray("QuestionCondition");
+              //      Log.d("json","questionConditionArray==>  "+questionConditionArray.toString());
+
+                   long rm= appDatabase.getDDE_RuleMasterDao().insertRuleMaster(dde_ruleMaster);
+                    for (int j = 0; j < questionConditionArray.length(); j++) {
+                        JSONObject questionConditionSingleObj = questionConditionArray.getJSONObject(j);
+                       // Log.d("json","questionConditionSingleObj==>  "+questionConditionSingleObj.toString());
+
+                        DDE_RuleCondition dde_ruleCondition = new DDE_RuleCondition();
+                        dde_ruleCondition.setConditionId(questionConditionSingleObj.getString("ConditionId"));
+                        dde_ruleCondition.setQuestionIdentifier(questionConditionSingleObj.getString("QuestionIdentifier"));
+                        dde_ruleCondition.setConditiontype(questionConditionSingleObj.getString("ConditionType"));
+                        dde_ruleCondition.setSelectValue(questionConditionSingleObj.getString("SelectValue"));
+                        dde_ruleCondition.setSelectValueQuestion(questionConditionSingleObj.getString("SelectValueQuestion"));
+                        dde_ruleCondition.setQuestionIdentifier(singleRule.getString("ShowQuestionIdentifier"));
+                        dde_ruleCondition.setRuleId(singleRule.getString("RuleId"));
+                        long l=appDatabase.getDDE_RuleConditionDao().insertRuleCondition(dde_ruleCondition);
+                    }
+                    DDE_RuleQuestion dde_ruleQuestion = new DDE_RuleQuestion();
+                    dde_ruleQuestion.setRuleQuestion(singleRule.getString("ShowQuestionIdentifier"));
+                    dde_ruleQuestion.setRuleId(singleRule.getString("RuleId"));
+                    long aa=appDatabase.getDDE_RuleQuestionDao().insertRuleQuestionDao(dde_ruleQuestion);
+                    Log.d("s",""+aa);
+                }
+
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.d("error",e.getMessage()+"  deep"+e);
+        }
+
     }
 
     private void updateFormEntries() {
