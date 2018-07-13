@@ -63,6 +63,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     //    FusedLocationAPI fusedLocationAPI;
     String userName, password;
     Context mContext;
+    String token, QuestionUrl;
+    DDE_Forms[] forms;
+    int formIndex=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,15 +92,14 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         break;
 
                     case R.id.nav_get_new_forms:
-                        String token = appDatabase.getUserDao().getToken(userName, password);
-                        DDE_Forms[] forms = appDatabase.getDDE_FormsDao().getAllForms();
+                        formIndex=0;
+                        token = appDatabase.getUserDao().getToken(userName, password);
+                        forms = appDatabase.getDDE_FormsDao().getAllForms();
                         if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
                             Utility.showDialogInApiCalling(dialog, mContext, "getQuestion");
-                            String QuestionUrl = Utility.getProperty("getQuestionsAndData", mContext);
-                            for (int i = 0; i < forms.length; i++) {
-                                getQuestionsAndData(forms[i].getFormid(), QuestionUrl, token);
-                            }
-                            fetchQuestionsSourceData();
+                            QuestionUrl = Utility.getProperty("getQuestionsAndData", mContext);
+                            getQuestionsAndData(forms[formIndex].getFormid());
+
                         } else {
 
                         }
@@ -117,8 +119,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 return true;
             }
         });
-
-
        /* fusedLocationAPI = new FusedLocationAPI(this);
         fusedLocationAPI.startLocationButtonClick();*/
     }
@@ -168,9 +168,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         updateFormEntries();
     }
 
-    private void getQuestionsAndData(int formId, String urlQue, String token) {
+    private void getQuestionsAndData(int formId) {
         // TODO get questions and data if required
-        String url = urlQue + formId;
+        String url = QuestionUrl + formId;
+        Log.d("responceURL", "" + url);
         AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
             @Override
             public void onResponse(JSONObject response) {
@@ -181,12 +182,21 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             @Override
             public void onError(ANError anError) {
                 Utility.dismissDialog(dialog);
+                Log.d("responceError123", anError.toString());
+
             }
         });
     }
 
     private void saveData(JSONObject response) {
         saveQuestion(response);
+        formIndex++;
+        if(formIndex<forms.length){
+            getQuestionsAndData(forms[formIndex].getFormid());
+        }else
+        {
+            fetchQuestionsSourceData();
+        }
     }
 
 

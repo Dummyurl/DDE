@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -126,6 +127,7 @@ public class MainActivity extends BaseActivity {
         try {
             if (response.length() > 2) {
                 String access_token = response.getString("access_token");
+                Log.d("token",access_token);
                 String Name = response.getString("Name");
                 String userName = response.getString("userName");
                 String token_type = response.getString("token_type");
