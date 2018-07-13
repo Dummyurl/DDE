@@ -234,7 +234,11 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     private void getNewForms(String url, String access_token) {
         if (SyncUtility.isDataConnectionAvailable(this)) {
             Utility.showDialogInApiCalling(dialog, mContext, "Getting new forms... Please wait.");
-            AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONObject(new JSONObjectRequestListener() {
+            AndroidNetworking.get(url)
+            .addHeaders("Content-Type", "application/json")
+            .addHeaders("Authorization", access_token)
+            .build()
+            .getAsJSONObject(new JSONObjectRequestListener() {
                 @Override
                 public void onResponse(JSONObject response) {
                     Log.d("pk-log", "" + response.length());
