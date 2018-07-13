@@ -1,6 +1,7 @@
 package pratham.dde.fragments;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
+import pratham.dde.activities.DisplayQuestions;
 import pratham.dde.customViews.FormattedTextView;
 import pratham.dde.domain.DDE_Forms;
 
@@ -71,6 +73,7 @@ public class FillFormsFragment extends Fragment {
 
     /*Display forms names on screen*/
     private void updateUI() {
+
         for (int i = 0; i < forms.size(); i++) {
             LinearLayout layout = new LinearLayout(getActivity());
             layout.setPadding(20, 10, 20, 10);
@@ -81,6 +84,10 @@ public class FillFormsFragment extends Fragment {
             textView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    Intent questionIntent = new Intent(getActivity(), DisplayQuestions.class);
+                    String formId = String.valueOf(view.getId());
+                    questionIntent.putExtra("formId", formId);
+                    startActivity(questionIntent);
                     Toast.makeText(getActivity(), "" + view.getId(), Toast.LENGTH_SHORT).show();
                 }
             });
@@ -93,5 +100,7 @@ public class FillFormsFragment extends Fragment {
             layout.addView(imageButton);
             linearLayout.addView(layout);
         }
+
     }
+
 }

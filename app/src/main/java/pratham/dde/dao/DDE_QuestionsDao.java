@@ -16,4 +16,7 @@ public interface DDE_QuestionsDao {
 
     @Query("SELECT * FROM DDE_Questions")
     public List<DDE_Questions> getAllQuestion();
+
+    @Query("SELECT * FROM DDE_Questions WHERE formid=:formId")
+    public List<DDE_Questions> getFormIdWiseQuestions(String formId);
 }
