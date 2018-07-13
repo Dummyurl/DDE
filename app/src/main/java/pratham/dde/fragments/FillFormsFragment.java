@@ -17,7 +17,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
 import pratham.dde.customViews.FormattedTextView;
-import pratham.dde.database.BackupDatabase;
 import pratham.dde.domain.DDE_Forms;
 
 import static pratham.dde.BaseActivity.appDatabase;
@@ -56,7 +55,6 @@ public class FillFormsFragment extends Fragment {
         updateUI();
     }
 
-
     /*fetching  forms according to programid*/
     private void getFormsfromDb() {
         DDE_Forms[] dde = appDatabase.getDDE_FormsDao().getAllForms();
@@ -69,25 +67,23 @@ public class FillFormsFragment extends Fragment {
                 forms.add(appDatabase.getDDE_FormsDao().getFormProgramIdWise(programIdArray[i]));
             }
         }
-
     }
 
     /*Display forms names on screen*/
     private void updateUI() {
-        BackupDatabase.backup(getActivity());
         for (int i = 0; i < forms.size(); i++) {
             LinearLayout layout = new LinearLayout(getActivity());
             layout.setPadding(20, 10, 20, 10);
 
             FormattedTextView textView = new FormattedTextView(getActivity());
-            textView.setId(Integer.parseInt(forms.get(i).getProgramid()));
+            textView.setId(forms.get(i).getFormid());
             textView.setText(forms.get(i).getFormname());
-           textView.setOnClickListener(new View.OnClickListener() {
-               @Override
-               public void onClick(View view) {
-                   Toast.makeText(getActivity(), ""+view.getId(), Toast.LENGTH_SHORT).show();
-               }
-           });
+            textView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(getActivity(), "" + view.getId(), Toast.LENGTH_SHORT).show();
+                }
+            });
             layout.addView(textView);
             ImageButton imageButton = new ImageButton(getActivity());
             imageButton.setBackground(getResources().getDrawable(R.drawable.common_google_signin_btn_icon_dark_focused));
@@ -98,5 +94,4 @@ public class FillFormsFragment extends Fragment {
             linearLayout.addView(layout);
         }
     }
-
 }

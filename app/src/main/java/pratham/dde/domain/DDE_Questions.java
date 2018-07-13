@@ -107,6 +107,12 @@ public class DDE_Questions {
     @SerializedName("MAXIMUMSELECT")
     private String MAXIMUMSELECT;
 
+    @SerializedName("DataSourceQuestionIdentifier")
+    private String DataSourceQuestionIdentifier;
+
+    @SerializedName("DependentQuestionIdentifier")
+    private String DependentQuestionIdentifier;
+
 
     public JsonArray getQuestionOption() {
         return QuestionOption;
@@ -118,7 +124,39 @@ public class DDE_Questions {
 
     @Override
     public String toString() {
-        return "DDE_Questions{" + "QuestionId='" + QuestionId + '\'' + ", FieldSeqNo=" + FieldSeqNo + ", QuestionType='" + QuestionType + '\'' + ", Question='" + Question + '\'' + ", Validations='" + Validations + '\'' + ", DestColumname='" + DestColumname + '\'' + ", FormId=" + FormId + ", DataSource='" + DataSource + '\'' + ", QuestionDescription='" + QuestionDescription + '\'' + ", QuestionOption='" + QuestionOption + '\'' + ", QuestionIsRequired='" + QuestionIsRequired + '\'' + ", QuestionAllowDecimal='" + QuestionAllowDecimal + '\'' + ", QuestionValueDependsOn='" + QuestionValueDependsOn + '\'' + ", QuestionDependValueOperator='" + QuestionDependValueOperator + '\'' + ", IncludeNoneOfTheAbove='" + IncludeNoneOfTheAbove + '\'' + ", NoneOfTheAboveVal='" + NoneOfTheAboveVal + '\'' + ", SelectFromDataSource='" + SelectFromDataSource + '\'' + ", ValidationJson='" + ValidationJson + '\'' + ", OptionJson='" + OptionJson + '\'' + ", DefaultValue='" + DefaultValue + '\'' + ", MAXCHARACTERSALLOWED='" + MAXCHARACTERSALLOWED + '\'' + ", MINCHARACTERSALLOWED='" + MINCHARACTERSALLOWED + '\'' + ", MINLENGTH='" + MINLENGTH + '\'' + ", MAXLENGTH='" + MAXLENGTH + '\'' + ", MINRANGE='" + MINRANGE + '\'' + ", MAXRANGE='" + MAXRANGE + '\'' + ", DEPENDESONVALUE='" + DEPENDESONVALUE + '\'' + ", DEPENDSONOPERATOR='" + DEPENDSONOPERATOR + '\'' + ", MINIMUMSELECT='" + MINIMUMSELECT + '\'' + ", MAXIMUMSELECT='" + MAXIMUMSELECT + '\'' + '}';
+        return "DDE_Questions{" + "QuestionId='" + QuestionId + '\'' +
+                ", FieldSeqNo=" + FieldSeqNo
+                + ", QuestionType='" + QuestionType + '\''
+                + ", Question='" + Question + '\''
+                + ", Validations='" + Validations + '\''
+                + ", DestColumname='" + DestColumname + '\''
+                + ", FormId=" + FormId
+                + ", DataSource='"+ DataSource + '\''
+                + ", QuestionDescription='"+ QuestionDescription + '\''
+                + ", QuestionOption='"+ QuestionOption + '\''
+                + ", QuestionIsRequired='"+ QuestionIsRequired + '\''
+                + ", QuestionAllowDecimal='"+ QuestionAllowDecimal + '\''
+                + ", QuestionValueDependsOn='"+ QuestionValueDependsOn + '\''
+                + ", QuestionDependValueOperator='"+ QuestionDependValueOperator + '\''
+                + ", IncludeNoneOfTheAbove='"+ IncludeNoneOfTheAbove + '\''
+                + ", NoneOfTheAboveVal='"+ NoneOfTheAboveVal + '\''
+                + ", SelectFromDataSource='"+ SelectFromDataSource + '\''
+                + ", ValidationJson='"+ ValidationJson + '\''
+                + ", OptionJson='" + OptionJson + '\''
+                + ", DefaultValue='" + DefaultValue + '\''
+                + ", MAXCHARACTERSALLOWED='" + MAXCHARACTERSALLOWED + '\''
+                + ", MINCHARACTERSALLOWED='" + MINCHARACTERSALLOWED + '\''
+                + ", MINLENGTH='" + MINLENGTH + '\''
+                + ", MAXLENGTH='" + MAXLENGTH + '\''
+                + ", MINRANGE='" + MINRANGE + '\''
+                + ", MAXRANGE='" + MAXRANGE + '\''
+                + ", DEPENDESONVALUE='" + DEPENDESONVALUE + '\''
+                + ", DEPENDSONOPERATOR='" + DEPENDSONOPERATOR + '\''
+                + ", MINIMUMSELECT='" + MINIMUMSELECT + '\''
+                + ", MAXIMUMSELECT='" + MAXIMUMSELECT + '\''
+                + ", DataSourceQuestionIdentifier='" + DataSourceQuestionIdentifier + '\''
+                + ", DependentQuestionIdentifier='" + DependentQuestionIdentifier + '\''
+                + '}';
     }
 
     @NonNull
@@ -353,5 +391,21 @@ public class DDE_Questions {
 
     public void setMAXIMUMSELECT(String MAXIMUMSELECT) {
         this.MAXIMUMSELECT = MAXIMUMSELECT;
+    }
+
+    public String getDataSourceQuestionIdentifier() {
+        return DataSourceQuestionIdentifier;
+    }
+
+    public void setDataSourceQuestionIdentifier(String dataSourceQuestionIdentifier) {
+        DataSourceQuestionIdentifier = dataSourceQuestionIdentifier;
+    }
+
+    public String getDependentQuestionIdentifier() {
+        return DependentQuestionIdentifier;
+    }
+
+    public void setDependentQuestionIdentifier(String dependentQuestionIdentifier) {
+        DependentQuestionIdentifier = dependentQuestionIdentifier;
     }
 }

@@ -60,12 +60,14 @@ public class MainActivity extends BaseActivity {
         status.setKeys("LastPulledDate");
         status.setValue("");
         statuses[0] = status;
-        status.setKeys("GPSLocation");
-        status.setValue("");
-        statuses[1] = status;
-        status.setKeys("DeviceId");
-        status.setValue(Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID));
-        statuses[2] = status;
+        Status status1 = new Status();
+        status1.setKeys("GPSLocation");
+        status1.setValue("");
+        statuses[1] = status1;
+        Status status2 = new Status();
+        status2.setKeys("DeviceId");
+        status2.setValue(Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID));
+        statuses[2] = status2;
         appDatabase.getStatusDao().initialiseAppStatus(statuses);
     }
 

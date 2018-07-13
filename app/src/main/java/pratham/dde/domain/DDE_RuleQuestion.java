@@ -7,44 +7,45 @@ import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 
-@Entity/* (foreignKeys = {@ForeignKey(entity = DDE_RuleMaster.class, parentColumns = "RuleId", childColumns = "RuleId"), @ForeignKey(entity = DDE_RuleCondition.class, parentColumns = "RuleQuestion", childColumns = "RuleQuestion")})*/
+import static android.arch.persistence.room.ForeignKey.CASCADE;
+
+@Entity /*(foreignKeys = {@ForeignKey(entity = DDE_RuleMaster.class, parentColumns = "RuleId", childColumns = "ruleId",onDelete=CASCADE), @ForeignKey(entity = DDE_RuleCondition.class, parentColumns = "RuleQuestion", childColumns = "ruleQuestion",onDelete=CASCADE)})*/
 public class DDE_RuleQuestion {
     @NonNull
-    @PrimaryKey(autoGenerate = true)
-    private int RuleQuestionId;
+    @PrimaryKey/*(*//*autoGenerate = true*//*)*/
+    private String RuleQuestionId;
     @SerializedName("RuleId")
-    private String RuleId;
+    private String ruleId;
     @SerializedName("ShowQuestionIdentifier")
-    private String RuleQuestion;
+    private String ruleQuestion;
 
     @Override
     public String toString() {
-        return "DDE_RuleQuestion{" + "RuleQuestionId=" + RuleQuestionId + ", RuleId='" + RuleId + '\'' + ", RuleQuestion='" + RuleQuestion + '\'' + '}';
+        return "DDE_RuleQuestion{" + "RuleQuestionId=" + RuleQuestionId + ", RuleId='" + ruleId + '\'' + ", RuleQuestion='" + ruleQuestion + '\'' + '}';
     }
 
     @NonNull
-    public int getRuleQuestionId() {
+    public String getRuleQuestionId() {
         return RuleQuestionId;
     }
 
-    public void setRuleQuestionId(@NonNull int ruleQuestionId) {
-
+    public void setRuleQuestionId(@NonNull String ruleQuestionId) {
         RuleQuestionId = ruleQuestionId;
     }
 
     public String getRuleId() {
-        return RuleId;
+        return ruleId;
     }
 
     public void setRuleId(String ruleId) {
-        RuleId = ruleId;
+        this.ruleId = ruleId;
     }
 
     public String getRuleQuestion() {
-        return RuleQuestion;
+        return ruleQuestion;
     }
 
     public void setRuleQuestion(String ruleQuestion) {
-        RuleQuestion = ruleQuestion;
+        this.ruleQuestion = ruleQuestion;
     }
 }

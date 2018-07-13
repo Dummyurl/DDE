@@ -83,7 +83,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             public boolean onNavigationItemSelected(MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
                     case R.id.nav_saved_forms:
-                        //appDatabase.close();
                         SavedFormsFragment savedFormsFragment = new SavedFormsFragment();
                         FragmentManager fm = getFragmentManager();
                         fm.beginTransaction().replace(R.id.fragment, savedFormsFragment).commit();
@@ -208,6 +207,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         long l=appDatabase.getDDE_RuleConditionDao().insertRuleCondition(dde_ruleCondition);
                     }
                     DDE_RuleQuestion dde_ruleQuestion = new DDE_RuleQuestion();
+                    dde_ruleQuestion.setRuleQuestionId(""+i);
                     dde_ruleQuestion.setRuleQuestion(singleRule.getString("ShowQuestionIdentifier"));
                     dde_ruleQuestion.setRuleId(singleRule.getString("RuleId"));
                     long aa=appDatabase.getDDE_RuleQuestionDao().insertRuleQuestionDao(dde_ruleQuestion);

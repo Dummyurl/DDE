@@ -24,7 +24,7 @@ public class GenericDao {
     }
 
     public static void insert(String tableName, String columnValues) {
-        String[] column={"name","age","work"};
+        String[] column = {"name", "age", "work"};
         ContentValues contentValues = new ContentValues();
         String[] splittedValues = columnValues.split(",");
         for (int i = 0; i < splittedValues.length; i++) {
@@ -40,8 +40,8 @@ public class GenericDao {
             }
         }
         insert = insert + " );";*/
-            appDatabase.getOpenHelper().getWritableDatabase().insert(tableName,0,contentValues);
-        }
+        appDatabase.getOpenHelper().getWritableDatabase().insert(tableName, 0, contentValues);
+    }
 
     public static void getTableCount() {
         SimpleSQLiteQuery query = new SimpleSQLiteQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
