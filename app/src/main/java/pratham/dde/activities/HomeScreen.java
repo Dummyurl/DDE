@@ -28,11 +28,11 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
-import pratham.dde.dao.GenericDao;
 import pratham.dde.database.BackupDatabase;
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.DDE_Questions;
@@ -91,9 +91,15 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                     case R.id.nav_get_new_forms:
                         String token = appDatabase.getUserDao().getToken(userName, password);
                         DDE_Forms[] forms = appDatabase.getDDE_FormsDao().getAllForms();
-                     //   Log.d("forms",forms.toString());
-                        for (int i = 0; i < forms.length; i++) {
-                            getQuestionsAndData(forms[i].getFormid(), token);
+                        if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
+                            Utility.showDialogInApiCalling(dialog, mContext, "getQuestion");
+                            String QuestionUrl = Utility.getProperty("getQuestionsAndData", mContext);
+                            for (int i = 0; i < forms.length; i++) {
+                                getQuestionsAndData(forms[i].getFormid(), QuestionUrl, token);
+                            }
+                            fetchQuestionsSourceData();
+                        } else {
+
                         }
                         break;
 
@@ -117,56 +123,77 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         fusedLocationAPI.startLocationButtonClick();*/
     }
 
+    /* load Question SourceDta */
+    private void fetchQuestionsSourceData() {
+        List<DDE_Questions> questions = appDatabase.getDDE_QuestionsDao().getAllQuestion();
+        for (int i = 0; i < questions.size(); i++) {
+            if (questions.get(i).getDataSource() != null) {
+                String formId = questions.get(i).getFormId();
+                String tableName = appDatabase.getDDE_FormsDao().getTableName(formId);
+                String dataSourceUrl = Utility.getProperty("dataSource", mContext);
+                loadSourceData(tableName, formId, dataSourceUrl);
+            }
+        }
+    }
+
+    private void loadSourceData(String tableName, String formId, String url) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("FilterList", "null");
+            jsonObject.put("FormId", formId);
+            jsonObject.put("PageNumber", "1");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        AndroidNetworking.post(url)
+                .addJSONObjectBody(jsonObject) // posting json
+                .build().
+                getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+
+                    }
+
+                    @Override
+                    public void onError(ANError anError) {
+
+                    }
+                });
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         updateFormEntries();
     }
 
-    private void getQuestionsAndData(int formId, String token) {
+    private void getQuestionsAndData(int formId, String urlQue, String token) {
         // TODO get questions and data if required
-        String url = "http://www.ddeapi.prathamskills.org/api/ddeforms/getquestions?Id=" + formId;
+        String url = urlQue + formId;
         AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
             @Override
             public void onResponse(JSONObject response) {
                 saveData(response);
+                Utility.dismissDialog(dialog);
             }
 
             @Override
             public void onError(ANError anError) {
-                String s = anError.toString();
-
+                Utility.dismissDialog(dialog);
             }
         });
     }
 
     private void saveData(JSONObject response) {
         saveQuestion(response);
-        //   saveRule(response);
     }
 
-   /* private void saveRule(JSONObject response) {
-
-        try {
-            JSONObject data = response.getJSONObject("Data");
-            JSONArray rules= data.getJSONArray("Rules");
-            DDE_RuleMaster dde_ruleMaster=new DDE_RuleMaster();
-            for (int i=0;i<rules.length();i++){
-                dde_ruleMaster.setFormId();
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-    }*/
 
     private void saveQuestion(JSONObject response) {
         try {
             JSONObject data = response.getJSONObject("Data");
             String questions = data.getString("Questions");
-        //    Log.d("json","DAta==>  "+data.toString());
-       //     Log.d("json","questions==>  "+questions.toString());
             String formId;
             Gson gson = new Gson();
             Type listType = new TypeToken<ArrayList<DDE_Questions>>() {
@@ -176,25 +203,20 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             if (questionList.size() > 0) {
                 formId = questionList.get(0).getFormId();
                 appDatabase.getDDE_FormsDao().updatePulledDate(questionList.get(0).getFormId(), "" + Utility.getCurrentDateTime());
-
                 //save Rules to database
                 JSONArray rules = data.getJSONArray("Rules");
-            //    Log.d("json","rules==>  "+rules.toString());
 
                 for (int i = 0; i < rules.length(); i++) {
                     JSONObject singleRule = rules.getJSONObject(i);
-                 //   Log.d("json","singleRule==>  "+singleRule.toString());
 
                     DDE_RuleMaster dde_ruleMaster = new DDE_RuleMaster();
                     dde_ruleMaster.setFormId(formId);
                     dde_ruleMaster.setRuleId(singleRule.getString("RuleId"));
                     JSONArray questionConditionArray = singleRule.getJSONArray("QuestionCondition");
-              //      Log.d("json","questionConditionArray==>  "+questionConditionArray.toString());
 
-                   long rm= appDatabase.getDDE_RuleMasterDao().insertRuleMaster(dde_ruleMaster);
+                    long rm = appDatabase.getDDE_RuleMasterDao().insertRuleMaster(dde_ruleMaster);
                     for (int j = 0; j < questionConditionArray.length(); j++) {
                         JSONObject questionConditionSingleObj = questionConditionArray.getJSONObject(j);
-                       // Log.d("json","questionConditionSingleObj==>  "+questionConditionSingleObj.toString());
 
                         DDE_RuleCondition dde_ruleCondition = new DDE_RuleCondition();
                         dde_ruleCondition.setConditionId(questionConditionSingleObj.getString("ConditionId"));
@@ -204,20 +226,18 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         dde_ruleCondition.setSelectValueQuestion(questionConditionSingleObj.getString("SelectValueQuestion"));
                         dde_ruleCondition.setQuestionIdentifier(singleRule.getString("ShowQuestionIdentifier"));
                         dde_ruleCondition.setRuleId(singleRule.getString("RuleId"));
-                        long l=appDatabase.getDDE_RuleConditionDao().insertRuleCondition(dde_ruleCondition);
+                        long l = appDatabase.getDDE_RuleConditionDao().insertRuleCondition(dde_ruleCondition);
                     }
                     DDE_RuleQuestion dde_ruleQuestion = new DDE_RuleQuestion();
-                    dde_ruleQuestion.setRuleQuestionId(""+i);
+                    dde_ruleQuestion.setRuleQuestionId("" + i);
                     dde_ruleQuestion.setRuleQuestion(singleRule.getString("ShowQuestionIdentifier"));
                     dde_ruleQuestion.setRuleId(singleRule.getString("RuleId"));
-                    long aa=appDatabase.getDDE_RuleQuestionDao().insertRuleQuestionDao(dde_ruleQuestion);
-                    Log.d("s",""+aa);
+                    long aa = appDatabase.getDDE_RuleQuestionDao().insertRuleQuestionDao(dde_ruleQuestion);
                 }
 
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.d("error",e.getMessage()+"  deep"+e);
         }
 
     }
@@ -314,9 +334,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         switch (item.getItemId()) {
             case android.R.id.home:
 
-                GenericDao genericDao = new GenericDao();
-                genericDao.createTable("Employee", "name,age,work");
-                genericDao.getTableCount();
+                // GenericDao genericDao = new GenericDao();
+                //  genericDao.createTable("Employee", "name,age,work");
+                //  genericDao.getTableCount();
 
 
                 drawer_layout.openDrawer(GravityCompat.START);
