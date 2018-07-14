@@ -187,6 +187,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     protected void onResume() {
         super.onResume();
         updateFormEntries();
+        SavedFormsFragment savedFormsFragment = new SavedFormsFragment();
+        FragmentManager fm = getFragmentManager();
+        fm.beginTransaction().replace(R.id.fragment, savedFormsFragment).commit();
     }
 
     private void getQuestionsAndData(int formId) {
