@@ -28,11 +28,13 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
+import pratham.dde.dao.GenericDao;
 import pratham.dde.database.BackupDatabase;
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.DDE_Questions;
@@ -62,10 +64,12 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     Dialog dialog;
     //    FusedLocationAPI fusedLocationAPI;
     String userName, password;
+    String dataSourceUrl;
+    String tableName;
     Context mContext;
     String token, QuestionUrl;
     DDE_Forms[] forms;
-    int formIndex=0;
+    int formIndex = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +96,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         break;
 
                     case R.id.nav_get_new_forms:
-                        formIndex=0;
+                        formIndex = 0;
                         token = appDatabase.getUserDao().getToken(userName, password);
                         forms = appDatabase.getDDE_FormsDao().getAllForms();
                         if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
@@ -129,14 +133,14 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         for (int i = 0; i < questions.size(); i++) {
             if (questions.get(i).getDataSource() != null) {
                 String formId = questions.get(i).getFormId();
-                String tableName = appDatabase.getDDE_FormsDao().getTableName(formId);
-                String dataSourceUrl = Utility.getProperty("dataSource", mContext);
-                loadSourceData(tableName, formId, dataSourceUrl);
+                tableName = appDatabase.getDDE_FormsDao().getTableName(formId);
+                dataSourceUrl = Utility.getProperty("dataSource", mContext);
+                loadSourceData(formId);
             }
         }
     }
 
-    private void loadSourceData(String tableName, String formId, String url) {
+    private void loadSourceData(String formId) {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("FilterList", "null");
@@ -146,13 +150,12 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             e.printStackTrace();
         }
 
-        AndroidNetworking.post(url)
-                .addJSONObjectBody(jsonObject) // posting json
+        AndroidNetworking.post(dataSourceUrl).addJSONObjectBody(jsonObject) // posting json
                 .build().
                 getAsJSONObject(new JSONObjectRequestListener() {
                     @Override
                     public void onResponse(JSONObject response) {
-
+                        saveSourceData(response);
                     }
 
                     @Override
@@ -160,6 +163,24 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
 
                     }
                 });
+    }
+
+    private void saveSourceData(JSONObject response) {
+        try {
+            String columnNamesSourceData = "";
+            JSONArray tablesArray = response.getJSONArray("Data");
+            JSONObject table = tablesArray.getJSONObject(0);
+            Iterator iterator = table.keys();
+            while (iterator.hasNext()) {
+                columnNamesSourceData = columnNamesSourceData + (String) iterator.next() + ", ";
+            }
+            if (columnNamesSourceData != null && columnNamesSourceData.length() > 0 && columnNamesSourceData.charAt(columnNamesSourceData.length() - 1) == ',') {
+                columnNamesSourceData = columnNamesSourceData.substring(0, columnNamesSourceData.length() - 1);
+            }
+            GenericDao.createTable(tableName, columnNamesSourceData);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -191,10 +212,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     private void saveData(JSONObject response) {
         saveQuestion(response);
         formIndex++;
-        if(formIndex<forms.length){
+        if (formIndex < forms.length) {
             getQuestionsAndData(forms[formIndex].getFormid());
-        }else
-        {
+        } else {
             fetchQuestionsSourceData();
         }
     }
