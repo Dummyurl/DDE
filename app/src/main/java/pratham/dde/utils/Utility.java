@@ -40,7 +40,7 @@ public class Utility{
      *
      * @return A unique GUID / UUID.
      */
-    public UUID GetUniqueID() {
+    public UUID getUniqueID() {
         return UUID.randomUUID();
     }
 
@@ -52,7 +52,7 @@ public class Utility{
      * @param val Boolean value being passed
      * @return 1 if value passed is true, 0 if value passed is false.
      */
-    public int ConvertBooleanToInt(Boolean val) {
+    public int convertBooleanToInt(Boolean val) {
         return (val) ? 1 : 0;
     }
 
