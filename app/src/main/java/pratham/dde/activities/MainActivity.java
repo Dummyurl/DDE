@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -201,6 +200,7 @@ public class MainActivity extends BaseActivity {
             for (i = 0; i < programsJson.length() - 1; i++) {
                 programIds += programsJson.getJSONObject(i).getString("progid") + ",";
             }
+           // programIds +="1,";
             programIds += programsJson.getJSONObject(i).getString("progid");
         } catch (Exception e) {
             e.printStackTrace();

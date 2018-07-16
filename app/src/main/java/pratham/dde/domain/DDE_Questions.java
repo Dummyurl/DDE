@@ -2,6 +2,7 @@ package pratham.dde.domain;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverters;
 import android.support.annotation.NonNull;
@@ -113,13 +114,33 @@ public class DDE_Questions {
     @SerializedName("DependentQuestionIdentifier")
     private String DependentQuestionIdentifier;
 
-
     public JsonArray getQuestionOption() {
         return QuestionOption;
     }
 
     public void setQuestionOption(JsonArray questionOption) {
         QuestionOption = questionOption;
+    }
+
+    @Ignore
+    private String answer="";
+    @Ignore
+    private Boolean visivility=false;
+
+    public String getAnswer() {
+        return answer;
+    }
+
+    public void setAnswer(String answer) {
+        this.answer = answer;
+    }
+
+    public Boolean getVisivility() {
+        return visivility;
+    }
+
+    public void setVisivility(Boolean visivility) {
+        this.visivility = visivility;
     }
 
     @Override

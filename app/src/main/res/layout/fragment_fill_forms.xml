@@ -14,12 +14,19 @@
         android:text="Fill forms"
         android:textSize="20sp" />
 
-    <LinearLayout
-        android:id="@+id/forms"
-        android:padding="30dp"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:fillViewport="true">
 
-    </LinearLayout>
+        <LinearLayout
+            android:id="@+id/forms"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="30dp">
+
+        </LinearLayout>
+    </ScrollView>
+
 </LinearLayout>
