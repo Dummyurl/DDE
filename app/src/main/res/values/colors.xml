@@ -13,4 +13,6 @@
     <color name="colorbackground">#ff6c6e</color>
     <color name="simpleWhite">#ffffff</color>
     <color name="blackTransparent">#9b0e0e0e</color>
+    <color name="greenLight">#c4fac6</color>
+
 </resources>
