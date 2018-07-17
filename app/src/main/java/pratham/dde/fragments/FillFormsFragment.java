@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,8 +19,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
 import pratham.dde.activities.DisplayQuestions;
+import pratham.dde.customViews.FormPasswordDialog;
 import pratham.dde.customViews.FormattedTextView;
 import pratham.dde.domain.DDE_Forms;
+import pratham.dde.domain.DDE_Questions;
 
 import static pratham.dde.BaseActivity.appDatabase;
 
@@ -33,6 +36,7 @@ public class FillFormsFragment extends Fragment {
     private String userName, password;
     @BindView(R.id.forms)
     LinearLayout linearLayout;
+    String formPassword;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,11 +88,8 @@ public class FillFormsFragment extends Fragment {
             textView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent questionIntent = new Intent(getActivity(), DisplayQuestions.class);
                     String formId = String.valueOf(view.getId());
-                    questionIntent.putExtra("formId", formId);
-                    startActivity(questionIntent);
-                    Toast.makeText(getActivity(), "" + view.getId(), Toast.LENGTH_SHORT).show();
+                    checkFormPassword(formId);
                 }
             });
             layout.addView(textView);
@@ -102,5 +103,54 @@ public class FillFormsFragment extends Fragment {
         }
 
     }
+
+    private void checkFormPassword(final String formId) {
+        List<DDE_Questions> formIdWiseQuestions = new ArrayList<>();
+        formIdWiseQuestions = appDatabase.getDDE_QuestionsDao().getFormIdWiseQuestions(formId);
+        if (!formIdWiseQuestions.isEmpty()) {
+
+            formPassword = appDatabase.getDDE_FormsDao().getFormPassword(formId);
+            if (formPassword.equals("null")) {
+                final FormPasswordDialog formPasswordDialog;
+                formPasswordDialog = new FormPasswordDialog(getActivity());
+                formPasswordDialog.setCancelable(false);
+                formPasswordDialog.btn_ok.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String enteredPassword = formPasswordDialog.et_password.getText().toString();
+
+                        if (formPassword.equals(enteredPassword) && enteredPassword.equals("null")) {
+                            Intent questionIntent = new Intent(getActivity(), DisplayQuestions.class);
+                            questionIntent.putExtra("formId", formId);
+                            startActivity(questionIntent);
+                            formPasswordDialog.dismiss();
+                        } else {
+                            formPasswordDialog.dismiss();
+                            Toast.makeText(getActivity(), "Incorrect Password..", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+                formPasswordDialog.btn_cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        formPasswordDialog.dismiss();
+                    }
+                });
+
+                formPasswordDialog.show();
+            } else {
+                Intent questionIntent = new Intent(getActivity(), DisplayQuestions.class);
+                questionIntent.putExtra("formId", formId);
+                startActivity(questionIntent);
+            }
+        } else {
+            Log.d("QQQ", formIdWiseQuestions.toString());
+            Toast.makeText(getActivity(), "Form Is Empty..", Toast.LENGTH_SHORT).show();
+        }
+
+
+    }
+
 
 }

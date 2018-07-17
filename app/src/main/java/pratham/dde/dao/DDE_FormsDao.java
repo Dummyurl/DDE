@@ -32,4 +32,6 @@ public interface DDE_FormsDao {
     @Query("UPDATE DDE_Forms SET PulledDateTime=:date  WHERE  formid=:formId1")
     void updatePulledDate(String formId1, String date);
 
+    @Query("SELECT formpassword FROM DDE_Forms where formid=:formId")
+    String getFormPassword(String formId);
 }
