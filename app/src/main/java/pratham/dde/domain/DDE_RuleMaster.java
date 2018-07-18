@@ -8,7 +8,7 @@ import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 
-@Entity(indices = {@Index(value ="RuleId",unique = true)},foreignKeys = @ForeignKey(entity = DDE_Forms.class, parentColumns = "formid", childColumns = "FormId"))
+@Entity(indices = {@Index(value = "RuleId", unique = true)}, foreignKeys = @ForeignKey(entity = DDE_Forms.class, parentColumns = "formid", childColumns = "FormId"))
 public class DDE_RuleMaster {
 
     @PrimaryKey
@@ -17,12 +17,12 @@ public class DDE_RuleMaster {
     private String RuleId;
     @SerializedName("FormId")
     private String FormId;
-   /* @SerializedName("ConditionsMatch")
-    private String ConditionToBeMatched;*/
+    @SerializedName("ConditionsMatch")
+    private String ConditionToBeMatched;
 
     @Override
     public String toString() {
-        return "DDE_RuleMaster{" + "RuleId='" + RuleId + '\'' + ", FormId=" + FormId + ", ConditionToBeMatched='" +/* ConditionToBeMatched + '\'' + */'}';
+        return "DDE_RuleMaster{" + "RuleId='" + RuleId + '\'' + ", FormId=" + FormId + ", ConditionToBeMatched='" + ConditionToBeMatched + '\'' + '}';
     }
 
     @NonNull
@@ -42,11 +42,11 @@ public class DDE_RuleMaster {
         FormId = formId;
     }
 
-  /*public String getConditionToBeMatched() {
+    public String getConditionToBeMatched() {
         return ConditionToBeMatched;
     }
 
     public void setConditionToBeMatched(String conditionToBeMatched) {
         ConditionToBeMatched = conditionToBeMatched;
-    }*/
+    }
 }
