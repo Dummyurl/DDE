@@ -181,7 +181,7 @@ public class DisplayQuestions extends AppCompatActivity {
                         }, mYear, mMonth, mDay);
 
 
-                        /*GETTING RANDE OF DATE FROM QUESTION */
+                        /*GETTING RANGE OF DATE FROM QUESTION */
                         DatePicker datePicker = datePickerDialog.getDatePicker();
                         Calendar c = Calendar.getInstance();
                         String minDateString = dde_questions.getMINRANGE();
