@@ -232,29 +232,26 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             Type listType = new TypeToken<ArrayList<DDE_Questions>>() {
             }.getType();
             ArrayList<DDE_Questions> questionList = gson.fromJson(questions, listType);
+            appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
             if (questionList.size() > 0) {
-                appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
-                formId = response.getJSONObject("Formdata").getString("formid");
-                appDatabase.getDDE_FormsDao().updatePulledDate(formId, "" + Utility.getCurrentDateTime());
+                formId = questionList.get(0).getFormId();
+                appDatabase.getDDE_FormsDao().updatePulledDate(questionList.get(0).getFormId(), "" + Utility.getCurrentDateTime());
                 //save Rules to database
                 JSONArray rules = data.getJSONArray("Rules");
-                DDE_RuleMaster dde_ruleMaster;
-                JSONObject singleRule;
-                JSONArray questionConditionArray;
+
                 for (int i = 0; i < rules.length(); i++) {
-                    singleRule = rules.getJSONObject(i);
-                    dde_ruleMaster = new DDE_RuleMaster();
+                    JSONObject singleRule = rules.getJSONObject(i);
+
+                    DDE_RuleMaster dde_ruleMaster = new DDE_RuleMaster();
                     dde_ruleMaster.setFormId(formId);
                     dde_ruleMaster.setRuleId(singleRule.getString("RuleId"));
-                    dde_ruleMaster.setConditionToBeMatched(singleRule.getString("ConditionsMatch"));
-                    questionConditionArray = singleRule.getJSONArray("QuestionCondition");
+                    JSONArray questionConditionArray = singleRule.getJSONArray("QuestionCondition");
 
                     long rm = appDatabase.getDDE_RuleMasterDao().insertRuleMaster(dde_ruleMaster);
-                    DDE_RuleCondition dde_ruleCondition;
-                    JSONObject questionConditionSingleObj;
                     for (int j = 0; j < questionConditionArray.length(); j++) {
-                        questionConditionSingleObj = questionConditionArray.getJSONObject(j);
-                        dde_ruleCondition = new DDE_RuleCondition();
+                        JSONObject questionConditionSingleObj = questionConditionArray.getJSONObject(j);
+
+                        DDE_RuleCondition dde_ruleCondition = new DDE_RuleCondition();
                         dde_ruleCondition.setConditionId(questionConditionSingleObj.getString("ConditionId"));
                         dde_ruleCondition.setQuestionIdentifier(questionConditionSingleObj.getString("QuestionIdentifier"));
                         dde_ruleCondition.setConditiontype(questionConditionSingleObj.getString("ConditionType"));
