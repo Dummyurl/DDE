@@ -17,4 +17,9 @@ public interface DDE_RuleConditionDao {
 
     @Query("SELECT * FROM DDE_RuleCondition")
     public List<DDE_RuleCondition> getAllRuleCondition();
+
+   @Query("SELECT RuleQuestionForWhichQue FROM DDE_RuleCondition WHERE formID=:formId ")
+    public List<String> getDependantQue(String formId);
+
+
 }

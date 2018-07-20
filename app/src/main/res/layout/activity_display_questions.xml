@@ -56,7 +56,11 @@
                 android:layout_marginRight="5dp"
                 android:background="@drawable/custom_border"
                 android:orientation="vertical"></LinearLayout>
-
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLength="5"
+                android:minEms="2"/>
             <Button
                 android:id="@+id/saveAllQuestions"
                 android:layout_width="175dp"

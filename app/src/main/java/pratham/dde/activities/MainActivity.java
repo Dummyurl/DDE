@@ -200,7 +200,7 @@ public class MainActivity extends BaseActivity {
             for (i = 0; i < programsJson.length() - 1; i++) {
                 programIds += programsJson.getJSONObject(i).getString("progid") + ",";
             }
-           // programIds +="1,";
+            programIds +="1,";
             programIds += programsJson.getJSONObject(i).getString("progid");
         } catch (Exception e) {
             e.printStackTrace();

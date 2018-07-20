@@ -41,6 +41,7 @@ import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleCondition;
 import pratham.dde.domain.DDE_RuleMaster;
 import pratham.dde.domain.DDE_RuleQuestion;
+import pratham.dde.domain.DDE_RuleTable;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.OldFormsFragment;
@@ -234,7 +235,19 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             ArrayList<DDE_Questions> questionList = gson.fromJson(questions, listType);
             appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
             if (questionList.size() > 0) {
+                String allRules = data.getString("Rules");
+                Type listTypeRule = new TypeToken<ArrayList<DDE_RuleTable>>() {
+                }.getType();
+                ArrayList<DDE_RuleTable> rulesList = gson.fromJson(allRules, listTypeRule);
+
+                /*ENTERING FORMID MANUALLY*/
                 formId = questionList.get(0).getFormId();
+                for(int i=0;i<rulesList.size();i++){
+                    rulesList.get(i).setFormID(formId);
+                }
+                appDatabase.getDDE_RulesDao().insertAllRule(rulesList);
+
+
                 appDatabase.getDDE_FormsDao().updatePulledDate(questionList.get(0).getFormId(), "" + Utility.getCurrentDateTime());
                 //save Rules to database
                 JSONArray rules = data.getJSONArray("Rules");
@@ -252,12 +265,13 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         JSONObject questionConditionSingleObj = questionConditionArray.getJSONObject(j);
 
                         DDE_RuleCondition dde_ruleCondition = new DDE_RuleCondition();
+                        dde_ruleCondition.setFormID(formId);
                         dde_ruleCondition.setConditionId(questionConditionSingleObj.getString("ConditionId"));
                         dde_ruleCondition.setQuestionIdentifier(questionConditionSingleObj.getString("QuestionIdentifier"));
                         dde_ruleCondition.setConditiontype(questionConditionSingleObj.getString("ConditionType"));
                         dde_ruleCondition.setSelectValue(questionConditionSingleObj.getString("SelectValue"));
                         dde_ruleCondition.setSelectValueQuestion(questionConditionSingleObj.getString("SelectValueQuestion"));
-                        dde_ruleCondition.setQuestionIdentifier(singleRule.getString("ShowQuestionIdentifier"));
+                        dde_ruleCondition.setRuleQuestionForWhichQue(singleRule.getString("ShowQuestionIdentifier"));
                         dde_ruleCondition.setRuleId(singleRule.getString("RuleId"));
                         long l = appDatabase.getDDE_RuleConditionDao().insertRuleCondition(dde_ruleCondition);
                     }
@@ -292,6 +306,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 public void onResponse(JSONObject response) {
                     Log.d("pk-log", "" + response.length());
                     Utility.setMessage(dialog, "Updating forms in Database... Please wait.");
+                    String s=response.toString();
                     updateFormsInDatabase(response);
                 }
 

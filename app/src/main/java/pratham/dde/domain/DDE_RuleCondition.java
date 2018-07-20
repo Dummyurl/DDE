@@ -8,7 +8,7 @@ import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 
-@Entity(indices = {@Index(value = "RuleQuestion",unique = true)},foreignKeys = @ForeignKey(entity = DDE_RuleMaster.class, parentColumns = "RuleId", childColumns = "RuleId"))
+@Entity(indices = {@Index(value = "RuleQuestionForWhichQue",unique = true)},foreignKeys = @ForeignKey(entity = DDE_RuleMaster.class, parentColumns = "RuleId", childColumns = "RuleId"))
 public class DDE_RuleCondition {
 
     @PrimaryKey
@@ -29,15 +29,18 @@ public class DDE_RuleCondition {
     private String SelectValueQuestion;
 
     @SerializedName("ShowQuestionIdentifier")
-    private String RuleQuestion;
+    private String RuleQuestionForWhichQue;
 
     @SerializedName("RuleId")
     private String RuleId;
 
+    @SerializedName("FormId")
+    private String formID;
+
 
     @Override
     public String toString() {
-        return "DDE_RuleCondition{" + "ConditionId='" + ConditionId + '\'' + ", Conditiontype='" + Conditiontype + '\'' + ", RuleId='" + RuleId + '\'' + ", RuleQuestion='" + RuleQuestion + '\'' + ", QuestionIdentifier='" + QuestionIdentifier + '\'' + ", SelectValue='" + SelectValue + '\'' + ", SelectValueQuestion='" + SelectValueQuestion + '\'' + '}';
+        return "DDE_RuleCondition{" + "ConditionId='" + ConditionId + '\'' + ", Conditiontype='" + Conditiontype + '\'' + ", RuleId='" + RuleId + '\'' + ", RuleQuestion='" + RuleQuestionForWhichQue + '\'' + ", QuestionIdentifier='" + QuestionIdentifier + '\'' + ", SelectValue='" + SelectValue + '\'' + ", SelectValueQuestion='" + SelectValueQuestion + '\'' + '}';
     }
 
     @NonNull
@@ -65,12 +68,13 @@ public class DDE_RuleCondition {
         RuleId = ruleId;
     }
 
-    public String getRuleQuestion() {
-        return RuleQuestion;
+
+    public String getRuleQuestionForWhichQue() {
+        return RuleQuestionForWhichQue;
     }
 
-    public void setRuleQuestion(String ruleQuestion) {
-        RuleQuestion = ruleQuestion;
+    public void setRuleQuestionForWhichQue(String ruleQuestionForWhichQue) {
+        RuleQuestionForWhichQue = ruleQuestionForWhichQue;
     }
 
     public String getQuestionIdentifier() {
@@ -95,5 +99,13 @@ public class DDE_RuleCondition {
 
     public void setSelectValueQuestion(String selectValueQuestion) {
         SelectValueQuestion = selectValueQuestion;
+    }
+
+    public String getFormID() {
+        return formID;
+    }
+
+    public void setFormID(String formID) {
+        this.formID = formID;
     }
 }
