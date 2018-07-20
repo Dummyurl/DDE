@@ -77,7 +77,7 @@ public class DisplayQuestions extends AppCompatActivity {
         setVisibilityToQuestions(formId);
 
         for (int i = 0; i < formIdWiseQuestions.size(); i++) {
-            dispaySingleQue(formIdWiseQuestions.get(i));
+            displaySingleQue(formIdWiseQuestions.get(i));
         }
     }
 
@@ -86,7 +86,7 @@ public class DisplayQuestions extends AppCompatActivity {
     }
 
     /*    Display A Single Questions One By One*/
-    private void dispaySingleQue(final DDE_Questions dde_questions) {
+    private void displaySingleQue(final DDE_Questions dde_questions) {
         LinearLayout layout = new LinearLayout(this);
         layout.setPadding(10, 10, 10, 10);
         layout.setOrientation(LinearLayout.VERTICAL);
