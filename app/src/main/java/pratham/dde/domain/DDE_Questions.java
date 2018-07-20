@@ -26,7 +26,7 @@ public class DDE_Questions {
     @SerializedName("QuestionTitle")
     private String Question;
 
-    @TypeConverters(JSONArrayToStrintg.class)
+    @TypeConverters(JSONArrayToString.class)
     @SerializedName("QuestionValidation")
     private JsonArray Validations;
 
@@ -42,7 +42,7 @@ public class DDE_Questions {
 
     @SerializedName("QuestionDescription")
     private String QuestionDescription;
-    @TypeConverters(JSONArrayToStrintg.class)
+    @TypeConverters(JSONArrayToString.class)
     @SerializedName("QuestionOption")
     private JsonArray QuestionOption;
 

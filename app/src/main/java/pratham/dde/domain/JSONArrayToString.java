@@ -6,7 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
-public class JSONArrayToStrintg {
+public class JSONArrayToString {
     @TypeConverter
     public static String JSONArrayToString(JsonArray stringArray) {
         return stringArray == null ? null : stringArray.toString();

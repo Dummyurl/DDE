@@ -23,7 +23,7 @@ public class DDE_RuleTable {
     @SerializedName("ConditionsMatch")
     String ConditionsMatch;
     @SerializedName("QuestionCondition")
-    @TypeConverters(JSONArrayToStrintg.class)
+    @TypeConverters(JSONArrayToString.class)
     JsonArray QuestionCondition;
     @SerializedName("CreatedBy")
     String CreatedBy;
