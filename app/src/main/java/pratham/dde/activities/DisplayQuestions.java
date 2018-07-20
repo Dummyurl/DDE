@@ -10,9 +10,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -37,6 +39,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -58,7 +62,6 @@ public class DisplayQuestions extends AppCompatActivity {
     LinearLayout renderAllQuestionsLayout;
     List depQueID;
     List<DDE_RuleTable> allRules;
-
     List<DDE_Questions> formIdWiseQuestions = new ArrayList<>();
 
     @Override
@@ -73,6 +76,9 @@ public class DisplayQuestions extends AppCompatActivity {
         }
         allRules = appDatabase.getDDE_RulesDao().getAllRules();
         formIdWiseQuestions = appDatabase.getDDE_QuestionsDao().getFormIdWiseQuestions(formId);
+        Collections.sort(formIdWiseQuestions, new Sortbyroll());
+
+
         /* SET VISIBILITY TO QUESTIONS */
         setVisibilityToQuestions(formId);
 
@@ -104,11 +110,29 @@ public class DisplayQuestions extends AppCompatActivity {
         paramsWrapContaint.setMargins(10, 0, 0, 0);
         switch (dde_questions.getQuestionType()) {
             case "text":
-                EditText editText = new EditText(this);
+                final EditText editText = new EditText(this);
                 editText.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 editText.setPadding(15, 5, 5, 5);
                 editText.setLayoutParams(params);
                 layout.addView(editText);
+                editText.addTextChangedListener(new TextWatcher() {
+
+                    // the user's changes are saved here
+                    public void onTextChanged(CharSequence c, int start, int before, int count) {
+                        //  mCrime.setTitle(c.toString());
+                    }
+
+                    public void beforeTextChanged(CharSequence c, int start, int count, int after) {
+                        // this space intentionally left blank
+                    }
+
+                    public void afterTextChanged(Editable c) {
+                        dde_questions.setAnswer(c.toString());
+                        LinearLayout layout = (LinearLayout) editText.getParent();
+                        String tag = (String) layout.getTag();
+                        checkRuleCondion(tag, c.toString());
+                    }
+                });
                 break;
 
             case "singlechoice":
@@ -120,36 +144,45 @@ public class DisplayQuestions extends AppCompatActivity {
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
                     final RadioButton radioButton = new RadioButton(this);
                     radioButton.setLayoutParams(paramsWrapContaint);
-                    radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            Toast.makeText(DisplayQuestions.this, "radio", Toast.LENGTH_SHORT).show();
-                            LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent();
-                            String queID = (String) layout.getTag();
-                            // renderAllQuestionsLayout.findViewWithTag();
-                        }
-                    });
                     radioButton.setTag(jsonObject.get("value").getAsString());
                     radioButton.setText(jsonObject.get("display").getAsString());
                     radioGroup.addView(radioButton);
+                    radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                            dde_questions.setAnswer(compoundButton.getText().toString());
+                            LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent();
+                            String tag = (String) layout.getTag();
+                            checkRuleCondion(tag, compoundButton.getTag().toString());
+                        }
+                    });
                 }
                 radioGroup.setLayoutParams(params);
                 layout.addView(radioGroup);
                 break;
 
             case "email":
-                EditText et_email = new EditText(this);
+                final EditText et_email = new EditText(this);
                 et_email.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 et_email.setPadding(15, 5, 5, 5);
                 et_email.setLayoutParams(params);
                 layout.addView(et_email);
-                et_email.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                    @Override
-                    public void onFocusChange(View v, boolean hasFocus) {
-                        if (!hasFocus) {
-                            Toast.makeText(DisplayQuestions.this, "focus changed", Toast.LENGTH_SHORT).show();
+                et_email.addTextChangedListener(new TextWatcher() {
 
-                        }
+                    // the user's changes are saved here
+                    public void onTextChanged(CharSequence c, int start, int before, int count) {
+                        //  mCrime.setTitle(c.toString());
+                    }
+
+                    public void beforeTextChanged(CharSequence c, int start, int count, int after) {
+                        // this space intentionally left blank
+                    }
+
+                    public void afterTextChanged(Editable c) {
+                        dde_questions.setAnswer(c.toString());
+                        LinearLayout layout = (LinearLayout) et_email.getParent();
+                        String tag = (String) layout.getTag();
+                        checkRuleCondion(tag, c.toString());
                     }
                 });
                 break;
@@ -159,18 +192,6 @@ public class DisplayQuestions extends AppCompatActivity {
                 number.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 number.setInputType(InputType.TYPE_CLASS_NUMBER);
                 number.setLayoutParams(params);
-                /*number.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                    @Override
-                    public void onFocusChange(View view, boolean hasFocus) {
-                        if (!hasFocus) {
-                            String ans = number.getText().toString();
-                            LinearLayout layout = (LinearLayout) view.getParent();
-                            String tag = (String) layout.getTag();
-                            checkRuleCondion(tag, ans);
-                        }
-                    }
-                });*/
-
                 number.addTextChangedListener(new TextWatcher() {
 
                     // the user's changes are saved here
@@ -183,6 +204,7 @@ public class DisplayQuestions extends AppCompatActivity {
                     }
 
                     public void afterTextChanged(Editable c) {
+                        dde_questions.setAnswer(c.toString());
                         LinearLayout layout = (LinearLayout) number.getParent();
                         String tag = (String) layout.getTag();
                         checkRuleCondion(tag, c.toString());
@@ -239,16 +261,11 @@ public class DisplayQuestions extends AppCompatActivity {
                         int mMonth = calendar.get(Calendar.MONTH);
                         int mDay = calendar.get(Calendar.DAY_OF_MONTH);
                         DatePickerDialog datePickerDialog;
-                       /* datePickerDialog = new DatePickerDialog(DisplayQuestions.this, new DatePickerDialog.OnDateSetListener() {
-                            @Override
-                            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                                date.setText("" + day + "/" + month + "/" + year);
-                            }
 
-                        }, mYear, mMonth, mDay);*/
                         datePickerDialog = new DatePickerDialog(DisplayQuestions.this, new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                                dde_questions.setAnswer("" + day + "/" + month + "/" + year);
                                 date.setText("" + day + "/" + month + "/" + year);
                             }
 
@@ -265,7 +282,7 @@ public class DisplayQuestions extends AppCompatActivity {
                         Calendar c = Calendar.getInstance();
                         String minDateString = dde_questions.getMINRANGE();
                         String maxDateString = dde_questions.getMAXRANGE();
-                        if (minDateString != "null") {
+                        if (minDateString != null) {
                             int minYear = 0, minMonth = 0, minDay = 0;
                             try {
                                 JSONObject mindateJsonObject = new JSONObject(minDateString);
@@ -279,7 +296,7 @@ public class DisplayQuestions extends AppCompatActivity {
                                 e.printStackTrace();
                             }
                         }
-                        if (maxDateString != "null") {
+                        if (maxDateString != null) {
                             int maxYear = 0, maxMonth = 0, maxDay = 0;
 
                             JSONObject maxdateJsonObject = null;
@@ -323,6 +340,7 @@ public class DisplayQuestions extends AppCompatActivity {
                         mtimePickerDialog = new TimePickerDialog(DisplayQuestions.this, new TimePickerDialog.OnTimeSetListener() {
                             @Override
                             public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+                                dde_questions.setAnswer("" + selectedHour + ":" + selectedMinute);
                                 time.setText("" + selectedHour + ":" + selectedMinute);
                             }
                         }, hour, minute, false);
@@ -347,6 +365,17 @@ public class DisplayQuestions extends AppCompatActivity {
                 ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_selectable_list_item, display);
                 spinnerDropdown.setAdapter(spinnerArrayAdapter);
                 spinnerDropdown.setLayoutParams(paramsWrapContaint);
+                spinnerDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        dde_questions.setAnswer(adapterView.getSelectedItem().toString());
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
                 layout.addView(spinnerDropdown);
                 break;
 
@@ -435,5 +464,70 @@ public class DisplayQuestions extends AppCompatActivity {
             }
         });
         alertDialogBuilder.show();
+    }
+
+    @OnClick(R.id.saveAllQuestions)
+    public void save() {
+        Log.d("tag111", formIdWiseQuestions.toString());
+        checkValidations();
+    }
+
+    private boolean checkValidations() {
+        DDE_Questions dde_questions;
+        for (int i = 0; i < formIdWiseQuestions.size(); i++) {
+            JsonArray jsonArray = formIdWiseQuestions.get(i).getValidations();
+            for (int j = 1; j < jsonArray.size(); j++) {
+                JsonObject validationObject = jsonArray.get(j).getAsJsonObject();
+                if (validationObject.get("ValidationApply").getAsBoolean()) {
+
+                    checkValue(formIdWiseQuestions.get(i).getQuestionType(), validationObject.get("validationName").getAsString(), validationObject.get("ValidationValue").getAsString(), formIdWiseQuestions.get(i).getAnswer());
+                }
+            }
+        }
+        return true;
+
+    }
+
+    private boolean checkValue(String questionType, String validationName, String validationValue, String answer) {
+        switch (validationName) {
+            case "REQUIRED":
+                return answer != "" ? true : false;
+            case "MAXCHARACTERSALLOWED":
+            case "MAXLENGTH":
+                return answer.length() <= Integer.parseInt(validationValue) ? true : false;
+            case "MINCHARACTERSALLOWED":
+            case "MINLENGTH":
+                return answer.length() >= Integer.parseInt(validationValue) ? true : false;
+            case "MINRANGE":
+                return Integer.parseInt(answer) >= Integer.parseInt(validationValue) ? true : false;
+            case "MAXRANGE":
+                return Integer.parseInt(answer) <= Integer.parseInt(validationValue) ? true : false;
+            case "DEPENDSON":
+                switch (questionType) {
+                    case "number":
+                        return Integer.parseInt(answer) <= Integer.parseInt(validationValue) ? true : false;
+                    case "multiple":
+                        //return Integer.parseInt(answer) <= Integer.parseInt(validationValue) ? true : false;
+                    case "date":
+
+                    case "time":
+
+
+                }
+            case "ALLOWDECIMAL":
+
+
+
+            default:
+                return true;
+        }
+    }
+
+    class Sortbyroll implements Comparator<DDE_Questions> {
+        // Used for sorting in ascending order of
+        // roll number
+        public int compare(DDE_Questions a, DDE_Questions b) {
+            return a.getFieldSeqNo() - b.getFieldSeqNo();
+        }
     }
 }
