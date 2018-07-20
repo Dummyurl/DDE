@@ -114,9 +114,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         break;
 
                     case R.id.nav_old_forms:
-                        OldFormsFragment oldFormsFragment = new OldFormsFragment();
+                        /*OldFormsFragment oldFormsFragment = new OldFormsFragment();
                         FragmentManager fragmentManager = getFragmentManager();
                         fragmentManager.beginTransaction().replace(R.id.fragment, oldFormsFragment).commit();
+                        */
                         break;
                 }
                 drawer_layout.closeDrawer(GravityCompat.START);

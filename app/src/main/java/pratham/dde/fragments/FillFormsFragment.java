@@ -110,7 +110,7 @@ public class FillFormsFragment extends Fragment {
         if (!formIdWiseQuestions.isEmpty()) {
 
             formPassword = appDatabase.getDDE_FormsDao().getFormPassword(formId);
-            if (formPassword.equals("null")) {
+            if (!formPassword.equals("null")) {
                 final FormPasswordDialog formPasswordDialog;
                 formPasswordDialog = new FormPasswordDialog(getActivity());
                 formPasswordDialog.setCancelable(false);

@@ -1,6 +1,5 @@
 package pratham.dde.customViews;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -29,7 +28,7 @@ public class FormPasswordDialog extends Dialog {
 
     public FormPasswordDialog(@NonNull Context context) {
         super(context, android.R.style.Theme_Holo_Light_Dialog_NoActionBar_MinWidth);
-        setContentView(R.layout.formpassword_layout);
+        setContentView(R.layout.formpassword_layout_dialog);
         ButterKnife.bind(this);
     }
 
