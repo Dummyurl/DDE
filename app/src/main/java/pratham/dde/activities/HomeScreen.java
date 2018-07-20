@@ -41,6 +41,7 @@ import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleCondition;
 import pratham.dde.domain.DDE_RuleMaster;
 import pratham.dde.domain.DDE_RuleQuestion;
+import pratham.dde.domain.DDE_RuleTable;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.OldFormsFragment;
@@ -233,32 +234,59 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             Type listType = new TypeToken<ArrayList<DDE_Questions>>() {
             }.getType();
             ArrayList<DDE_Questions> questionList = gson.fromJson(questions, listType);
-            appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
             if (questionList.size() > 0) {
+<<<<<<< HEAD
+                String allRules = data.getString("Rules");
+                Type listTypeRule = new TypeToken<ArrayList<DDE_RuleTable>>() {
+                }.getType();
+                ArrayList<DDE_RuleTable> rulesList = gson.fromJson(allRules, listTypeRule);
+
+                /*ENTERING FORMID MANUALLY*/
                 formId = questionList.get(0).getFormId();
+                for(int i=0;i<rulesList.size();i++){
+                    rulesList.get(i).setFormID(formId);
+                }
+                appDatabase.getDDE_RulesDao().insertAllRule(rulesList);
+
+
                 appDatabase.getDDE_FormsDao().updatePulledDate(questionList.get(0).getFormId(), "" + Utility.getCurrentDateTime());
+=======
+                appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
+                formId = response.getJSONObject("Formdata").getString("formid");
+                appDatabase.getDDE_FormsDao().updatePulledDate(formId, "" + Utility.getCurrentDateTime());
+>>>>>>> e958f5de0c2285286b1ce792795ea990fac2adc3
                 //save Rules to database
                 JSONArray rules = data.getJSONArray("Rules");
-
+                DDE_RuleMaster dde_ruleMaster;
+                JSONObject singleRule;
+                JSONArray questionConditionArray;
                 for (int i = 0; i < rules.length(); i++) {
-                    JSONObject singleRule = rules.getJSONObject(i);
-
-                    DDE_RuleMaster dde_ruleMaster = new DDE_RuleMaster();
+                    singleRule = rules.getJSONObject(i);
+                    dde_ruleMaster = new DDE_RuleMaster();
                     dde_ruleMaster.setFormId(formId);
                     dde_ruleMaster.setRuleId(singleRule.getString("RuleId"));
-                    JSONArray questionConditionArray = singleRule.getJSONArray("QuestionCondition");
+                    dde_ruleMaster.setConditionToBeMatched(singleRule.getString("ConditionsMatch"));
+                    questionConditionArray = singleRule.getJSONArray("QuestionCondition");
 
                     long rm = appDatabase.getDDE_RuleMasterDao().insertRuleMaster(dde_ruleMaster);
+                    DDE_RuleCondition dde_ruleCondition;
+                    JSONObject questionConditionSingleObj;
                     for (int j = 0; j < questionConditionArray.length(); j++) {
+<<<<<<< HEAD
                         JSONObject questionConditionSingleObj = questionConditionArray.getJSONObject(j);
 
                         DDE_RuleCondition dde_ruleCondition = new DDE_RuleCondition();
+                        dde_ruleCondition.setFormID(formId);
+=======
+                        questionConditionSingleObj = questionConditionArray.getJSONObject(j);
+                        dde_ruleCondition = new DDE_RuleCondition();
+>>>>>>> e958f5de0c2285286b1ce792795ea990fac2adc3
                         dde_ruleCondition.setConditionId(questionConditionSingleObj.getString("ConditionId"));
                         dde_ruleCondition.setQuestionIdentifier(questionConditionSingleObj.getString("QuestionIdentifier"));
                         dde_ruleCondition.setConditiontype(questionConditionSingleObj.getString("ConditionType"));
                         dde_ruleCondition.setSelectValue(questionConditionSingleObj.getString("SelectValue"));
                         dde_ruleCondition.setSelectValueQuestion(questionConditionSingleObj.getString("SelectValueQuestion"));
-                        dde_ruleCondition.setQuestionIdentifier(singleRule.getString("ShowQuestionIdentifier"));
+                        dde_ruleCondition.setRuleQuestionForWhichQue(singleRule.getString("ShowQuestionIdentifier"));
                         dde_ruleCondition.setRuleId(singleRule.getString("RuleId"));
                         long l = appDatabase.getDDE_RuleConditionDao().insertRuleCondition(dde_ruleCondition);
                     }
@@ -293,6 +321,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 public void onResponse(JSONObject response) {
                     Log.d("pk-log", "" + response.length());
                     Utility.setMessage(dialog, "Updating forms in Database... Please wait.");
+                    String s=response.toString();
                     updateFormsInDatabase(response);
                 }
 

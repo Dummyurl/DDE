@@ -7,12 +7,15 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.GridLayout;
@@ -23,6 +26,7 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -34,12 +38,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import pratham.dde.R;
 import pratham.dde.domain.DDE_Questions;
+import pratham.dde.domain.DDE_RuleTable;
 
 import static pratham.dde.BaseActivity.appDatabase;
 
@@ -49,7 +55,9 @@ public class DisplayQuestions extends AppCompatActivity {
     @BindView(R.id.formNameHeader)
     TextView formNameHeader;
     @BindView(R.id.renderAllQuestions)
-    LinearLayout renderAllQuestions;
+    LinearLayout renderAllQuestionsLayout;
+    List depQueID;
+    List<DDE_RuleTable> allRules;
 
     List<DDE_Questions> formIdWiseQuestions = new ArrayList<>();
 
@@ -63,10 +71,18 @@ public class DisplayQuestions extends AppCompatActivity {
         if (formName != null) {
             formNameHeader.setText(formName);
         }
+        allRules = appDatabase.getDDE_RulesDao().getAllRules();
         formIdWiseQuestions = appDatabase.getDDE_QuestionsDao().getFormIdWiseQuestions(formId);
+        /* SET VISIBILITY TO QUESTIONS */
+        setVisibilityToQuestions(formId);
+
         for (int i = 0; i < formIdWiseQuestions.size(); i++) {
             dispaySingleQue(formIdWiseQuestions.get(i));
         }
+    }
+
+    private void setVisibilityToQuestions(String formId) {
+        depQueID = appDatabase.getDDE_RulesDao().getDependantQuestion(formId);
     }
 
     /*    Display A Single Questions One By One*/
@@ -74,6 +90,7 @@ public class DisplayQuestions extends AppCompatActivity {
         LinearLayout layout = new LinearLayout(this);
         layout.setPadding(10, 10, 10, 10);
         layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setTag(dde_questions.getQuestionId());
         TextView textView = new TextView(this);
         textView.setText(dde_questions.getQuestion());
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 25);
@@ -101,8 +118,17 @@ public class DisplayQuestions extends AppCompatActivity {
                 for (int i = 0; i < option.size(); i++) {
                     JsonElement jsonElement = option.get(i);
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
-                    RadioButton radioButton = new RadioButton(this);
+                    final RadioButton radioButton = new RadioButton(this);
                     radioButton.setLayoutParams(paramsWrapContaint);
+                    radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                            Toast.makeText(DisplayQuestions.this, "radio", Toast.LENGTH_SHORT).show();
+                            LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent();
+                            String queID = (String) layout.getTag();
+                            // renderAllQuestionsLayout.findViewWithTag();
+                        }
+                    });
                     radioButton.setTag(jsonObject.get("value").getAsString());
                     radioButton.setText(jsonObject.get("display").getAsString());
                     radioGroup.addView(radioButton);
@@ -117,13 +143,51 @@ public class DisplayQuestions extends AppCompatActivity {
                 et_email.setPadding(15, 5, 5, 5);
                 et_email.setLayoutParams(params);
                 layout.addView(et_email);
+                et_email.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                    @Override
+                    public void onFocusChange(View v, boolean hasFocus) {
+                        if (!hasFocus) {
+                            Toast.makeText(DisplayQuestions.this, "focus changed", Toast.LENGTH_SHORT).show();
+
+                        }
+                    }
+                });
                 break;
 
             case "number":
-                EditText number = new EditText(this);
+                final EditText number = new EditText(this);
                 number.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 number.setInputType(InputType.TYPE_CLASS_NUMBER);
                 number.setLayoutParams(params);
+                /*number.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                    @Override
+                    public void onFocusChange(View view, boolean hasFocus) {
+                        if (!hasFocus) {
+                            String ans = number.getText().toString();
+                            LinearLayout layout = (LinearLayout) view.getParent();
+                            String tag = (String) layout.getTag();
+                            checkRuleCondion(tag, ans);
+                        }
+                    }
+                });*/
+
+                number.addTextChangedListener(new TextWatcher() {
+
+                    // the user's changes are saved here
+                    public void onTextChanged(CharSequence c, int start, int before, int count) {
+                        //  mCrime.setTitle(c.toString());
+                    }
+
+                    public void beforeTextChanged(CharSequence c, int start, int count, int after) {
+                        // this space intentionally left blank
+                    }
+
+                    public void afterTextChanged(Editable c) {
+                        LinearLayout layout = (LinearLayout) number.getParent();
+                        String tag = (String) layout.getTag();
+                        checkRuleCondion(tag, c.toString());
+                    }
+                });
                 layout.addView(number);
                 break;
 
@@ -161,6 +225,9 @@ public class DisplayQuestions extends AppCompatActivity {
                 date.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
                 date.setText("Select Date");
                 date.setLayoutParams(paramsWrapContaint);
+                /*if (depQueID.contains(dde_questions.getQuestionId())) {
+                    date.setEnabled(false);
+                }*/
                 layout.addView(date);
 
 
@@ -172,6 +239,13 @@ public class DisplayQuestions extends AppCompatActivity {
                         int mMonth = calendar.get(Calendar.MONTH);
                         int mDay = calendar.get(Calendar.DAY_OF_MONTH);
                         DatePickerDialog datePickerDialog;
+                       /* datePickerDialog = new DatePickerDialog(DisplayQuestions.this, new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                                date.setText("" + day + "/" + month + "/" + year);
+                            }
+
+                        }, mYear, mMonth, mDay);*/
                         datePickerDialog = new DatePickerDialog(DisplayQuestions.this, new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
@@ -180,9 +254,14 @@ public class DisplayQuestions extends AppCompatActivity {
 
                         }, mYear, mMonth, mDay);
 
-
                         /*GETTING RANGE OF DATE FROM QUESTION */
                         DatePicker datePicker = datePickerDialog.getDatePicker();
+                        datePicker.init(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth(), new DatePicker.OnDateChangedListener() {
+                            @Override
+                            public void onDateChanged(DatePicker datePicker, int i, int i1, int i2) {
+                                Toast.makeText(DisplayQuestions.this, "Date changed", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                         Calendar c = Calendar.getInstance();
                         String minDateString = dde_questions.getMINRANGE();
                         String maxDateString = dde_questions.getMAXRANGE();
@@ -274,7 +353,60 @@ public class DisplayQuestions extends AppCompatActivity {
             case "datasourcelist":
                 break;
         }
-        renderAllQuestions.addView(layout);
+        renderAllQuestionsLayout.addView(layout);
+        /*check dependency if depends then hide*/
+        if (depQueID.contains(dde_questions.getQuestionId())) {
+            layout.setVisibility(View.GONE);
+        }
+    }
+
+    private void checkRuleCondion(String tag, String ans) {
+        for (int i = 0; i < allRules.size(); i++) {
+            JsonArray questionCondition = allRules.get(i).getQuestionCondition();
+            for (int j = 0; j < questionCondition.size(); j++) {
+                JsonObject condition = questionCondition.get(i).getAsJsonObject();
+                String QuestionIdentifier = condition.get("QuestionIdentifier").getAsString();
+                if (QuestionIdentifier.equals(tag)) {
+                    String ConditionType = condition.get("ConditionType").getAsString();
+                    Set ContionsSatisfied = allRules.get(i).getContionsSatisfied();
+                    if (checkConditionType(ConditionType, ans)) {
+                        ContionsSatisfied.add(QuestionIdentifier);
+                    } else {
+                        ContionsSatisfied.remove(QuestionIdentifier);
+                    }
+                    String showQueTag = allRules.get(i).getShowQuestionIdentifier();
+                    LinearLayout layout = renderAllQuestionsLayout.findViewWithTag(showQueTag);
+                    if (conditionMatch(allRules.get(i).getConditionsMatch(), questionCondition.size(), ContionsSatisfied.size())) {
+                        layout.setVisibility(View.VISIBLE);
+                    } else {
+                        layout.setVisibility(View.GONE);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean conditionMatch(String conditionsMatch, int totalQue, int attemptedQue) {
+        boolean flag = false;
+        switch (conditionsMatch) {
+            case "All of the conditions match":
+                flag = totalQue == attemptedQue ? true : false;
+                break;
+
+        }
+        return flag;
+    }
+
+    private boolean checkConditionType(String conditionType, String ans) {
+        boolean flag = false;
+        switch (conditionType) {
+            case "greater than equal to":
+                int answer = Integer.parseInt(ans);
+                flag = answer >= 18 ? true : false;
+                break;
+        }
+        return flag;
     }
 
 
