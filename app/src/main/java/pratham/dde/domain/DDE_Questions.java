@@ -124,8 +124,7 @@ public class DDE_Questions {
 
     @Ignore
     private String answer="";
-    @Ignore
-    private Boolean visivility=false;
+
 
     public String getAnswer() {
         return answer;
@@ -133,14 +132,6 @@ public class DDE_Questions {
 
     public void setAnswer(String answer) {
         this.answer = answer;
-    }
-
-    public Boolean getVisivility() {
-        return visivility;
-    }
-
-    public void setVisivility(Boolean visivility) {
-        this.visivility = visivility;
     }
 
     @Override
