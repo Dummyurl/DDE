@@ -162,7 +162,7 @@ public class DisplayQuestions extends AppCompatActivity {
                         dde_questions.setAnswer(c.toString());
                         LinearLayout layout = (LinearLayout) editText.getParent();
                         String tag = (String) layout.getTag();
-                        checkRuleCondion(tag, c.toString());
+                        //checkRuleCondion(tag, c.toString());
                     }
                 });
                 break;
@@ -190,7 +190,7 @@ public class DisplayQuestions extends AppCompatActivity {
                             dde_questions.setAnswer(compoundButton.getText().toString());
                             LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent();
                             String tag = (String) layout.getTag();
-                            checkRuleCondion(tag, compoundButton.getTag().toString());
+                            checkRuleCondion(tag, compoundButton.getTag().toString(), "singlechoice");
                         }
                     });
                 }
@@ -222,7 +222,7 @@ public class DisplayQuestions extends AppCompatActivity {
                         dde_questions.setAnswer(c.toString());
                         LinearLayout layout = (LinearLayout) et_email.getParent();
                         String tag = (String) layout.getTag();
-                        checkRuleCondion(tag, c.toString());
+                        //  checkRuleCondion(tag, c.toString());
                     }
                 });
                 break;
@@ -264,7 +264,7 @@ public class DisplayQuestions extends AppCompatActivity {
                         dde_questions.setAnswer(c.toString());
                         LinearLayout layout = (LinearLayout) number.getParent();
                         String tag = (String) layout.getTag();
-                        checkRuleCondion(tag, c.toString());
+                        checkRuleCondion(tag, c.toString(), "number");
                     }
                 });
                 layout.addView(number);
@@ -290,7 +290,13 @@ public class DisplayQuestions extends AppCompatActivity {
                             } else {
                                 selectedAnswers.replace(splitted[1] + ",", "");
                             }
+                            if (selectedAnswers.endsWith(",")) {
+                                selectedAnswers = selectedAnswers.substring(0, selectedAnswers.length() - 1);
+                            }
                             dde_questions.setAnswer(selectedAnswers);
+                            String queParent = ((LinearLayout) compoundButton.getParent().getParent()).getTag().toString();
+                            checkRuleCondion(queParent, selectedAnswers, "multiple");
+
                         }
                     });
                     JsonElement jsonElement = optionCheckBox.get(i);
@@ -489,6 +495,10 @@ public class DisplayQuestions extends AppCompatActivity {
                         } else {
                             dde_questions.setAnswer(adapterView.getSelectedItem().toString());
                         }
+                        LinearLayout linearLayout = (LinearLayout) adapterView.getParent();
+                        String tag = linearLayout.getTag().toString();
+                        checkRuleCondion(tag, adapterView.getSelectedItem().toString(), "dropdown");
+
                     }
 
                     @Override
@@ -509,16 +519,27 @@ public class DisplayQuestions extends AppCompatActivity {
         }
     }
 
-    private void checkRuleCondion(String tag, String ans) {
+    private void checkRuleCondion(String tag, String ans, String queType) {
         for (int i = 0; i < allRules.size(); i++) {
             JsonArray questionCondition = allRules.get(i).getQuestionCondition();
             for (int j = 0; j < questionCondition.size(); j++) {
                 JsonObject condition = questionCondition.get(j).getAsJsonObject();
                 String QuestionIdentifier = condition.get("QuestionIdentifier").getAsString();
                 if (QuestionIdentifier.equals(tag)) {
+                    String answerFromJsonToMatch = "";
                     String ConditionType = condition.get("ConditionType").getAsString();
                     Set ContionsSatisfied = allRules.get(i).getContionsSatisfied();
-                    if (checkConditionType(ConditionType, ans)) {
+                    if (queType.equalsIgnoreCase("number")) {
+                        if (!condition.get("SelectValueQuestion").isJsonNull()) {
+                            answerFromJsonToMatch = condition.get("SelectValueQuestion").getAsString();
+                        } else {
+                            answerFromJsonToMatch = "";
+                        }
+                    } else {
+                        answerFromJsonToMatch = condition.get("SelectValue").getAsJsonArray().toString();
+                    }
+
+                    if (checkConditionType(ConditionType, ans, answerFromJsonToMatch, queType)) {
                         ContionsSatisfied.add(QuestionIdentifier);
                     } else {
                         ContionsSatisfied.remove(QuestionIdentifier);
@@ -542,17 +563,92 @@ public class DisplayQuestions extends AppCompatActivity {
             case "All of the conditions match":
                 flag = totalQue == attemptedQue ? true : false;
                 break;
+            case "Any one of the conditions match":
+                flag = totalQue == attemptedQue ? true : false;
+                break;
+            default:
+                Toast.makeText(this, "Problem with the rule conditions check rules again", Toast.LENGTH_SHORT).show();
+                return false;
 
         }
         return flag;
     }
 
-    private boolean checkConditionType(String conditionType, String ans) {
+    private boolean checkConditionType(String conditionType, String ans, String answerFromJsonToMatch, String queType) {
         boolean flag = false;
+        int answer = 0;
+        int answerMatch = 0;
+        String[] splittedAnswer = null;
+        if (queType.equalsIgnoreCase("number")) {
+            answer = Integer.parseInt(ans);
+            answerMatch = Integer.parseInt(answerFromJsonToMatch);
+        } else {
+            if (answerFromJsonToMatch.indexOf(0) == '[') {
+                answerFromJsonToMatch = answerFromJsonToMatch.replace('[', ' ');
+            }
+            if (answerFromJsonToMatch.indexOf(0) == ']') {
+                answerFromJsonToMatch = answerFromJsonToMatch.replace(']', ' ');
+            }
+            splittedAnswer = answerFromJsonToMatch.trim().split(",");
+        }
         switch (conditionType) {
+            case "less than":
+                flag = answer < answerMatch ? true : false;
+                break;
+            case "greater than":
+                flag = answer > answerMatch ? true : false;
+                break;
+            case "equal to":
+                flag = answer == answerMatch ? true : false;
+                break;
+            case "less than equal to":
+                flag = answer <= answerMatch ? true : false;
+                break;
             case "greater than equal to":
-                int answer = Integer.parseInt(ans);
-                flag = answer >= 18 ? true : false;
+                flag = answer >= answerMatch ? true : false;
+                break;
+            case "match one":
+                if (queType.equalsIgnoreCase("multiple")) {
+                    /*ENTERED BY USER*/
+                    String[] spittedGivenAns = ans.split(",");
+                    for (int i = 0; i < splittedAnswer.length; i++) {
+                        for (int j = 0; j < spittedGivenAns.length; j++) {
+                            if (spittedGivenAns[j].equalsIgnoreCase(splittedAnswer[i])) {
+                                flag = true;
+                                break;
+                            }
+                        }
+                        if (flag) break;
+                    }
+                } else {
+                    for (int i = 0; i < splittedAnswer.length; i++) {
+                        if (ans.equalsIgnoreCase(splittedAnswer[i])) {
+                            flag = true;
+                        }
+                    }
+                }
+                break;
+            case "match none":
+                flag = true;
+                if (queType.equalsIgnoreCase("multiple")) {
+                    /*ENTERED BY USER*/
+                    String[] spittedGivenAns = ans.split(",");
+                    for (int i = 0; i < splittedAnswer.length; i++) {
+                        for (int j = 0; j < spittedGivenAns.length; j++) {
+                            if (spittedGivenAns[j].equalsIgnoreCase(splittedAnswer[i])) {
+                                flag = false;
+                                break;
+                            }
+                        }
+                        if (!flag) break;
+                    }
+                } else {
+                    for (int i = 0; i < splittedAnswer.length; i++) {
+                        if (ans.equalsIgnoreCase(splittedAnswer[i])) {
+                            flag = false;
+                        }
+                    }
+                }
                 break;
         }
         return flag;
