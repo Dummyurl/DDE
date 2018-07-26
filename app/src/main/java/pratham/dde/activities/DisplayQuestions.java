@@ -4,7 +4,10 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
@@ -25,6 +28,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -37,10 +41,13 @@ import com.google.gson.JsonObject;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -60,9 +67,12 @@ public class DisplayQuestions extends AppCompatActivity {
     TextView formNameHeader;
     @BindView(R.id.renderAllQuestions)
     LinearLayout renderAllQuestionsLayout;
+    @BindView(R.id.parentScroll)
+    ScrollView parentScroll;
     List depQueID;
     List<DDE_RuleTable> allRules;
     List<DDE_Questions> formIdWiseQuestions = new ArrayList<>();
+    List checkBoxList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +80,7 @@ public class DisplayQuestions extends AppCompatActivity {
         setContentView(R.layout.activity_display_questions);
         String formId = getIntent().getStringExtra("formId");
         ButterKnife.bind(this);
+        checkBoxList = new ArrayList();
         String formName = appDatabase.getDDE_FormsDao().getFormName(formId);
         if (formName != null) {
             formNameHeader.setText(formName);
@@ -98,7 +109,8 @@ public class DisplayQuestions extends AppCompatActivity {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setTag(dde_questions.getQuestionId());
         TextView textView = new TextView(this);
-        textView.setText(dde_questions.getQuestion());
+        textView.setText(/*dde_questions.getFieldSeqNo() + ". " + */dde_questions.getQuestion());
+        textView.setTag("que" + dde_questions.getQuestionId());
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 25);
         textView.setTextColor(getResources().getColor(R.color.colorAccentDark));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
@@ -108,13 +120,33 @@ public class DisplayQuestions extends AppCompatActivity {
 
         LinearLayout.LayoutParams paramsWrapContaint = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
         paramsWrapContaint.setMargins(10, 0, 0, 0);
+
+        /*SET DEFAULT VALUE TO ANSWWER FIELD*/
+        String validationValue = "";
+        JsonArray validationArray = dde_questions.getValidations();
+        for (int i = 1; i < validationArray.size(); i++) {
+            JsonObject jsonObject = validationArray.get(i).getAsJsonObject();
+            String validation = jsonObject.get("validationName").getAsString();
+            if (validation.equals("DEFAULTVAL")) {
+                if (jsonObject.get("ValidationValue").isJsonNull()) {
+                    validationValue = "";
+                } else {
+                    validationValue = jsonObject.get("ValidationValue").getAsString();
+                }
+            }
+        }
+
+
         switch (dde_questions.getQuestionType()) {
             case "text":
                 final EditText editText = new EditText(this);
                 editText.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 editText.setPadding(15, 5, 5, 5);
+                editText.setSingleLine(true);
+                editText.setText(validationValue);
                 editText.setLayoutParams(params);
                 layout.addView(editText);
+                dde_questions.setAnswer(validationValue);
                 editText.addTextChangedListener(new TextWatcher() {
 
                     // the user's changes are saved here
@@ -145,7 +177,12 @@ public class DisplayQuestions extends AppCompatActivity {
                     final RadioButton radioButton = new RadioButton(this);
                     radioButton.setLayoutParams(paramsWrapContaint);
                     radioButton.setTag(jsonObject.get("value").getAsString());
-                    radioButton.setText(jsonObject.get("display").getAsString());
+                    String text = jsonObject.get("display").getAsString();
+                    radioButton.setText(text);
+                    if (validationValue.equalsIgnoreCase(text)) {
+                        radioButton.setChecked(true);
+                        dde_questions.setAnswer(validationValue);
+                    }
                     radioGroup.addView(radioButton);
                     radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
@@ -165,8 +202,11 @@ public class DisplayQuestions extends AppCompatActivity {
                 final EditText et_email = new EditText(this);
                 et_email.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 et_email.setPadding(15, 5, 5, 5);
+                et_email.setSingleLine(true);
+                et_email.setText(validationValue);
                 et_email.setLayoutParams(params);
                 layout.addView(et_email);
+                dde_questions.setAnswer(validationValue);
                 et_email.addTextChangedListener(new TextWatcher() {
 
                     // the user's changes are saved here
@@ -190,8 +230,25 @@ public class DisplayQuestions extends AppCompatActivity {
             case "number":
                 final EditText number = new EditText(this);
                 number.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                number.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+                for (int i = 1; i < validationArray.size(); i++) {
+                    JsonObject jsonObject = validationArray.get(i).getAsJsonObject();
+                    String validation = jsonObject.get("validationName").getAsString();
+                    if (validation.equals("ALLOWDECIMAL")) {
+                        if (jsonObject.get("ValidationApply").getAsBoolean()) {
+                            if (jsonObject.get("ValidationValue").getAsString().equalsIgnoreCase("true"))
+                                number.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                            else number.setInputType(InputType.TYPE_CLASS_NUMBER);
+                        } else {
+                            number.setInputType(InputType.TYPE_CLASS_NUMBER);
+                        }
+                    }
+                }
+                number.setSingleLine(true);
+                number.setText(validationValue);
                 number.setLayoutParams(params);
+                number.setTag("ans" + dde_questions.getQuestionId());
+                dde_questions.setAnswer(validationValue);
                 number.addTextChangedListener(new TextWatcher() {
 
                     // the user's changes are saved here
@@ -214,17 +271,37 @@ public class DisplayQuestions extends AppCompatActivity {
                 break;
 
             case "multiple":
-                List checkBoxList = new ArrayList();
                 JsonArray optionCheckBox = dde_questions.getQuestionOption();
                 GridLayout gridLayout = new GridLayout(this);
                 gridLayout.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 gridLayout.setColumnCount(3);
                 for (int i = 0; i < optionCheckBox.size(); i++) {
                     CheckBox checkBox = new CheckBox(this);
+                    checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
+                            String selectedAnswers = dde_questions.getAnswer();
+                            String tag = compoundButton.getTag().toString();
+                            String[] splitted = tag.split(":::");
+                            if (isSelected) {
+                                if (!selectedAnswers.contains(splitted[1])) {
+                                    selectedAnswers += splitted[1] + ",";
+                                }
+                            } else {
+                                selectedAnswers.replace(splitted[1] + ",", "");
+                            }
+                            dde_questions.setAnswer(selectedAnswers);
+                        }
+                    });
                     JsonElement jsonElement = optionCheckBox.get(i);
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
-                    checkBox.setTag(jsonObject.get("value").getAsString());
-                    checkBox.setText(jsonObject.get("display").getAsString());
+                    checkBox.setTag(dde_questions.getQuestionId() + ":::" + jsonObject.get("value").getAsString());
+                    String text = jsonObject.get("display").getAsString();
+                    checkBox.setText(text);
+                    if (validationValue.contains(text)) {
+                        checkBox.setChecked(true);
+                        dde_questions.setAnswer(text + ",");
+                    }
                     checkBoxList.add(checkBox);
                     GridLayout.LayoutParams paramGrid = new GridLayout.LayoutParams();
                     paramGrid.height = GridLayout.LayoutParams.WRAP_CONTENT;
@@ -233,6 +310,7 @@ public class DisplayQuestions extends AppCompatActivity {
                     checkBox.setLayoutParams(paramGrid);
                     gridLayout.addView(checkBox);
                 }
+
                 layout.addView(gridLayout);
 
                 break;
@@ -246,13 +324,13 @@ public class DisplayQuestions extends AppCompatActivity {
                 date.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 date.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
                 date.setText("Select Date");
+                date.setTag("ans" + dde_questions.getQuestionId());
                 date.setLayoutParams(paramsWrapContaint);
-                /*if (depQueID.contains(dde_questions.getQuestionId())) {
-                    date.setEnabled(false);
-                }*/
                 layout.addView(date);
-
-
+                if (parseDate(validationValue) != null) {
+                    date.setText(parseDate(validationValue));
+                    dde_questions.setAnswer(validationValue);
+                }
                 date.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -265,8 +343,9 @@ public class DisplayQuestions extends AppCompatActivity {
                         datePickerDialog = new DatePickerDialog(DisplayQuestions.this, new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                                dde_questions.setAnswer("" + day + "/" + month + "/" + year);
-                                date.setText("" + day + "/" + month + "/" + year);
+                                month++;
+                                dde_questions.setAnswer("" + year + "/" + month + "/" + day);
+                                date.setText("" + year + "/" + month + "/" + day);
                             }
 
                         }, mYear, mMonth, mDay);
@@ -329,6 +408,17 @@ public class DisplayQuestions extends AppCompatActivity {
                 time.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
                 time.setText("Select Time");
                 time.setLayoutParams(paramsWrapContaint);
+                time.setTag("ans" + dde_questions.getQuestionId());
+                String text = null;
+                try {
+                    final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
+                    final Date dateObj = sdf.parse(validationValue);
+                    text = new SimpleDateFormat("K:mm aa").format(dateObj);
+                    time.setText(text);
+                    dde_questions.setAnswer(text);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 layout.addView(time);
                 time.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -339,15 +429,34 @@ public class DisplayQuestions extends AppCompatActivity {
                         TimePickerDialog mtimePickerDialog;
                         mtimePickerDialog = new TimePickerDialog(DisplayQuestions.this, new TimePickerDialog.OnTimeSetListener() {
                             @Override
-                            public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-                                dde_questions.setAnswer("" + selectedHour + ":" + selectedMinute);
-                                time.setText("" + selectedHour + ":" + selectedMinute);
+                            public void onTimeSet(TimePicker timePicker, int hours, int mins) {
+                                String timeSet = "";
+                                if (hours > 12) {
+                                    hours -= 12;
+                                    timeSet = "PM";
+                                } else if (hours == 0) {
+                                    hours += 12;
+                                    timeSet = "AM";
+                                } else if (hours == 12) timeSet = "PM";
+                                else timeSet = "AM";
+
+
+                                String minutes = "";
+                                if (mins < 10) minutes = "0" + mins;
+                                else minutes = String.valueOf(mins);
+
+                                // Append in a StringBuilder
+                                String aTime = new StringBuilder().append(hours).append(':').append(minutes).append(" ").append(timeSet).toString();
+
+                                time.setText(aTime);
+                                dde_questions.setAnswer(aTime);
                             }
                         }, hour, minute, false);
                         mtimePickerDialog.setTitle("Select time");
                         mtimePickerDialog.show();
                     }
                 });
+
                 break;
 
             case "dropdown":
@@ -356,6 +465,8 @@ public class DisplayQuestions extends AppCompatActivity {
                 Spinner spinnerDropdown = new Spinner(this);
                 spinnerDropdown.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 JsonArray optionDropDown = dde_questions.getQuestionOption();
+                value.add("select option");
+                display.add("select option");
                 for (int i = 0; i < optionDropDown.size(); i++) {
                     JsonElement jsonElement = optionDropDown.get(i);
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
@@ -365,10 +476,19 @@ public class DisplayQuestions extends AppCompatActivity {
                 ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_selectable_list_item, display);
                 spinnerDropdown.setAdapter(spinnerArrayAdapter);
                 spinnerDropdown.setLayoutParams(paramsWrapContaint);
+                int index = display.indexOf(validationValue);
+                if (index != -1) {
+                    spinnerDropdown.setSelection(index);
+                    dde_questions.setAnswer(validationValue);
+                }
                 spinnerDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        dde_questions.setAnswer(adapterView.getSelectedItem().toString());
+                        if (adapterView.getSelectedItem().toString().equals("select option")) {
+                            dde_questions.setAnswer("");
+                        } else {
+                            dde_questions.setAnswer(adapterView.getSelectedItem().toString());
+                        }
                     }
 
                     @Override
@@ -393,7 +513,7 @@ public class DisplayQuestions extends AppCompatActivity {
         for (int i = 0; i < allRules.size(); i++) {
             JsonArray questionCondition = allRules.get(i).getQuestionCondition();
             for (int j = 0; j < questionCondition.size(); j++) {
-                JsonObject condition = questionCondition.get(i).getAsJsonObject();
+                JsonObject condition = questionCondition.get(j).getAsJsonObject();
                 String QuestionIdentifier = condition.get("QuestionIdentifier").getAsString();
                 if (QuestionIdentifier.equals(tag)) {
                     String ConditionType = condition.get("ConditionType").getAsString();
@@ -473,61 +593,346 @@ public class DisplayQuestions extends AppCompatActivity {
     }
 
     private boolean checkValidations() {
-        DDE_Questions dde_questions;
-        for (int i = 0; i < formIdWiseQuestions.size(); i++) {
-            JsonArray jsonArray = formIdWiseQuestions.get(i).getValidations();
-            for (int j = 1; j < jsonArray.size(); j++) {
-                JsonObject validationObject = jsonArray.get(j).getAsJsonObject();
-                if (validationObject.get("ValidationApply").getAsBoolean()) {
+        try {
+            DDE_Questions dde_questions;
+            for (int i = 0; i < formIdWiseQuestions.size(); i++) {
+                JsonArray jsonArray = formIdWiseQuestions.get(i).getValidations();
+                for (int j = 1; j < jsonArray.size(); j++) {
+                    String queId = formIdWiseQuestions.get(i).getQuestionId();
+                    JsonObject validationObject = jsonArray.get(j).getAsJsonObject();
+                    if (validationObject.get("ValidationApply").getAsBoolean()) {
+                        String ValidationValue = "";
+                        String getQuestionType = formIdWiseQuestions.get(i).getQuestionType();
+                        String validationName = validationObject.get("validationName").getAsString();
+                        String ValidationType = validationObject.get("ValidationType").getAsString();
+                        if (!("null".equals(validationObject.get("ValidationValue").toString()))) {
+                            ValidationValue = validationObject.get("ValidationValue").getAsString();
+                        }
+                        String answerQQ = formIdWiseQuestions.get(i).getAnswer();
+                        boolean flag = checkValue(queId, getQuestionType, validationName, ValidationType, ValidationValue, answerQQ);
+                        if (!flag) {
+                            final LinearLayout linearLayout = renderAllQuestionsLayout.findViewWithTag(queId);
+                            linearLayout.getChildAt(1).requestFocus();
+                            GradientDrawable border = new GradientDrawable();
+                            border.setShape(GradientDrawable.RECTANGLE);
+                            border.setStroke(3, Color.RED);
+                            border.setCornerRadius(5);
 
-                    checkValue(formIdWiseQuestions.get(i).getQuestionType(), validationObject.get("validationName").getAsString(), validationObject.get("ValidationValue").getAsString(), formIdWiseQuestions.get(i).getAnswer());
+                            linearLayout.setBackground(border);
+                            /*Animation animation1 = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade);
+                            linearLayout.startAnimation(animation1);*/
+
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    linearLayout.setBackgroundResource(0);
+                                }
+                            }, 2000);
+
+                            parentScroll.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    parentScroll.scrollTo(0, linearLayout.getTop());
+                                }
+                            });
+                            return false;
+                        }
+                    }
                 }
             }
-        }
-        return true;
+            return true;
 
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    private boolean checkValue(String questionType, String validationName, String validationValue, String answer) {
+    private boolean checkValue(String questionId, String questionType, String validationName, String validationType, String validationValue, String answer) {
         switch (validationName) {
             case "REQUIRED":
-                return answer != "" ? true : false;
+                // return answer != "" ? true : false;
+                if (answer.equals("")) {
+                    Toast.makeText(this, "This Field Is Mandatory..", Toast.LENGTH_LONG).show();
+                    return false;
+                }
+                return true;
             case "MAXCHARACTERSALLOWED":
             case "MAXLENGTH":
-                return answer.length() <= Integer.parseInt(validationValue) ? true : false;
+                // return answer.length() <= Integer.parseInt(validationValue) ? true : false;
+                if (answer.length() > Integer.parseInt(validationValue)) {
+                    Toast.makeText(this, "Maximum Characters Allowed " + Integer.parseInt(validationValue), Toast.LENGTH_LONG).show();
+                    return false;
+                }
+                return true;
             case "MINCHARACTERSALLOWED":
             case "MINLENGTH":
-                return answer.length() >= Integer.parseInt(validationValue) ? true : false;
+                // return answer.length() >= Integer.parseInt(validationValue) ? true : false;
+                if (answer.length() < Integer.parseInt(validationValue)) {
+                    Toast.makeText(this, "Minimum Characters Required " + Integer.parseInt(validationValue), Toast.LENGTH_LONG).show();
+                    return false;
+                }
+                return true;
             case "MINRANGE":
-                return Integer.parseInt(answer) >= Integer.parseInt(validationValue) ? true : false;
+                switch (questionType) {
+                    case "number":
+                        if (Integer.parseInt(answer) < Integer.parseInt(validationValue)) {
+                            Toast.makeText(this, "Minimum Value  Required" + Integer.parseInt(validationValue), Toast.LENGTH_LONG).show();
+                            return false;
+                        }
+                        return true;
+                    case "date":
+                        int minYear, minMonth, minDay;
+                        try {
+                            JSONObject mindateJsonObject = new JSONObject(validationValue);
+                            minYear = mindateJsonObject.getInt("year");
+                            minMonth = mindateJsonObject.getInt("month");
+                            minDay = mindateJsonObject.getInt("day");
+                            String minRange = "" + minYear + "/" + minMonth + "/" + minDay;
+
+                            Date minRangeDate = new SimpleDateFormat("yyyy/mm/dd").parse(minRange);
+                            Date dateAns = new SimpleDateFormat("yyyy/mm/dd").parse(answer);
+                            if (minRangeDate.compareTo(dateAns) > 0) {
+                                Toast.makeText(this, "Date Must Be After " + minRange, Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                            return true;
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return false;
+
+                            // return Integer.parseInt(answer) >= Integer.parseInt(validationValue) ? true : false;
+                        }
+                }
             case "MAXRANGE":
-                return Integer.parseInt(answer) <= Integer.parseInt(validationValue) ? true : false;
+                switch (questionType) {
+                    case "number":
+                        // return Integer.parseInt(answer) <= Integer.parseInt(validationValue) ? true : false;
+                        if (Integer.parseInt(answer) > Integer.parseInt(validationValue)) {
+                            Toast.makeText(this, "Maximum Value Allowed " + Integer.parseInt(validationValue), Toast.LENGTH_LONG).show();
+                            return false;
+                        }
+                        return true;
+                    case "date":
+                        try {
+                            int maxYear, maxMonth, maxDay;
+                            JSONObject maxdateJsonObject = new JSONObject(validationValue);
+                            maxYear = maxdateJsonObject.getInt("year");
+                            maxMonth = maxdateJsonObject.getInt("month");
+                            maxDay = maxdateJsonObject.getInt("day");
+
+                            String maxRange = "" + maxYear + "/" + maxMonth + "/" + maxDay;
+
+                            Date maxRangeDate = new SimpleDateFormat("yyyy/dd/mm").parse(maxRange);
+                            Date dateAns = new SimpleDateFormat("yyyy/dd/mm").parse(answer);
+                            if (maxRangeDate.compareTo(dateAns) < 0) {
+                                Toast.makeText(this, "Date Must Be Before " + maxRange, Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                            return true;
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return false;
+                        }
+                }
+
             case "DEPENDSON":
                 switch (questionType) {
                     case "number":
-                        return Integer.parseInt(answer) <= Integer.parseInt(validationValue) ? true : false;
-                    case "multiple":
-                        //return Integer.parseInt(answer) <= Integer.parseInt(validationValue) ? true : false;
+                        EditText dependentQue = renderAllQuestionsLayout.findViewWithTag("ans" + validationValue);
+                        int ans = Integer.parseInt(dependentQue.getText().toString());
+                        switch (validationType) {
+                            case "<":
+                                if ((Integer.parseInt(answer) >= ans)) {
+                                    Toast.makeText(this, "Answer Must be Smaller Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                    return false;
+                                }
+                                return true;
+                            case ">":
+                                if ((Integer.parseInt(answer) <= ans)) {
+                                    Toast.makeText(this, "Answer Must be Greater Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                    return false;
+                                }
+                                return true;
+                            case "=":
+                                if ((Integer.parseInt(answer) != ans)) {
+                                    Toast.makeText(this, "Answer Must be Equal To " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                    return false;
+                                }
+                                return true;
+                            case "<=":
+                                if ((Integer.parseInt(answer) > ans)) {
+                                    Toast.makeText(this, "Answer Must be Smaller Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                    return false;
+                                }
+                                return true;
+                            case ">=":
+                                if ((Integer.parseInt(answer) < ans)) {
+                                    Toast.makeText(this, "Answer Must be Greater Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                    return false;
+                                }
+                                return true;
+                            default:
+                                return true;
+                        }
                     case "date":
+                        TextView dependentDate = renderAllQuestionsLayout.findViewWithTag("ans" + validationValue);
+                        try {
+                            Date dependentAns = new SimpleDateFormat("yyyy/MM/DD").parse(dependentDate.getText().toString());
+                            Date dependingAns = new SimpleDateFormat("yyyy/MM/DD").parse(answer);
 
-                    case "time":
 
-
+                            switch (validationType) {
+                                case "<":
+                                    if (dependingAns.compareTo(dependentAns) >= 0) {
+                                        Toast.makeText(this, "Answer Must be Before " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        return false;
+                                    }
+                                    return true;
+                                case ">":
+                                    if (dependingAns.compareTo(dependentAns) <= 0) {
+                                        Toast.makeText(this, "Answer Must be After " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        return false;
+                                    }
+                                    return true;
+                                case "=":
+                                    if (dependingAns.compareTo(dependentAns) != 0) {
+                                        Toast.makeText(this, "Answer Must be Equal to " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        return false;
+                                    }
+                                    return true;
+                                case "<=":
+                                    if (dependingAns.compareTo(dependentAns) > 0) {
+                                        Toast.makeText(this, "Answer Must be Before Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        return false;
+                                    }
+                                    return true;
+                                case ">=":
+                                    if (dependingAns.compareTo(dependentAns) < 0) {
+                                        Toast.makeText(this, "Answer Must be After Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        return false;
+                                    }
+                                    return true;
+                                default:
+                                    return true;
+                            }
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                            return false;
+                        }
                 }
+            case "time":
+                TextView dependentTime = renderAllQuestionsLayout.findViewWithTag("ans" + validationValue);
+                try {
+                    Date dependentAns = new SimpleDateFormat("hh:mm aa").parse(dependentTime.getText().toString());
+                    Date dependingAns = new SimpleDateFormat("hh:mm aa").parse(answer);
+
+
+                    switch (validationType) {
+                        case "<":
+                            if (dependingAns.compareTo(dependentAns) >= 0) {
+                                Toast.makeText(this, "Time must be before " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                            return true;
+                        case ">":
+                            if (dependingAns.compareTo(dependentAns) <= 0) {
+                                Toast.makeText(this, "Time must be after " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                            return true;
+                        case "=":
+                            if (dependingAns.compareTo(dependentAns) != 0) {
+                                Toast.makeText(this, "Time must be equal to " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                            return true;
+                        case "<=":
+                            if (dependingAns.compareTo(dependentAns) > 0) {
+                                Toast.makeText(this, "Time must be before or equal to " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                            return true;
+                        case ">=":
+                            if (dependingAns.compareTo(dependentAns) < 0) {
+                                Toast.makeText(this, "Time must be after or equal to " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                            return true;
+                        default:
+                            return true;
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+
             case "ALLOWDECIMAL":
-
-
-
+                int answerDecimal = Integer.parseInt(answer);
+                if (answerDecimal % 1 != 0) {
+                    Toast.makeText(this, "Decimal values are not allowed" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                    return false;
+                }
+                return true;
+            case "MINIMUMSELECT":
+                int min = Integer.parseInt(validationValue);
+                int count = 0;
+                for (int i = 0; i < checkBoxList.size(); i++) {
+                    CheckBox checkBox = (CheckBox) checkBoxList.get(i);
+                    if (checkBox.isChecked()) {
+                        String[] queTag = checkBox.getTag().toString().split(":::");
+                        if (queTag[0].equals(questionId)) {
+                            count++;
+                        }
+                    }
+                }
+                if (count < min) {
+                    Toast.makeText(this, "Minimum Checkboxes Requered " + min, Toast.LENGTH_LONG).show();
+                    return false;
+                }
+                return true;
+            case "MAXIMUMSELECT":
+                int max = Integer.parseInt(validationValue);
+                int count1 = 0;
+                for (int i = 0; i < checkBoxList.size(); i++) {
+                    CheckBox checkBox = (CheckBox) checkBoxList.get(i);
+                    if (checkBox.isChecked()) {
+                        String[] queTag = checkBox.getTag().toString().split(":::");
+                        if (queTag[0].equals(questionId)) {
+                            count1++;
+                        }
+                    }
+                }
+                if (count1 > max) {
+                    Toast.makeText(this, "Maximum Checkboxes Can Be Selected " + max, Toast.LENGTH_LONG).show();
+                    return false;
+                }
+                return true;
             default:
                 return true;
         }
     }
 
+    public String parseDate(String json) {
+        int Year, Month, Day;
+        JSONObject dateJsonObject = null;
+        try {
+            dateJsonObject = new JSONObject(json);
+            Year = dateJsonObject.getInt("year");
+            Month = dateJsonObject.getInt("month") - 1;
+            Day = dateJsonObject.getInt("day");
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return "" + Year + "/" + Month + "/" + Day;
+    }
+
     class Sortbyroll implements Comparator<DDE_Questions> {
         // Used for sorting in ascending order of
-        // roll number
         public int compare(DDE_Questions a, DDE_Questions b) {
             return a.getFieldSeqNo() - b.getFieldSeqNo();
         }
     }
+
 }

@@ -197,7 +197,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     private void getQuestionsAndData(int formId) {
         // TODO get questions and data if required
         String url = QuestionUrl + formId;
-        Log.d("responceURL", "" + url);
         AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
             @Override
             public void onResponse(JSONObject response) {
@@ -245,10 +244,12 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 for(int i=0;i<rulesList.size();i++){
                     rulesList.get(i).setFormID(formId);
                 }
+                appDatabase.getDDE_RulesDao().deleteRulesByFormID(formId);
                 appDatabase.getDDE_RulesDao().insertAllRule(rulesList);
 
 
                 appDatabase.getDDE_FormsDao().updatePulledDate(questionList.get(0).getFormId(), "" + Utility.getCurrentDateTime());
+                appDatabase.getDDE_QuestionsDao().deleteQuestionsByFormID(formId);
                 appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
                 formId = response.getJSONObject("Formdata").getString("formid");
                 appDatabase.getDDE_FormsDao().updatePulledDate(formId, "" + Utility.getCurrentDateTime());
