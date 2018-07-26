@@ -566,6 +566,7 @@ public class DisplayQuestions extends AppCompatActivity {
 
     @OnClick(R.id.homeButton)
     public void onHomeButtonClick() {
+        
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setTitle("Alert");
         alertDialogBuilder.setCancelable(false);
