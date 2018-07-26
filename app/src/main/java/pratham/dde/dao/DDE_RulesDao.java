@@ -17,8 +17,8 @@ public interface DDE_RulesDao {
     @Query("SELECT ShowQuestionIdentifier FROM DDE_RuleTable WHERE formID=:formId ")
     public List<String> getDependantQuestion(String formId);
 
-    @Query("SELECT * FROM DDE_RuleTable")
-    public List<DDE_RuleTable> getAllRules();
+    @Query("SELECT * FROM DDE_RuleTable WHERE formID =:formId")
+    public List<DDE_RuleTable> getAllRules(String formId);
 
     @Query("DELETE FROM DDE_RuleTable WHERE formID =:formId")
     public void deleteRulesByFormID(String formId);

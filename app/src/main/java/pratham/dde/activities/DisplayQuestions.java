@@ -85,7 +85,7 @@ public class DisplayQuestions extends AppCompatActivity {
         if (formName != null) {
             formNameHeader.setText(formName);
         }
-        allRules = appDatabase.getDDE_RulesDao().getAllRules();
+        allRules = appDatabase.getDDE_RulesDao().getAllRules(formId);
         formIdWiseQuestions = appDatabase.getDDE_QuestionsDao().getFormIdWiseQuestions(formId);
         Collections.sort(formIdWiseQuestions, new Sortbyroll());
 
