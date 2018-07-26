@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
+import com.androidnetworking.interfaces.StringRequestListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -36,6 +38,7 @@ import butterknife.ButterKnife;
 import pratham.dde.R;
 import pratham.dde.dao.GenericDao;
 import pratham.dde.database.BackupDatabase;
+import pratham.dde.domain.Answer;
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleCondition;
@@ -115,10 +118,16 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         break;
 
                     case R.id.nav_old_forms:
-                        /*OldFormsFragment oldFormsFragment = new OldFormsFragment();
-                        FragmentManager fragmentManager = getFragmentManager();
-                        fragmentManager.beginTransaction().replace(R.id.fragment, oldFormsFragment).commit();
-                        */
+                        List<Answer> allAnswers = appDatabase.getAnswerDao().getAnswers();
+                        if (allAnswers.isEmpty()) {
+                            Utility.showDialogue(HomeScreen.this, "Data is already Synced...");
+                        } else {
+                            if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
+                                uploadOldFormsAsync();
+                            } else {
+
+                            }
+                        }
                         break;
                 }
                 drawer_layout.closeDrawer(GravityCompat.START);
@@ -128,6 +137,112 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
        /* fusedLocationAPI = new FusedLocationAPI(this);
         fusedLocationAPI.startLocationButtonClick();*/
     }
+
+
+    private void uploadOldFormsAsync() {
+        new AsyncTask<Void, Void, String>() {
+
+            @Override
+            protected void onPreExecute() {
+                Dialog dialog = new ProgressDialog(HomeScreen.this);
+                Utility.showDialogInApiCalling(dialog, HomeScreen.this, "Uploading Data to Server...");
+            }
+
+            @Override
+            protected String doInBackground(Void... voids) {
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                JSONObject metadataObj = getMetaData();
+                String uploadDataUrl = Utility.getProperty("uploadData", mContext);
+
+                // String requestString = "{ 'Metadata': "+metadataObj+", 'Answers': " + jsonArray.toString() + "}";
+                //uploadData(uploadDataUrl,requestString);
+
+            }
+
+            @Override
+            protected void onCancelled() {
+                Utility.dismissDialog(dialog);
+            }
+        }.execute();
+
+    }
+
+    private JSONObject getMetaData() {
+        JSONObject obj = new JSONObject();
+
+       /* Answer answerObj = new Answer();
+        answerObj.setAnswerId(5);
+        answerObj.setEntryId("1");
+
+
+        answerObj.setFormId(3);
+        answerObj.setQuestionType("single Choice");
+        answerObj.setAnswers("answers");
+        answerObj.setTableName("table");
+        answerObj.setDestColumnName("dest");
+        appDatabase.getAnswerDao().insertAnswers(answerObj);
+        Log.d("answerObj",answerObj.toString());*/
+
+        Cursor noOfForms = appDatabase.getAnswerDao().getNoOfForms();
+        try {
+            obj.put("noOfForms", noOfForms.getCount());
+            JSONArray jsonArray = new JSONArray();
+
+            Cursor cursor = appDatabase.getAnswerDao().getFormCount();
+            cursor.moveToFirst();
+            while (cursor.isAfterLast() == false) {
+                JSONObject jsonObject = new JSONObject();
+
+                jsonObject.put("FormId", cursor.getInt(cursor.getColumnIndex("FormId")));
+                jsonObject.put("Count", cursor.getInt(cursor.getColumnIndex("cnt")));
+                jsonArray.put(jsonObject);
+                cursor.moveToNext();
+            }
+            obj.put("RecCountPerForm", jsonArray);
+
+            List<Answer> answers = appDatabase.getAnswerDao().getAnswers();
+            obj.put("TotalRecordCount", answers.size());
+            Log.d("answer", answers.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return obj;
+    }
+
+    private void uploadData(String url, String json) {
+      /*  final ProgressDialog dialog = new ProgressDialog(this);
+        dialog.setTitle("UPLOADING ... ");
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();*/
+        AndroidNetworking.post(url)
+                .setContentType("application/json")
+                .addHeaders("Authorization",token)
+                .addHeaders("Content-Type","application/json")
+                .addStringBody(json).build()
+                .getAsString(new StringRequestListener() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d("response", response);
+                        //  dialog.dismiss();
+                        finish();
+                    }
+
+                    @Override
+                    public void onError(ANError anError) {
+
+                        Toast.makeText(HomeScreen.this, "NO Internet Connection", Toast.LENGTH_LONG).show();
+                        //Log.d("anError", "" + anError);
+                        dialog.dismiss();
+                    }
+                });
+    }
+
+
 
     /* load Question SourceDta */
     private void fetchQuestionsSourceData() {
