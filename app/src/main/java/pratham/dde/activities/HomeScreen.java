@@ -47,7 +47,6 @@ import pratham.dde.domain.DDE_RuleQuestion;
 import pratham.dde.domain.DDE_RuleTable;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
-import pratham.dde.fragments.OldFormsFragment;
 import pratham.dde.fragments.SavedFormsFragment;
 import pratham.dde.interfaces.FabInterface;
 import pratham.dde.services.SyncUtility;
@@ -356,7 +355,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
 
                 /*ENTERING FORMID MANUALLY*/
                 formId = questionList.get(0).getFormId();
-                for(int i=0;i<rulesList.size();i++){
+                for (int i = 0; i < rulesList.size(); i++) {
                     rulesList.get(i).setFormID(formId);
                 }
                 appDatabase.getDDE_RulesDao().deleteRulesByFormID(formId);
@@ -428,7 +427,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 public void onResponse(JSONObject response) {
                     Log.d("pk-log", "" + response.length());
                     Utility.setMessage(dialog, "Updating forms in Database... Please wait.");
-                    String s=response.toString();
+                    String s = response.toString();
                     updateFormsInDatabase(response);
                 }
 
