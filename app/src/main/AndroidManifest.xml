@@ -22,23 +22,20 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".activities.MainActivity">
-
-        </activity>
-        <activity
-            android:name=".BaseActivity"
-            android:label="@string/title_activity_base" />
-        <activity
-            android:name=".activities.HomeScreen"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".activities.DisplayQuestions"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".activities.GalleryDemo">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".BaseActivity"
+            android:label="@string/title_activity_base" />
+        <activity
+            android:name=".activities.DisplayQuestions"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".activities.GalleryDemo">
+
 
         </activity>
     </application>
