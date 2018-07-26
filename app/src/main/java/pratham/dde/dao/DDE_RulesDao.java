@@ -19,4 +19,7 @@ public interface DDE_RulesDao {
 
     @Query("SELECT * FROM DDE_RuleTable")
     public List<DDE_RuleTable> getAllRules();
+
+    @Query("DELETE FROM DDE_RuleTable WHERE formID =:formId")
+    public void deleteRulesByFormID(String formId);
 }

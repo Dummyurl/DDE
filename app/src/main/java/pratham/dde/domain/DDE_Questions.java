@@ -26,7 +26,7 @@ public class DDE_Questions {
     @SerializedName("QuestionTitle")
     private String Question;
 
-    @TypeConverters(JSONArrayToStrintg.class)
+    @TypeConverters(JSONArrayToString.class)
     @SerializedName("QuestionValidation")
     private JsonArray Validations;
 
@@ -42,7 +42,7 @@ public class DDE_Questions {
 
     @SerializedName("QuestionDescription")
     private String QuestionDescription;
-    @TypeConverters(JSONArrayToStrintg.class)
+    @TypeConverters(JSONArrayToString.class)
     @SerializedName("QuestionOption")
     private JsonArray QuestionOption;
 
@@ -124,8 +124,7 @@ public class DDE_Questions {
 
     @Ignore
     private String answer="";
-    @Ignore
-    private Boolean visivility=false;
+
 
     public String getAnswer() {
         return answer;
@@ -133,14 +132,6 @@ public class DDE_Questions {
 
     public void setAnswer(String answer) {
         this.answer = answer;
-    }
-
-    public Boolean getVisivility() {
-        return visivility;
-    }
-
-    public void setVisivility(Boolean visivility) {
-        this.visivility = visivility;
     }
 
     @Override

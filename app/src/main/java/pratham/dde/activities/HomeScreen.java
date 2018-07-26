@@ -197,7 +197,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     private void getQuestionsAndData(int formId) {
         // TODO get questions and data if required
         String url = QuestionUrl + formId;
-        Log.d("responceURL", "" + url);
         AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
             @Override
             public void onResponse(JSONObject response) {
@@ -235,7 +234,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             }.getType();
             ArrayList<DDE_Questions> questionList = gson.fromJson(questions, listType);
             if (questionList.size() > 0) {
-<<<<<<< HEAD
                 String allRules = data.getString("Rules");
                 Type listTypeRule = new TypeToken<ArrayList<DDE_RuleTable>>() {
                 }.getType();
@@ -246,15 +244,15 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 for(int i=0;i<rulesList.size();i++){
                     rulesList.get(i).setFormID(formId);
                 }
+                appDatabase.getDDE_RulesDao().deleteRulesByFormID(formId);
                 appDatabase.getDDE_RulesDao().insertAllRule(rulesList);
 
 
                 appDatabase.getDDE_FormsDao().updatePulledDate(questionList.get(0).getFormId(), "" + Utility.getCurrentDateTime());
-=======
+                appDatabase.getDDE_QuestionsDao().deleteQuestionsByFormID(formId);
                 appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
                 formId = response.getJSONObject("Formdata").getString("formid");
                 appDatabase.getDDE_FormsDao().updatePulledDate(formId, "" + Utility.getCurrentDateTime());
->>>>>>> e958f5de0c2285286b1ce792795ea990fac2adc3
                 //save Rules to database
                 JSONArray rules = data.getJSONArray("Rules");
                 DDE_RuleMaster dde_ruleMaster;
@@ -272,15 +270,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                     DDE_RuleCondition dde_ruleCondition;
                     JSONObject questionConditionSingleObj;
                     for (int j = 0; j < questionConditionArray.length(); j++) {
-<<<<<<< HEAD
-                        JSONObject questionConditionSingleObj = questionConditionArray.getJSONObject(j);
-
-                        DDE_RuleCondition dde_ruleCondition = new DDE_RuleCondition();
-                        dde_ruleCondition.setFormID(formId);
-=======
                         questionConditionSingleObj = questionConditionArray.getJSONObject(j);
                         dde_ruleCondition = new DDE_RuleCondition();
->>>>>>> e958f5de0c2285286b1ce792795ea990fac2adc3
+                        dde_ruleCondition.setFormID(formId);
                         dde_ruleCondition.setConditionId(questionConditionSingleObj.getString("ConditionId"));
                         dde_ruleCondition.setQuestionIdentifier(questionConditionSingleObj.getString("QuestionIdentifier"));
                         dde_ruleCondition.setConditiontype(questionConditionSingleObj.getString("ConditionType"));
