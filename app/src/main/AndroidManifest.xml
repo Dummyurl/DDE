@@ -31,12 +31,6 @@
         <activity
             android:name=".BaseActivity"
             android:label="@string/title_activity_base" />
-        <activity
-            android:name=".activities.DisplayQuestions"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".activities.HomeScreen"
-            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".activities.GalleryDemo">
 
 

@@ -36,7 +36,6 @@ import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
 
 import pratham.dde.BuildConfig;
-import pratham.dde.activities.HomeScreen;
 import pratham.dde.interfaces.LocationLisner;
 
 public class FusedLocationAPI {

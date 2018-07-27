@@ -55,7 +55,7 @@ public class GalleryDemo extends AppCompatActivity {
             public void onClick(View v) {
                 chooseImageDialog.cancel();
                 Intent intent = new Intent();
-                intent.setType("image/");
+                intent.setType("selectedImage/");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_FROM_GALLERY);
             }
