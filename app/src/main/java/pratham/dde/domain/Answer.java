@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 
 @Entity
 public class Answer {
-
+//todo userID
     @PrimaryKey
     @NonNull
     private int AnswerId;
