@@ -55,6 +55,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -197,12 +198,31 @@ public class DisplayQuestions extends AppCompatActivity {
                     radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            dde_questions.setAnswer(compoundButton.getText().toString());
-                            LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent();
-                            String tag = (String) layout.getTag();
-                            checkRuleCondion(tag, compoundButton.getTag().toString(), "singlechoice");
+                            if (b) {
+                                dde_questions.setAnswer(compoundButton.getText().toString());
+                                LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent();
+                                String tag = (String) layout.getTag();
+                                checkRuleCondion(tag, compoundButton.getTag().toString(), "singlechoice");
+                            }
                         }
                     });
+                  /*  radioButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            String answerRadio = "";
+                            if (view.isSelected()) {
+                                view.setSelected(false);
+                                answerRadio = "";
+                            } else {
+                                answerRadio = ((RadioButton) view).getText().toString();
+                            }
+                            dde_questions.setAnswer(answerRadio);
+                            LinearLayout layout = (LinearLayout) view.getParent().getParent();
+                            String tag = (String) layout.getTag();
+                            checkRuleCondion(tag, view.getTag().toString(), "singlechoice");
+                        }
+                    });
+*/
                 }
                 radioGroup.setLayoutParams(params);
                 layout.addView(radioGroup);
@@ -294,15 +314,16 @@ public class DisplayQuestions extends AppCompatActivity {
                             String tag = compoundButton.getTag().toString();
                             String[] splitted = tag.split(":::");
                             if (isSelected) {
-                                if (!selectedAnswers.contains(splitted[1])) {
+                                if (!selectedAnswers.contains(splitted[1] + ",")) {
                                     selectedAnswers += splitted[1] + ",";
                                 }
                             } else {
-                                selectedAnswers.replace(splitted[1] + ",", "");
+                                Log.d("replace..", selectedAnswers + "//" + splitted[1]);
+                                selectedAnswers = selectedAnswers.replace(splitted[1] + ",", "");
                             }
-                            if (selectedAnswers.endsWith(",")) {
+                            /*if (selectedAnswers.endsWith(",")) {
                                 selectedAnswers = selectedAnswers.substring(0, selectedAnswers.length() - 1);
-                            }
+                            }*/
                             dde_questions.setAnswer(selectedAnswers);
                             String queParent = ((LinearLayout) compoundButton.getParent().getParent()).getTag().toString();
                             checkRuleCondion(queParent, selectedAnswers, "multiple");
@@ -565,13 +586,19 @@ public class DisplayQuestions extends AppCompatActivity {
     private void checkRuleCondion(String tag, String ans, String queType) {
         for (int i = 0; i < allRules.size(); i++) {
             JsonArray questionCondition = allRules.get(i).getQuestionCondition();
+            Set conditionId = new LinkedHashSet();
+            for (int cntCondId = 0; cntCondId < questionCondition.size(); cntCondId++) {
+                JsonObject jsonObjectTemp = questionCondition.get(cntCondId).getAsJsonObject();
+                conditionId.add(jsonObjectTemp.get("ConditionId").getAsString());
+            }
             for (int j = 0; j < questionCondition.size(); j++) {
                 JsonObject condition = questionCondition.get(j).getAsJsonObject();
                 String QuestionIdentifier = condition.get("QuestionIdentifier").getAsString();
+                String ConditionId = condition.get("ConditionId").getAsString();
                 if (QuestionIdentifier.equals(tag)) {
                     String answerFromJsonToMatch = "";
                     String ConditionType = condition.get("ConditionType").getAsString();
-                    Set ContionsSatisfied = allRules.get(i).getContionsSatisfied();
+                    Set ConditionsSatisfied = allRules.get(i).getContionsSatisfied();
                     if (queType.equalsIgnoreCase("number")) {
                         if (!condition.get("SelectValueQuestion").isJsonNull()) {
                             answerFromJsonToMatch = condition.get("SelectValueQuestion").getAsString();
@@ -579,35 +606,37 @@ public class DisplayQuestions extends AppCompatActivity {
                             answerFromJsonToMatch = "";
                         }
                     } else {
-                        answerFromJsonToMatch = condition.get("SelectValue").getAsJsonArray().toString();
+                        JsonArray ja = condition.get("SelectValue").getAsJsonArray();
+                        for (int cnt = 0; cnt < ja.size(); cnt++) {
+                            answerFromJsonToMatch += ja.get(cnt).getAsString() + ",";
+                        }
                     }
 
                     if (checkConditionType(ConditionType, ans, answerFromJsonToMatch, queType)) {
-                        ContionsSatisfied.add(QuestionIdentifier);
+                        ConditionsSatisfied.add(ConditionId);
                     } else {
-                        ContionsSatisfied.remove(QuestionIdentifier);
+                        ConditionsSatisfied.remove(ConditionId);
                     }
                     String showQueTag = allRules.get(i).getShowQuestionIdentifier();
                     LinearLayout layout = renderAllQuestionsLayout.findViewWithTag(showQueTag);
-                    if (conditionMatch(allRules.get(i).getConditionsMatch(), questionCondition.size(), ContionsSatisfied.size())) {
+                    if (conditionMatch(allRules.get(i).getConditionsMatch(), conditionId.size(), ConditionsSatisfied.size())) {
                         layout.setVisibility(View.VISIBLE);
                     } else {
                         layout.setVisibility(View.GONE);
                     }
-                    break;
                 }
             }
         }
     }
 
-    private boolean conditionMatch(String conditionsMatch, int totalQue, int attemptedQue) {
+    private boolean conditionMatch(String conditionsMatch, int totalConditions, int attemptedQue) {
         boolean flag = false;
         switch (conditionsMatch) {
             case "All of the conditions match":
-                flag = totalQue == attemptedQue ? true : false;
+                flag = totalConditions == attemptedQue ? true : false;
                 break;
             case "Any one of the conditions match":
-                flag = totalQue == attemptedQue ? true : false;
+                flag = attemptedQue > 0 ? true : false;
                 break;
             default:
                 Toast.makeText(this, "Problem with the rule conditions check rules again", Toast.LENGTH_SHORT).show();
@@ -626,10 +655,10 @@ public class DisplayQuestions extends AppCompatActivity {
             answer = Integer.parseInt(ans);
             answerMatch = Integer.parseInt(answerFromJsonToMatch);
         } else {
-            if (answerFromJsonToMatch.indexOf(0) == '[') {
+            if (answerFromJsonToMatch.startsWith("[")) {
                 answerFromJsonToMatch = answerFromJsonToMatch.replace('[', ' ');
             }
-            if (answerFromJsonToMatch.indexOf(0) == ']') {
+            if (answerFromJsonToMatch.endsWith("]")) {
                 answerFromJsonToMatch = answerFromJsonToMatch.replace(']', ' ');
             }
             splittedAnswer = answerFromJsonToMatch.trim().split(",");
@@ -656,7 +685,8 @@ public class DisplayQuestions extends AppCompatActivity {
                     String[] spittedGivenAns = ans.split(",");
                     for (int i = 0; i < splittedAnswer.length; i++) {
                         for (int j = 0; j < spittedGivenAns.length; j++) {
-                            if (spittedGivenAns[j].equalsIgnoreCase(splittedAnswer[i])) {
+                            String answerTemp = splittedAnswer[i];
+                            if (spittedGivenAns[j].equalsIgnoreCase(answerTemp)) {
                                 flag = true;
                                 break;
                             }
@@ -729,12 +759,15 @@ public class DisplayQuestions extends AppCompatActivity {
     @OnClick(R.id.saveAllQuestions)
     public void save() {
         Log.d("tag111", formIdWiseQuestions.toString());
-        checkValidations();
+        if (checkValidations()) {
+            //save answer to db
+
+
+        }
     }
 
     private boolean checkValidations() {
         try {
-            DDE_Questions dde_questions;
             for (int i = 0; i < formIdWiseQuestions.size(); i++) {
                 JsonArray jsonArray = formIdWiseQuestions.get(i).getValidations();
                 for (int j = 1; j < jsonArray.size(); j++) {
