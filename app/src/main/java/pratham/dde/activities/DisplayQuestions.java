@@ -84,6 +84,7 @@ public class DisplayQuestions extends AppCompatActivity {
     List checkBoxList;
     public static final int PICK_IMAGE_FROM_GALLERY = 1;
     public static final int CAPTURE_IMAGE = 0;
+    ImageView selectedImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -353,13 +354,31 @@ public class DisplayQuestions extends AppCompatActivity {
                 break;
 
             case "image":
-                final TextView img = new TextView(this);
-                img.setPadding(10, 5, 5, 5);
-                img.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                img.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-                img.setText("Select Image");
+                LinearLayout outerLinearLayout = new LinearLayout(this);
+                outerLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
 
-                img.setOnClickListener(new View.OnClickListener() {
+
+                final TextView tv_img = new TextView(this);
+                tv_img.setPadding(5, 5, 5, 5);
+                tv_img.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                tv_img.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+                tv_img.setText("Select Image");
+                outerLinearLayout.addView(tv_img);
+
+                selectedImage = new ImageView(this);
+                // selectedImage.setLayoutParams(new android.view.ViewGroup.LayoutParams(150, 150));
+                selectedImage.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                selectedImage.setPadding(10, 5, 5, 5);
+                LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(200, 200);
+                buttonLayoutParams.setMargins(50, 0, 0, 0);
+                selectedImage.setLayoutParams(buttonLayoutParams);
+                outerLinearLayout.addView(selectedImage);
+
+
+                layout.addView(outerLinearLayout);
+
+
+                tv_img.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         final ChooseImageDialog chooseImageDialog = new ChooseImageDialog(DisplayQuestions.this);
@@ -377,7 +396,7 @@ public class DisplayQuestions extends AppCompatActivity {
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
                                 Intent intent = new Intent();
-                                intent.setType("image/");
+                                intent.setType("selectedImage/");
                                 intent.setAction(Intent.ACTION_GET_CONTENT);
                                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_FROM_GALLERY);
                             }
@@ -1114,16 +1133,17 @@ public class DisplayQuestions extends AppCompatActivity {
         try {
             if (requestCode == PICK_IMAGE_FROM_GALLERY) {
                 Uri selectedImage = data.getData();
-                // img.setImageURI(selectedImage);
+                this.selectedImage.setImageURI(selectedImage);
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                createDirectoryAndSaveFile(bitmap, "g");
+                createDirectoryAndSaveFile(bitmap, "fromGallery.jpg");
 
             } else if (requestCode == CAPTURE_IMAGE) {
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
-                //  img.setImageBitmap(photo);
+                selectedImage.setImageBitmap(photo);
                 // String selectedImagePath = getPath(photo);
-                createDirectoryAndSaveFile(photo, "c");
+                createDirectoryAndSaveFile(photo, "captured.jpg");
             }
+
         } catch (Exception e) {
         }
     }
