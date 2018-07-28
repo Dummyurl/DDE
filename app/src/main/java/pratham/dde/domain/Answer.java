@@ -6,12 +6,14 @@ import android.support.annotation.NonNull;
 
 @Entity
 public class Answer {
-//todo userID
+
+    private String userID;
+    private String date;
     @PrimaryKey
     @NonNull
-    private int AnswerId;
+    private String AnswerId;
     private String EntryId;
-    private int FormId;
+    private String FormId;
     private String QuestionType;
     private String Answers;
     private String TableName;
@@ -19,23 +21,15 @@ public class Answer {
 
     @Override
     public String toString() {
-        return "Answer{" +
-                "AnswerId=" + AnswerId +
-                ", EntryId='" + EntryId + '\'' +
-                ", FormId=" + FormId +
-                ", QuestionType='" + QuestionType + '\'' +
-                ", Answers='" + Answers + '\'' +
-                ", TableName='" + TableName + '\'' +
-                ", DestColumnName='" + DestColumnName + '\'' +
-                '}';
+        return "Answer{" + "AnswerId=" + AnswerId + ", EntryId='" + EntryId + '\'' + ", FormId=" + FormId + ", QuestionType='" + QuestionType + '\'' + ", Answers='" + Answers + '\'' + ", TableName='" + TableName + '\'' + ", DestColumnName='" + DestColumnName + '\'' + '}';
     }
 
     @NonNull
-    public int getAnswerId() {
+    public String getAnswerId() {
         return AnswerId;
     }
 
-    public void setAnswerId(@NonNull int answerId) {
+    public void setAnswerId(@NonNull String answerId) {
         AnswerId = answerId;
     }
 
@@ -47,11 +41,11 @@ public class Answer {
         EntryId = entryId;
     }
 
-    public int getFormId() {
+    public String getFormId() {
         return FormId;
     }
 
-    public void setFormId(int formId) {
+    public void setFormId(String formId) {
         FormId = formId;
     }
 
@@ -85,5 +79,22 @@ public class Answer {
 
     public void setDestColumnName(String destColumnName) {
         DestColumnName = destColumnName;
+    }
+
+    @NonNull
+    public String getUserID() {
+        return userID;
+    }
+
+    public void setUserID(@NonNull String userID) {
+        this.userID = userID;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 }

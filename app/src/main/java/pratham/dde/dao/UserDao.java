@@ -19,8 +19,11 @@ public interface UserDao {
     void UpdateTokenAndExpiry(String UserToken, String ExpiryDate, String UserName, String Password);
 
     @Query("SELECT ProgramIds from User where UserName = :UserName and Password = :Password")
-    String getProgramIDs( String UserName, String Password);
+    String getProgramIDs(String UserName, String Password);
 
     @Query("SELECT UserToken from User where UserName = :UserName and Password = :Password")
     String getToken(String UserName, String Password);
+
+    @Query("SELECT Id from User where UserName = :UserName and Password = :Password")
+    int getUserId(String UserName, String Password);
 }

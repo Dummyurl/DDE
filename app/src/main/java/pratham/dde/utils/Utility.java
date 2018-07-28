@@ -40,7 +40,7 @@ public class Utility{
      *
      * @return A unique GUID / UUID.
      */
-    public UUID getUniqueID() {
+    public static UUID getUniqueID() {
         return UUID.randomUUID();
     }
 

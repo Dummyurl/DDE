@@ -12,6 +12,9 @@ import pratham.dde.domain.Answer;
 @Dao
 public interface AnswerDao {
 
+    @Insert
+    public long[]  insertAnswer(List<Answer> answer);
+
     @Query("SELECT distinct FormId FROM Answer")
     public Cursor getNoOfForms();
 

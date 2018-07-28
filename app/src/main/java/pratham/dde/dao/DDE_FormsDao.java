@@ -5,8 +5,6 @@ import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 
-import com.android.volley.toolbox.StringRequest;
-
 import java.util.List;
 
 import pratham.dde.domain.DDE_Forms;
@@ -34,4 +32,7 @@ public interface DDE_FormsDao {
 
     @Query("SELECT formpassword FROM DDE_Forms where formid=:formId")
     String getFormPassword(String formId);
+
+    @Query("SELECT tablename FROM DDE_Forms where formid=:formId")
+    String getFormtablename(String formId);
 }

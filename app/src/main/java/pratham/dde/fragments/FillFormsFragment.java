@@ -105,6 +105,7 @@ public class FillFormsFragment extends Fragment {
     }
 
     private void checkFormPassword(final String formId) {
+        final int UserId=appDatabase.getUserDao().getUserId(userName,password);
         List<DDE_Questions> formIdWiseQuestions = new ArrayList<>();
         formIdWiseQuestions = appDatabase.getDDE_QuestionsDao().getFormIdWiseQuestions(formId);
         if (!formIdWiseQuestions.isEmpty()) {
@@ -122,6 +123,7 @@ public class FillFormsFragment extends Fragment {
                         if (formPassword.equals(enteredPassword) && enteredPassword.equals("null")) {
                             Intent questionIntent = new Intent(getActivity(), DisplayQuestions.class);
                             questionIntent.putExtra("formId", formId);
+                            questionIntent.putExtra("userId", String.valueOf(UserId));
                             startActivity(questionIntent);
                             formPasswordDialog.dismiss();
                         } else {
@@ -142,6 +144,7 @@ public class FillFormsFragment extends Fragment {
             } else {
                 Intent questionIntent = new Intent(getActivity(), DisplayQuestions.class);
                 questionIntent.putExtra("formId", formId);
+                questionIntent.putExtra("userId", String.valueOf(UserId));
                 startActivity(questionIntent);
             }
         } else {

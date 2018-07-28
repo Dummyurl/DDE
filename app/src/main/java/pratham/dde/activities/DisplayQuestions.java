@@ -64,8 +64,10 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import pratham.dde.R;
 import pratham.dde.customViews.ChooseImageDialog;
+import pratham.dde.domain.Answer;
 import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleTable;
+import pratham.dde.utils.Utility;
 
 import static pratham.dde.BaseActivity.appDatabase;
 
@@ -85,12 +87,15 @@ public class DisplayQuestions extends AppCompatActivity {
     public static final int PICK_IMAGE_FROM_GALLERY = 1;
     public static final int CAPTURE_IMAGE = 0;
     ImageView selectedImage;
+    String userId;//logged UserId
+    String formId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_questions);
-        String formId = getIntent().getStringExtra("formId");
+        formId = getIntent().getStringExtra("formId");
+        userId = getIntent().getStringExtra("userId");
         ButterKnife.bind(this);
         checkBoxList = new ArrayList();
         String formName = appDatabase.getDDE_FormsDao().getFormName(formId);
@@ -777,12 +782,52 @@ public class DisplayQuestions extends AppCompatActivity {
 
     @OnClick(R.id.saveAllQuestions)
     public void save() {
-        Log.d("tag111", formIdWiseQuestions.toString());
+        final List<Answer> answersList = new ArrayList<>();
+        Answer answer;
         if (checkValidations()) {
-            //save answer to db
+            String entryID = Utility.getUniqueID().toString();
+            for (int ansIndex = 0; ansIndex < formIdWiseQuestions.size(); ansIndex++) {
+                answer = new Answer();
+                String uuid = Utility.getUniqueID().toString();
+                answer.setAnswerId(uuid);
+                answer.setUserID(userId);
+                answer.setFormId(formId);
+                answer.setEntryId(entryID);
+                answer.setQuestionType(formIdWiseQuestions.get(ansIndex).getQuestionType());
+                answer.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
+                answer.setAnswers(formIdWiseQuestions.get(ansIndex).getAnswer());
+                answer.setDestColumnName(formIdWiseQuestions.get(ansIndex).getDestColumname());
+                answer.setDate(Utility.getCurrentDateTime());
+                answersList.add(answer);
+            }
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setTitle("Alert");
+            alertDialogBuilder.setCancelable(false);
+            alertDialogBuilder.setMessage("Do you want upload changes?");
 
+            alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    /*UPLOAD TO SERVER*/
+                    update();
+                }
+            });
 
+            alertDialogBuilder.setNegativeButton("Save Locally", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    appDatabase.getAnswerDao().insertAnswer(answersList);
+                    List s=appDatabase.getAnswerDao().getAnswers();
+                    Log.d("ans",s.toString());
+                }
+            });
+            alertDialogBuilder.show();
         }
+    }
+
+    private void update() {
+        /*UPLOAD TO SERVER*/
+
     }
 
     private boolean checkValidations() {
