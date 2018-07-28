@@ -5,17 +5,18 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.Log;
 
+import java.util.List;
+
 import static pratham.dde.BaseActivity.appDatabase;
 
 public class GenericDao {
 
-    public static void createTable(String tableName, String columnNames) {
+    public static void createTable(String tableName, List columnNames) {
         appDatabase.getOpenHelper().getWritableDatabase().execSQL("DROP TABLE IF EXISTS " + tableName);
         String CreateTable = "CREATE TABLE " + tableName + "(";
-        String[] splitted = columnNames.split(",");
-        for (int i = 0; i < splitted.length; i++) {
-            CreateTable = CreateTable + splitted[i] + " TEXT ";
-            if (i < splitted.length - 1) {
+        for (int i = 0; i < columnNames.size(); i++) {
+            CreateTable = CreateTable + columnNames.get(i) + " TEXT ";
+            if (i < columnNames.size() - 1) {
                 CreateTable = CreateTable + ", ";
             }
         }

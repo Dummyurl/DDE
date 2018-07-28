@@ -39,6 +39,7 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -64,7 +65,8 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import pratham.dde.R;
 import pratham.dde.customViews.ChooseImageDialog;
-import pratham.dde.domain.Answer;
+import pratham.dde.domain.AnswerJSonArrays;
+import pratham.dde.domain.AnswersSingleForm;
 import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleTable;
 import pratham.dde.utils.Utility;
@@ -782,28 +784,36 @@ public class DisplayQuestions extends AppCompatActivity {
 
     @OnClick(R.id.saveAllQuestions)
     public void save() {
-        final List<Answer> answersList = new ArrayList<>();
-        Answer answer;
         if (checkValidations()) {
+            final List<AnswerJSonArrays> answersList = new ArrayList<>();
             String entryID = Utility.getUniqueID().toString();
+            final AnswersSingleForm answersSingleForm = new AnswersSingleForm();
+            answersSingleForm.setEntryId(entryID);
+            answersSingleForm.setUserID(userId);
+            answersSingleForm.setDate(Utility.getCurrentDateTime());
+            answersSingleForm.setFormId(formId);
+            answersSingleForm.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
+            AnswerJSonArrays answerJSonArrays;
             for (int ansIndex = 0; ansIndex < formIdWiseQuestions.size(); ansIndex++) {
-                answer = new Answer();
-                String uuid = Utility.getUniqueID().toString();
-                answer.setAnswerId(uuid);
-                answer.setUserID(userId);
-                answer.setFormId(formId);
-                answer.setEntryId(entryID);
-                answer.setQuestionType(formIdWiseQuestions.get(ansIndex).getQuestionType());
-                answer.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
-                answer.setAnswers(formIdWiseQuestions.get(ansIndex).getAnswer());
-                answer.setDestColumnName(formIdWiseQuestions.get(ansIndex).getDestColumname());
-                answer.setDate(Utility.getCurrentDateTime());
-                answersList.add(answer);
+                answerJSonArrays = new AnswerJSonArrays();
+                String ansId = Utility.getUniqueID().toString();
+                answerJSonArrays.setAnswerId(ansId);
+                answerJSonArrays.setEntryId(entryID);
+                answerJSonArrays.setFormId (formId);
+                answerJSonArrays.setDestColumnName (formIdWiseQuestions.get(ansIndex).getDestColumname());
+                answerJSonArrays.setAnswers(formIdWiseQuestions.get(ansIndex).getAnswer());
+                answerJSonArrays.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
+                answerJSonArrays.setTransactionId(entryID);
+                answersList.add(answerJSonArrays);
             }
+            Gson gson = new Gson();
+            JsonArray jsonArray = gson.fromJson(gson.toJson(answersList), JsonArray.class);
+            answersSingleForm.setAnswerArrayOfSingleForm(jsonArray);
+
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
             alertDialogBuilder.setTitle("Alert");
             alertDialogBuilder.setCancelable(false);
-            alertDialogBuilder.setMessage("Do you want upload changes?");
+            alertDialogBuilder.setMessage("Do you want to upload form to server?");
 
             alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 @Override
@@ -816,9 +826,9 @@ public class DisplayQuestions extends AppCompatActivity {
             alertDialogBuilder.setNegativeButton("Save Locally", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    appDatabase.getAnswerDao().insertAnswer(answersList);
-                    List s=appDatabase.getAnswerDao().getAnswers();
-                    Log.d("ans",s.toString());
+                    appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
+                    List s = appDatabase.getAnswerDao().getAnswers();
+                    Log.d("ans111", s.toString());
                 }
             });
             alertDialogBuilder.show();
@@ -981,31 +991,31 @@ public class DisplayQuestions extends AppCompatActivity {
                         switch (validationType) {
                             case "<":
                                 if ((Integer.parseInt(answer) >= ans)) {
-                                    Toast.makeText(this, "Answer Must be Smaller Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                    Toast.makeText(this, "AnswersSingleForm Must be Smaller Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                     return false;
                                 }
                                 return true;
                             case ">":
                                 if ((Integer.parseInt(answer) <= ans)) {
-                                    Toast.makeText(this, "Answer Must be Greater Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                    Toast.makeText(this, "AnswersSingleForm Must be Greater Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                     return false;
                                 }
                                 return true;
                             case "=":
                                 if ((Integer.parseInt(answer) != ans)) {
-                                    Toast.makeText(this, "Answer Must be Equal To " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                    Toast.makeText(this, "AnswersSingleForm Must be Equal To " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                     return false;
                                 }
                                 return true;
                             case "<=":
                                 if ((Integer.parseInt(answer) > ans)) {
-                                    Toast.makeText(this, "Answer Must be Smaller Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                    Toast.makeText(this, "AnswersSingleForm Must be Smaller Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                     return false;
                                 }
                                 return true;
                             case ">=":
                                 if ((Integer.parseInt(answer) < ans)) {
-                                    Toast.makeText(this, "Answer Must be Greater Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                    Toast.makeText(this, "AnswersSingleForm Must be Greater Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                     return false;
                                 }
                                 return true;
@@ -1022,31 +1032,31 @@ public class DisplayQuestions extends AppCompatActivity {
                             switch (validationType) {
                                 case "<":
                                     if (dependingAns.compareTo(dependentAns) >= 0) {
-                                        Toast.makeText(this, "Answer Must be Before " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "AnswersSingleForm Must be Before " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
                                         return false;
                                     }
                                     return true;
                                 case ">":
                                     if (dependingAns.compareTo(dependentAns) <= 0) {
-                                        Toast.makeText(this, "Answer Must be After " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "AnswersSingleForm Must be After " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
                                         return false;
                                     }
                                     return true;
                                 case "=":
                                     if (dependingAns.compareTo(dependentAns) != 0) {
-                                        Toast.makeText(this, "Answer Must be Equal to " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "AnswersSingleForm Must be Equal to " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
                                         return false;
                                     }
                                     return true;
                                 case "<=":
                                     if (dependingAns.compareTo(dependentAns) > 0) {
-                                        Toast.makeText(this, "Answer Must be Before Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "AnswersSingleForm Must be Before Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
                                         return false;
                                     }
                                     return true;
                                 case ">=":
                                     if (dependingAns.compareTo(dependentAns) < 0) {
-                                        Toast.makeText(this, "Answer Must be After Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "AnswersSingleForm Must be After Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
                                         return false;
                                     }
                                     return true;

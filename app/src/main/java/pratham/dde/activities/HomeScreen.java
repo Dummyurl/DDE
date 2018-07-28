@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.android.volley.Request;
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
@@ -39,15 +38,15 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
-import pratham.dde.dao.GenericDao;
 import pratham.dde.database.BackupDatabase;
-import pratham.dde.domain.Answer;
+import pratham.dde.domain.AnswersSingleForm;
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleCondition;
 import pratham.dde.domain.DDE_RuleMaster;
 import pratham.dde.domain.DDE_RuleQuestion;
 import pratham.dde.domain.DDE_RuleTable;
+import pratham.dde.domain.DataSourceEntries;
 import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.SavedFormsFragment;
@@ -76,6 +75,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     String token, QuestionUrl;
     DDE_Forms[] forms;
     int formIndex = 0;
+    List<DDE_Questions> dataSourceQuestionsList;
+    int dataSourceIndex = 0;
+    int PageNumber = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,8 +122,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         break;
 
                     case R.id.nav_old_forms:
-                        List<Answer> allAnswers = appDatabase.getAnswerDao().getAnswers();
-                        if (allAnswers.isEmpty()) {
+                        List<AnswersSingleForm> allAnswersSingleForms = appDatabase.getAnswerDao().getAnswers();
+                        if (allAnswersSingleForms.isEmpty()) {
                             Utility.showDialogue(HomeScreen.this, "Data is already Synced...");
                         } else {
                             if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
@@ -176,7 +178,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     private JSONObject getMetaData() {
         JSONObject obj = new JSONObject();
 
-       /* Answer answerObj = new Answer();
+       /* AnswersSingleForm answerObj = new AnswersSingleForm();
         answerObj.setAnswerId(5);
         answerObj.setEntryId("1");
         answerObj.setFormId(3);
@@ -204,9 +206,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             }
             obj.put("RecCountPerForm", jsonArray);
 
-            List<Answer> answers = appDatabase.getAnswerDao().getAnswers();
-            obj.put("TotalRecordCount", answers.size());
-            Log.d("answer", answers.toString());
+            List<AnswersSingleForm> answersSingleForms = appDatabase.getAnswerDao().getAnswers();
+            obj.put("TotalRecordCount", answersSingleForms.size());
+            Log.d("answer", answersSingleForms.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -219,84 +221,100 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         dialog.setCancelable(false);
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();*/
-        AndroidNetworking.post(url)
-                .setContentType("application/json")
-                .addHeaders("Authorization", token)
-                .addHeaders("Content-Type", "application/json")
-                .addStringBody(json).build()
-                .getAsString(new StringRequestListener() {
-                    @Override
-                    public void onResponse(String response) {
-                        Log.d("response", response);
-                        //  dialog.dismiss();
-                        finish();
-                    }
+        AndroidNetworking.post(url).setContentType("application/json").addHeaders("Authorization", token).addHeaders("Content-Type", "application/json").addStringBody(json).build().getAsString(new StringRequestListener() {
+            @Override
+            public void onResponse(String response) {
+                Log.d("response", response);
+                //  dialog.dismiss();
+                finish();
+            }
 
-                    @Override
-                    public void onError(ANError anError) {
+            @Override
+            public void onError(ANError anError) {
 
-                        Toast.makeText(HomeScreen.this, "NO Internet Connection", Toast.LENGTH_LONG).show();
-                        //Log.d("anError", "" + anError);
-                        dialog.dismiss();
-                    }
-                });
+                Toast.makeText(HomeScreen.this, "NO Internet Connection", Toast.LENGTH_LONG).show();
+                //Log.d("anError", "" + anError);
+                dialog.dismiss();
+            }
+        });
     }
 
 
     /* load Question SourceDta */
     private void fetchQuestionsSourceData() {
         List<DDE_Questions> questions = appDatabase.getDDE_QuestionsDao().getAllQuestion();
+        dataSourceQuestionsList = new ArrayList<>();
+        dataSourceIndex = 0;
+        PageNumber = 1;
         for (int i = 0; i < questions.size(); i++) {
             if (questions.get(i).getDataSource() != null) {
-                String formId = questions.get(i).getFormId();
-                tableName = appDatabase.getDDE_FormsDao().getTableName(formId);
-                dataSourceUrl = Utility.getProperty("dataSource", mContext);
-                loadSourceData(formId);
+                dataSourceQuestionsList.add(questions.get(i));
             }
         }
+
+        loadSourceData();
+
     }
 
-    private void loadSourceData(String formId) {
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("FilterList", "null");
-            jsonObject.put("FormId", formId);
-            jsonObject.put("PageNumber", "1");
-        } catch (JSONException e) {
-            e.printStackTrace();
+    private void loadSourceData() {
+        if (dataSourceQuestionsList.size() > dataSourceIndex) {
+            String formId = dataSourceQuestionsList.get(dataSourceIndex).getFormId();
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("FilterList", "null");
+                jsonObject.put("FormId", formId);
+                jsonObject.put("PageNumber", PageNumber);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            AndroidNetworking.post(dataSourceUrl).addJSONObjectBody(jsonObject) // posting json
+                    .build().
+                    getAsJSONObject(new JSONObjectRequestListener() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            saveSourceData(response);
+                        }
+
+                        @Override
+                        public void onError(ANError anError) {
+
+                        }
+                    });
+            PageNumber++;
         }
-
-        AndroidNetworking.post(dataSourceUrl).addJSONObjectBody(jsonObject) // posting json
-                .build().
-                getAsJSONObject(new JSONObjectRequestListener() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        saveSourceData(response);
-                    }
-
-                    @Override
-                    public void onError(ANError anError) {
-
-                    }
-                });
     }
 
     private void saveSourceData(JSONObject response) {
-        try {
-            String columnNamesSourceData = "";
-            JSONArray tablesArray = response.getJSONArray("Data");
-            JSONObject table = tablesArray.getJSONObject(0);
-            Iterator iterator = table.keys();
-            while (iterator.hasNext()) {
-                columnNamesSourceData = columnNamesSourceData + (String) iterator.next() + ", ";
+        if (response.length() > 1) {
+            try {
+                JSONObject jsonObjectData = response.getJSONObject("Data");
+                JSONArray tableArray = jsonObjectData.getJSONArray("Table");
+                for (int tableIndex = 0; tableIndex < tableArray.length(); tableIndex++) {
+                    JSONObject tableObj = tableArray.getJSONObject(tableIndex);
+                    Iterator iterator = tableObj.keys();
+                    DataSourceEntries dataSourceEntries = new DataSourceEntries();
+                    ;
+                    while (iterator.hasNext()) {
+                        if ((!iterator.next().equals("ROWNUMBER")) && (!iterator.next().equals("EntryId")) && (!iterator.next().equals("EntryId")) && (!iterator.next().equals("CreatedBy")) && (!iterator.next().equals("UpdatedBy")) && (!iterator.next().equals("Createdon")) && (!iterator.next().equals("Updatedon"))) {
+                            String formId = dataSourceQuestionsList.get(dataSourceIndex).getFormId();
+                            String ans = appDatabase.getDataSourceEntriesDao().getAnswer(formId, iterator.next().toString());
+                            Log.d("ansre", ans);
+                        }
+                    }
+
+
+                }
+                jsonObjectData.length();
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-            if (columnNamesSourceData != null && columnNamesSourceData.length() > 0 && columnNamesSourceData.charAt(columnNamesSourceData.length() - 1) == ',') {
-                columnNamesSourceData = columnNamesSourceData.substring(0, columnNamesSourceData.length() - 1);
-            }
-            GenericDao.createTable(tableName, columnNamesSourceData);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        } else {
+            PageNumber = 1;
+            dataSourceIndex++;
         }
+        loadSourceData();
     }
 
     @Override
@@ -427,7 +445,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 public void onResponse(JSONObject response) {
                     Log.d("pk-log", "" + response.length());
                     Utility.setMessage(dialog, "Updating forms in Database... Please wait.");
-                    String s = response.toString();
                     updateFormsInDatabase(response);
                 }
 
@@ -479,7 +496,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                             appDatabase.getStatusDao().updateValue("LastPulledDate", Utility.getCurrentDateTime());
                             BackupDatabase.backup(mContext);
                             Utility.dismissDialog(dialog);
-                            Log.d("pk-size", "pk-length:-" + appDatabase.getDDE_FormsDao().getAllForms().length);
                         }
 
                         @Override
@@ -499,27 +515,22 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     }
 
     public void uploadImageToServer(String url, File file) {
-        AndroidNetworking.upload(url)
-                .addMultipartFile("image",file)
-                .addMultipartParameter("key","value")
-                .setTag("uploadTest")
-                .build()
-                .setUploadProgressListener(new UploadProgressListener() {
-                    @Override
-                    public void onProgress(long bytesUploaded, long totalBytes) {
-                        // do anything with progress
-                    }
-                })
-                .getAsJSONObject(new JSONObjectRequestListener() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        // do anything with response
-                    }
-                    @Override
-                    public void onError(ANError error) {
-                        // handle error
-                    }
-                });
+        AndroidNetworking.upload(url).addMultipartFile("image", file).addMultipartParameter("key", "value").setTag("uploadTest").build().setUploadProgressListener(new UploadProgressListener() {
+            @Override
+            public void onProgress(long bytesUploaded, long totalBytes) {
+                // do anything with progress
+            }
+        }).getAsJSONObject(new JSONObjectRequestListener() {
+            @Override
+            public void onResponse(JSONObject response) {
+                // do anything with response
+            }
+
+            @Override
+            public void onError(ANError error) {
+                // handle error
+            }
+        });
     }
 
 
