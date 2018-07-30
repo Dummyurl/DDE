@@ -27,13 +27,14 @@ public interface AnswerDao {
     @Query("select distinct * from AnswersSingleForm where userID=:uId")
     public List<AnswersSingleForm> getDistinctEntrys(String uId);
 
-    @Query("select FormId  from AnswersSingleForm Where EntryId=:formId")
-    public String getFormIDByEntryID(String formId);
+    @Query("select FormId  from AnswersSingleForm Where EntryId=:entryId")
+    public String getFormIDByEntryID(String entryId);
 
-    @Query("select userID  from AnswersSingleForm Where EntryId=:formId")
-    public String getUserIDByEntryID(String formId);
+    @Query("select userID  from AnswersSingleForm Where EntryId=:entryId")
+    public String getUserIDByEntryID(String entryId);
 
-
+    @Query("select userID  from AnswersSingleForm Where EntryId=:entryId")
+    public String getAnswerByEntryID(String entryId);
 
 
 }

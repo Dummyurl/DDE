@@ -124,7 +124,7 @@ public class FillFormsFragment extends Fragment {
                             Intent questionIntent = new Intent(getActivity(), DisplayQuestions.class);
                             questionIntent.putExtra("formId", formId);
                             questionIntent.putExtra("userId", String.valueOf(UserId));
-                            questionIntent.putExtra("formEdit", "false");
+                            questionIntent.putExtra("formEdit", "false1");
 
                             startActivity(questionIntent);
                             formPasswordDialog.dismiss();
@@ -147,6 +147,7 @@ public class FillFormsFragment extends Fragment {
                 Intent questionIntent = new Intent(getActivity(), DisplayQuestions.class);
                 questionIntent.putExtra("formId", formId);
                 questionIntent.putExtra("userId", String.valueOf(UserId));
+                questionIntent.putExtra("formEdit", "false");
                 startActivity(questionIntent);
             }
         } else {

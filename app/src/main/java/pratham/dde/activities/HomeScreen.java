@@ -101,7 +101,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                     case R.id.nav_saved_forms:
 
                         Bundle bundle = new Bundle();
-                        bundle.putString("userID", userName);
+                        bundle.putString("userID", userId);
                         SavedFormsFragment savedFormsFragment = new SavedFormsFragment();
                         savedFormsFragment.setArguments(bundle);
                         FragmentManager fm = getFragmentManager();

@@ -107,7 +107,7 @@ public class SavedFormsFragment extends android.app.Fragment {
                 left.addView(formDate);
 
                 /*INNER RIGHT LINEAR LAYOUT*/
-                LinearLayout right = new LinearLayout(getActivity());
+                final LinearLayout right = new LinearLayout(getActivity());
                 right.setOrientation(LinearLayout.HORIZONTAL);
                 right.setLayoutParams(paramsRight);
                 right.setTag(answersSingleForm.getEntryId());
@@ -126,13 +126,12 @@ public class SavedFormsFragment extends android.app.Fragment {
                         alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                String tagEntyId = editForm.getTag().toString();
-                                Bundle bundle = new Bundle();
-                                bundle.putString("formId", appDatabase.getAnswerDao().getFormIDByEntryID(tagEntyId));
-                                bundle.putString("userId", appDatabase.getAnswerDao().getUserIDByEntryID(tagEntyId));
-                                bundle.putString("entryId", tagEntyId);
-                                bundle.putString("formEdit", "true");
+                                String tagEntyId = right.getTag().toString();
                                 Intent intent = new Intent(getActivity(), DisplayQuestions.class);
+                                intent.putExtra("formId", appDatabase.getAnswerDao().getFormIDByEntryID(tagEntyId));
+                                intent.putExtra("userId", appDatabase.getAnswerDao().getUserIDByEntryID(tagEntyId));
+                                intent.putExtra("entryId", tagEntyId);
+                                intent.putExtra("formEdit", "true");
                                 startActivity(intent);
 
                             }

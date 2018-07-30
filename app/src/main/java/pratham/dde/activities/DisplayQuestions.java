@@ -100,7 +100,8 @@ public class DisplayQuestions extends AppCompatActivity {
         formId = getIntent().getStringExtra("formId");
         userId = getIntent().getStringExtra("userId");
         entryID = getIntent().getStringExtra("entryId");
-        if (getIntent().getStringExtra("entryId").equals("true")) {
+        String formEdit = getIntent().getStringExtra("formEdit");
+        if (formEdit.equals("true")) {
             editFormFlag = true;
         } else {
             editFormFlag = false;
@@ -119,8 +120,14 @@ public class DisplayQuestions extends AppCompatActivity {
         /* SET VISIBILITY TO QUESTIONS */
         setVisibilityToQuestions(formId);
 
-        for (int i = 0; i < formIdWiseQuestions.size(); i++) {
-            displaySingleQue(formIdWiseQuestions.get(i));
+
+        if (editFormFlag) {
+            appDatabase.getAnswerDao().getAnswers();
+
+        } else {
+            for (int i = 0; i < formIdWiseQuestions.size(); i++) {
+                displaySingleQue(formIdWiseQuestions.get(i));
+            }
         }
     }
 
