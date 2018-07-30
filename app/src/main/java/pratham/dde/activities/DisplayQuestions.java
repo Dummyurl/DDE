@@ -94,6 +94,7 @@ public class DisplayQuestions extends AppCompatActivity {
     boolean editFormFlag = false;
     String imageName = "";
     String entryID;
+    JsonArray answerJsonArray;
 
 
     @Override
@@ -125,7 +126,8 @@ public class DisplayQuestions extends AppCompatActivity {
 
 
         if (editFormFlag) {
-            appDatabase.getAnswerDao().getAnswers();
+            AnswersSingleForm answersSingleForm = (AnswersSingleForm) appDatabase.getAnswerDao().getAnswersByEntryId(entryID);
+            answerJsonArray = answersSingleForm.getAnswerArrayOfSingleForm();
 
         } else {
             entryID = Utility.getUniqueID().toString();
