@@ -515,7 +515,11 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     }
 
     public void uploadImageToServer(String url, File file) {
-        AndroidNetworking.upload(url).addMultipartFile("image", file).addMultipartParameter("key", "value").setTag("uploadTest").build().setUploadProgressListener(new UploadProgressListener() {
+        AndroidNetworking.upload(url).addMultipartFile("image", file)
+                .addMultipartParameter("key", "value")
+                .setTag("uploadTest")
+                .build()
+                .setUploadProgressListener(new UploadProgressListener() {
             @Override
             public void onProgress(long bytesUploaded, long totalBytes) {
                 // do anything with progress
