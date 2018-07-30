@@ -90,7 +90,8 @@ public class DisplayQuestions extends AppCompatActivity {
     public static final int CAPTURE_IMAGE = 0;
     ImageView selectedImage;
     String userId;//logged UserId
-    String formId;
+    String formId, entryID;
+    boolean editFormFlag = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +99,13 @@ public class DisplayQuestions extends AppCompatActivity {
         setContentView(R.layout.activity_display_questions);
         formId = getIntent().getStringExtra("formId");
         userId = getIntent().getStringExtra("userId");
+        entryID = getIntent().getStringExtra("entryId");
+        String formEdit = getIntent().getStringExtra("formEdit");
+        if (formEdit.equals("true")) {
+            editFormFlag = true;
+        } else {
+            editFormFlag = false;
+        }
         ButterKnife.bind(this);
         checkBoxList = new ArrayList();
         String formName = appDatabase.getDDE_FormsDao().getFormName(formId);
@@ -112,8 +120,14 @@ public class DisplayQuestions extends AppCompatActivity {
         /* SET VISIBILITY TO QUESTIONS */
         setVisibilityToQuestions(formId);
 
-        for (int i = 0; i < formIdWiseQuestions.size(); i++) {
-            displaySingleQue(formIdWiseQuestions.get(i));
+
+        if (editFormFlag) {
+            appDatabase.getAnswerDao().getAnswers();
+
+        } else {
+            for (int i = 0; i < formIdWiseQuestions.size(); i++) {
+                displaySingleQue(formIdWiseQuestions.get(i));
+            }
         }
     }
 
@@ -799,8 +813,8 @@ public class DisplayQuestions extends AppCompatActivity {
                 String ansId = Utility.getUniqueID().toString();
                 answerJSonArrays.setAnswerId(ansId);
                 answerJSonArrays.setEntryId(entryID);
-                answerJSonArrays.setFormId (formId);
-                answerJSonArrays.setDestColumnName (formIdWiseQuestions.get(ansIndex).getDestColumname());
+                answerJSonArrays.setFormId(formId);
+                answerJSonArrays.setDestColumnName(formIdWiseQuestions.get(ansIndex).getDestColumname());
                 answerJSonArrays.setAnswers(formIdWiseQuestions.get(ansIndex).getAnswer());
                 answerJSonArrays.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
                 answerJSonArrays.setTransactionId(entryID);
