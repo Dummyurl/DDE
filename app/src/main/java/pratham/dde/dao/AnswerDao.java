@@ -21,14 +21,19 @@ public interface AnswerDao {
     @Query("SELECT * FROM AnswersSingleForm")
     public List<AnswersSingleForm> getAnswers();
 
-    /* @Insert()
-     public void insertAnswers(AnswersSingleForm answers);
- */
     @Query("select distinct count(*) as cnt, FormId from AnswersSingleForm group by FormId")
     public Cursor getFormCount();
 
-    @Query("select distinct EntryId from AnswersSingleForm where isPushed=='false'")
-    public List<String> getDistinctEntrys();
+    @Query("select distinct * from AnswersSingleForm where userID=:uId")
+    public List<AnswersSingleForm> getDistinctEntrys(String uId);
+
+    @Query("select FormId  from AnswersSingleForm Where EntryId=:formId")
+    public String getFormIDByEntryID(String formId);
+
+    @Query("select userID  from AnswersSingleForm Where EntryId=:formId")
+    public String getUserIDByEntryID(String formId);
+
+
 
 
 }

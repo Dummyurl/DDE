@@ -9,20 +9,6 @@ import com.google.gson.JsonArray;
 
 @Entity
 public class AnswersSingleForm {
-
-
-    // private String AnswerId;
-
-    // private String QuestionType;
-    // private String Answers;
-
-//    private String DestColumnName;
-
-    /* @Override
-     public String toString() {
-         return "AnswersSingleForm{" + "AnswerId=" + AnswerId + ", EntryId='" + EntryId + '\'' + ", FormId=" + FormId + ", QuestionType='" + QuestionType + '\'' + ", Answers='" + Answers + '\'' + ", TableName='" + TableName + '\'' + ", DestColumnName='" + DestColumnName + '\'' + '}';
-     }*/
-
     @PrimaryKey
     @NonNull
     private String EntryId;

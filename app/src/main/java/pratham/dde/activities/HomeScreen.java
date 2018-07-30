@@ -69,6 +69,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     Dialog dialog;
     //    FusedLocationAPI fusedLocationAPI;
     String userName, password;
+    String userId;
     String dataSourceUrl;
     String tableName;
     Context mContext;
@@ -92,13 +93,17 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         dialog = new ProgressDialog(mContext);
         userName = this.getIntent().getStringExtra("userName");
         password = this.getIntent().getStringExtra("password");
-
+        userId=String.valueOf(appDatabase.getUserDao().getUserId(userName,password));
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
                     case R.id.nav_saved_forms:
+
+                        Bundle bundle = new Bundle();
+                        bundle.putString("userID", userName);
                         SavedFormsFragment savedFormsFragment = new SavedFormsFragment();
+                        savedFormsFragment.setArguments(bundle);
                         FragmentManager fm = getFragmentManager();
                         fm.beginTransaction().replace(R.id.fragment, savedFormsFragment).commit();
                         break;

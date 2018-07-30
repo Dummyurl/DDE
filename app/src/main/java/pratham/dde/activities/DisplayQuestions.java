@@ -90,7 +90,8 @@ public class DisplayQuestions extends AppCompatActivity {
     public static final int CAPTURE_IMAGE = 0;
     ImageView selectedImage;
     String userId;//logged UserId
-    String formId;
+    String formId, entryID;
+    boolean editFormFlag = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +99,12 @@ public class DisplayQuestions extends AppCompatActivity {
         setContentView(R.layout.activity_display_questions);
         formId = getIntent().getStringExtra("formId");
         userId = getIntent().getStringExtra("userId");
+        entryID = getIntent().getStringExtra("entryId");
+        if (getIntent().getStringExtra("entryId").equals("true")) {
+            editFormFlag = true;
+        } else {
+            editFormFlag = false;
+        }
         ButterKnife.bind(this);
         checkBoxList = new ArrayList();
         String formName = appDatabase.getDDE_FormsDao().getFormName(formId);
@@ -799,8 +806,8 @@ public class DisplayQuestions extends AppCompatActivity {
                 String ansId = Utility.getUniqueID().toString();
                 answerJSonArrays.setAnswerId(ansId);
                 answerJSonArrays.setEntryId(entryID);
-                answerJSonArrays.setFormId (formId);
-                answerJSonArrays.setDestColumnName (formIdWiseQuestions.get(ansIndex).getDestColumname());
+                answerJSonArrays.setFormId(formId);
+                answerJSonArrays.setDestColumnName(formIdWiseQuestions.get(ansIndex).getDestColumname());
                 answerJSonArrays.setAnswers(formIdWiseQuestions.get(ansIndex).getAnswer());
                 answerJSonArrays.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
                 answerJSonArrays.setTransactionId(entryID);
