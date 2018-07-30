@@ -90,8 +90,11 @@ public class DisplayQuestions extends AppCompatActivity {
     public static final int CAPTURE_IMAGE = 0;
     ImageView selectedImage;
     String userId;//logged UserId
-    String formId, entryID;
+    String formId;
     boolean editFormFlag = false;
+    String imageName = "";
+    String entryID;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,6 +128,7 @@ public class DisplayQuestions extends AppCompatActivity {
             appDatabase.getAnswerDao().getAnswers();
 
         } else {
+            entryID = Utility.getUniqueID().toString();
             for (int i = 0; i < formIdWiseQuestions.size(); i++) {
                 displaySingleQue(formIdWiseQuestions.get(i));
             }
@@ -409,6 +413,8 @@ public class DisplayQuestions extends AppCompatActivity {
                                 chooseImageDialog.cancel();
                                 Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                                 startActivityForResult(takePicture, 0);
+                                imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
+                                dde_questions.setAnswer(imageName);
                             }
                         });
 
@@ -417,9 +423,11 @@ public class DisplayQuestions extends AppCompatActivity {
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
                                 Intent intent = new Intent();
-                                intent.setType("selectedImage/");
+                                intent.setType("image/*");
                                 intent.setAction(Intent.ACTION_GET_CONTENT);
                                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_FROM_GALLERY);
+                                imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
+                                dde_questions.setAnswer(imageName);
                             }
                         });
 
@@ -500,7 +508,6 @@ public class DisplayQuestions extends AppCompatActivity {
                             } catch (JSONException e1) {
                                 e1.printStackTrace();
                             }
-
                         }
 
                         datePickerDialog.setTitle("Select Date");
@@ -800,7 +807,6 @@ public class DisplayQuestions extends AppCompatActivity {
     public void save() {
         if (checkValidations()) {
             final List<AnswerJSonArrays> answersList = new ArrayList<>();
-            String entryID = Utility.getUniqueID().toString();
             final AnswersSingleForm answersSingleForm = new AnswersSingleForm();
             answersSingleForm.setEntryId(entryID);
             answersSingleForm.setUserID(userId);
@@ -866,8 +872,12 @@ public class DisplayQuestions extends AppCompatActivity {
                         String getQuestionType = formIdWiseQuestions.get(i).getQuestionType();
                         String validationName = validationObject.get("validationName").getAsString();
                         String ValidationType = validationObject.get("ValidationType").getAsString();
-                        if (!("null".equals(validationObject.get("ValidationValue").toString()))) {
+
+                        if ((!validationObject.get("ValidationValue").isJsonNull()) && (!("null".equals(validationObject.get("ValidationValue").toString())))) {
                             ValidationValue = validationObject.get("ValidationValue").getAsString();
+                        }else{
+                            Toast.makeText(this, "Validation values may be null or empty.. ", Toast.LENGTH_SHORT).show();
+                            return false;
                         }
                         String answerQQ = formIdWiseQuestions.get(i).getAnswer();
                         boolean flag = checkValue(queId, getQuestionType, validationName, ValidationType, ValidationValue, answerQQ);
@@ -1204,13 +1214,13 @@ public class DisplayQuestions extends AppCompatActivity {
                 Uri selectedImage = data.getData();
                 this.selectedImage.setImageURI(selectedImage);
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                createDirectoryAndSaveFile(bitmap, "fromGallery.jpg");
+                createDirectoryAndSaveFile(bitmap, imageName);
 
             } else if (requestCode == CAPTURE_IMAGE) {
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
                 selectedImage.setImageBitmap(photo);
                 // String selectedImagePath = getPath(photo);
-                createDirectoryAndSaveFile(photo, "captured.jpg");
+                createDirectoryAndSaveFile(photo, imageName);
             }
 
         } catch (Exception e) {
