@@ -35,9 +35,4 @@ public interface AnswerDao {
 
     @Query("select userID  from AnswersSingleForm Where EntryId=:entryId")
     public String getUserIDByEntryID(String entryId);
-
-    @Query("select userID  from AnswersSingleForm Where EntryId=:entryId")
-    public String getAnswerByEntryID(String entryId);
-
-
 }
