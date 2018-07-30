@@ -6,6 +6,7 @@ import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -128,12 +129,11 @@ public class DisplayQuestions extends AppCompatActivity {
         if (editFormFlag) {
             AnswersSingleForm answersSingleForm = (AnswersSingleForm) appDatabase.getAnswerDao().getAnswersByEntryId(entryID);
             answerJsonArray = answersSingleForm.getAnswerArrayOfSingleForm();
-
         } else {
             entryID = Utility.getUniqueID().toString();
-            for (int i = 0; i < formIdWiseQuestions.size(); i++) {
-                displaySingleQue(formIdWiseQuestions.get(i));
-            }
+        }
+        for (int i = 0; i < formIdWiseQuestions.size(); i++) {
+            displaySingleQue(formIdWiseQuestions.get(i));
         }
     }
 
@@ -143,7 +143,7 @@ public class DisplayQuestions extends AppCompatActivity {
 
     /*    Display A Single Questions One By One*/
     private void displaySingleQue(final DDE_Questions dde_questions) {
-        LinearLayout layout = new LinearLayout(this);
+        final LinearLayout layout = new LinearLayout(this);
         layout.setPadding(10, 10, 10, 10);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setTag(dde_questions.getQuestionId());
@@ -182,10 +182,22 @@ public class DisplayQuestions extends AppCompatActivity {
                 editText.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 editText.setPadding(15, 5, 5, 5);
                 editText.setSingleLine(true);
-                editText.setText(validationValue);
                 editText.setLayoutParams(params);
                 layout.addView(editText);
-                dde_questions.setAnswer(validationValue);
+                if (editFormFlag) {
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            String ans = ansObject.get("Answers").getAsString();
+                            editText.setText(ans);
+                            dde_questions.setAnswer(ans);
+                        }
+                    }
+                } else {
+                    editText.setText(validationValue);
+                    dde_questions.setAnswer(validationValue);
+                }
                 editText.addTextChangedListener(new TextWatcher() {
 
                     // the user's changes are saved here
@@ -199,9 +211,9 @@ public class DisplayQuestions extends AppCompatActivity {
 
                     public void afterTextChanged(Editable c) {
                         dde_questions.setAnswer(c.toString());
-                        LinearLayout layout = (LinearLayout) editText.getParent();
+                        /*LinearLayout layout = (LinearLayout) editText.getParent();
                         String tag = (String) layout.getTag();
-                        //checkRuleCondion(tag, c.toString());
+                        //checkRuleCondition(tag, c.toString());*/
                     }
                 });
                 break;
@@ -218,39 +230,38 @@ public class DisplayQuestions extends AppCompatActivity {
                     radioButton.setTag(jsonObject.get("value").getAsString());
                     String text = jsonObject.get("display").getAsString();
                     radioButton.setText(text);
-                    if (validationValue.equalsIgnoreCase(text)) {
-                        radioButton.setChecked(true);
-                        dde_questions.setAnswer(validationValue);
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                String ans = ansObject.get("Answers").getAsString();
+                                if (ans.equalsIgnoreCase(text)) {
+                                    radioButton.setChecked(true);
+                                    dde_questions.setAnswer(ans);
+                                    String tag = (String) layout.getTag();
+                                    checkRuleCondition(tag, ans, "singlechoice");
+                                }
+                            }
+                        }
+                    } else {
+                        if (validationValue.equalsIgnoreCase(text)) {
+                            radioButton.setChecked(true);
+                            dde_questions.setAnswer(validationValue);
+                        }
                     }
                     radioGroup.addView(radioButton);
                     radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if (b) {
+                        public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
+                            if (isSelected) {
                                 dde_questions.setAnswer(compoundButton.getText().toString());
                                 LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent();
                                 String tag = (String) layout.getTag();
-                                checkRuleCondion(tag, compoundButton.getTag().toString(), "singlechoice");
+                                checkRuleCondition(tag, compoundButton.getTag().toString(), "singlechoice");
                             }
                         }
                     });
-                  /*  radioButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            String answerRadio = "";
-                            if (view.isSelected()) {
-                                view.setSelected(false);
-                                answerRadio = "";
-                            } else {
-                                answerRadio = ((RadioButton) view).getText().toString();
-                            }
-                            dde_questions.setAnswer(answerRadio);
-                            LinearLayout layout = (LinearLayout) view.getParent().getParent();
-                            String tag = (String) layout.getTag();
-                            checkRuleCondion(tag, view.getTag().toString(), "singlechoice");
-                        }
-                    });
-*/
                 }
                 radioGroup.setLayoutParams(params);
                 layout.addView(radioGroup);
@@ -261,10 +272,23 @@ public class DisplayQuestions extends AppCompatActivity {
                 et_email.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 et_email.setPadding(15, 5, 5, 5);
                 et_email.setSingleLine(true);
-                et_email.setText(validationValue);
                 et_email.setLayoutParams(params);
                 layout.addView(et_email);
-                dde_questions.setAnswer(validationValue);
+                et_email.setText(validationValue);
+                if (editFormFlag) {
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            String ans = ansObject.get("Answers").getAsString();
+                            et_email.setText(ans);
+                            dde_questions.setAnswer(ans);
+                        }
+                    }
+                } else {
+                    et_email.setText(validationValue);
+                    dde_questions.setAnswer(validationValue);
+                }
                 et_email.addTextChangedListener(new TextWatcher() {
 
                     // the user's changes are saved here
@@ -278,9 +302,9 @@ public class DisplayQuestions extends AppCompatActivity {
 
                     public void afterTextChanged(Editable c) {
                         dde_questions.setAnswer(c.toString());
-                        LinearLayout layout = (LinearLayout) et_email.getParent();
+                        /*LinearLayout layout = (LinearLayout) et_email.getParent();
                         String tag = (String) layout.getTag();
-                        //  checkRuleCondion(tag, c.toString());
+                        //  checkRuleCondition(tag, c.toString());*/
                     }
                 });
                 break;
@@ -303,10 +327,24 @@ public class DisplayQuestions extends AppCompatActivity {
                     }
                 }
                 number.setSingleLine(true);
-                number.setText(validationValue);
                 number.setLayoutParams(params);
                 number.setTag("ans" + dde_questions.getQuestionId());
-                dde_questions.setAnswer(validationValue);
+                if (editFormFlag) {
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            String ans = ansObject.get("Answers").getAsString();
+                            number.setText(ans);
+                            dde_questions.setAnswer(ans);
+                            String tag = (String) layout.getTag();
+                            checkRuleCondition(tag, ans, "number");
+                        }
+                    }
+                } else {
+                    number.setText(validationValue);
+                    dde_questions.setAnswer(validationValue);
+                }
                 number.addTextChangedListener(new TextWatcher() {
 
                     // the user's changes are saved here
@@ -322,19 +360,34 @@ public class DisplayQuestions extends AppCompatActivity {
                         dde_questions.setAnswer(c.toString());
                         LinearLayout layout = (LinearLayout) number.getParent();
                         String tag = (String) layout.getTag();
-                        checkRuleCondion(tag, c.toString(), "number");
+                        checkRuleCondition(tag, c.toString(), "number");
                     }
                 });
                 layout.addView(number);
                 break;
 
             case "multiple":
+                String ans = "";
                 JsonArray optionCheckBox = dde_questions.getQuestionOption();
                 GridLayout gridLayout = new GridLayout(this);
                 gridLayout.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 gridLayout.setColumnCount(3);
+                if (!validationValue.endsWith(","))
+                    validationValue += ",";
+
+                if (editFormFlag) {
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            ans = ansObject.get("Answers").getAsString();
+                            if (!ans.endsWith(","))
+                                ans += ",";
+                        }
+                    }
+                }
                 for (int i = 0; i < optionCheckBox.size(); i++) {
-                    CheckBox checkBox = new CheckBox(this);
+                    final CheckBox checkBox = new CheckBox(this);
                     checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
@@ -353,8 +406,9 @@ public class DisplayQuestions extends AppCompatActivity {
                                 selectedAnswers = selectedAnswers.substring(0, selectedAnswers.length() - 1);
                             }*/
                             dde_questions.setAnswer(selectedAnswers);
-                            String queParent = ((LinearLayout) compoundButton.getParent().getParent()).getTag().toString();
-                            checkRuleCondion(queParent, selectedAnswers, "multiple");
+                            //String queParent = ((LinearLayout) compoundButton.getParent().getParent()).getTag().toString();
+                            String queParent = layout.getTag().toString();
+                            checkRuleCondition(queParent, selectedAnswers, "multiple");
 
                         }
                     });
@@ -363,9 +417,16 @@ public class DisplayQuestions extends AppCompatActivity {
                     checkBox.setTag(dde_questions.getQuestionId() + ":::" + jsonObject.get("value").getAsString());
                     String text = jsonObject.get("display").getAsString();
                     checkBox.setText(text);
-                    if (validationValue.contains(text)) {
-                        checkBox.setChecked(true);
-                        dde_questions.setAnswer(text + ",");
+                    if (editFormFlag) {
+                        if (ans.contains(text + ",")) {
+                            checkBox.setChecked(true);
+                            dde_questions.setAnswer(ans);
+                        }
+                    } else {
+                        if (validationValue.contains(text + ",")) {
+                            checkBox.setChecked(true);
+                            dde_questions.setAnswer(validationValue);
+                        }
                     }
                     checkBoxList.add(checkBox);
                     GridLayout.LayoutParams paramGrid = new GridLayout.LayoutParams();
@@ -383,15 +444,12 @@ public class DisplayQuestions extends AppCompatActivity {
             case "image":
                 LinearLayout outerLinearLayout = new LinearLayout(this);
                 outerLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
-
-
                 final TextView tv_img = new TextView(this);
                 tv_img.setPadding(5, 5, 5, 5);
                 tv_img.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 tv_img.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
                 tv_img.setText("Select Image");
                 outerLinearLayout.addView(tv_img);
-
                 selectedImage = new ImageView(this);
                 // selectedImage.setLayoutParams(new android.view.ViewGroup.LayoutParams(150, 150));
                 selectedImage.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
@@ -401,9 +459,19 @@ public class DisplayQuestions extends AppCompatActivity {
                 selectedImage.setLayoutParams(buttonLayoutParams);
                 outerLinearLayout.addView(selectedImage);
 
-
+                if (editFormFlag) {
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            ans = ansObject.get("Answers").getAsString();
+                            Bitmap bmp = BitmapFactory.decodeFile(ans);
+                            selectedImage.setImageBitmap(bmp);
+                            dde_questions.setAnswer(ans);
+                        }
+                    }
+                }
                 layout.addView(outerLinearLayout);
-
 
                 tv_img.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -414,9 +482,9 @@ public class DisplayQuestions extends AppCompatActivity {
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
                                 Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                startActivityForResult(takePicture, 0);
+                                startActivityForResult(takePicture, CAPTURE_IMAGE);
                                 imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
-                                dde_questions.setAnswer(imageName);
+                                dde_questions.setAnswer("/sdcard/DDEImages/" + imageName);
                             }
                         });
 
@@ -429,7 +497,7 @@ public class DisplayQuestions extends AppCompatActivity {
                                 intent.setAction(Intent.ACTION_GET_CONTENT);
                                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_FROM_GALLERY);
                                 imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
-                                dde_questions.setAnswer(imageName);
+                                dde_questions.setAnswer("/sdcard/DDEImages/" + imageName);
                             }
                         });
 
@@ -447,9 +515,21 @@ public class DisplayQuestions extends AppCompatActivity {
                 date.setTag("ans" + dde_questions.getQuestionId());
                 date.setLayoutParams(paramsWrapContaint);
                 layout.addView(date);
-                if (parseDate(validationValue) != null) {
-                    date.setText(parseDate(validationValue));
-                    dde_questions.setAnswer(validationValue);
+                if (editFormFlag) {
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            ans = ansObject.get("Answers").getAsString();
+                            date.setText(ans);
+                            dde_questions.setAnswer(ans);
+                        }
+                    }
+                } else {
+                    if (parseDate(validationValue) != null) {
+                        date.setText(parseDate(validationValue));
+                        dde_questions.setAnswer(validationValue);
+                    }
                 }
                 date.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -529,14 +609,26 @@ public class DisplayQuestions extends AppCompatActivity {
                 time.setLayoutParams(paramsWrapContaint);
                 time.setTag("ans" + dde_questions.getQuestionId());
                 String text = null;
-                try {
-                    final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
-                    final Date dateObj = sdf.parse(validationValue);
-                    text = new SimpleDateFormat("K:mm aa").format(dateObj);
-                    time.setText(text);
-                    dde_questions.setAnswer(text);
-                } catch (ParseException e) {
-                    e.printStackTrace();
+                if (editFormFlag) {
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            ans = ansObject.get("Answers").getAsString();
+                            time.setText(ans);
+                            dde_questions.setAnswer(ans);
+                        }
+                    }
+                } else {
+                    try {
+                        final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
+                        final Date dateObj = sdf.parse(validationValue);
+                        text = new SimpleDateFormat("K:mm aa").format(dateObj);
+                        time.setText(text);
+                        dde_questions.setAnswer(text);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                 }
                 layout.addView(time);
                 time.setOnClickListener(new View.OnClickListener() {
@@ -595,10 +687,27 @@ public class DisplayQuestions extends AppCompatActivity {
                 ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_selectable_list_item, display);
                 spinnerDropdown.setAdapter(spinnerArrayAdapter);
                 spinnerDropdown.setLayoutParams(paramsWrapContaint);
-                int index = display.indexOf(validationValue);
-                if (index != -1) {
-                    spinnerDropdown.setSelection(index);
-                    dde_questions.setAnswer(validationValue);
+                if (editFormFlag) {
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                ans = ansObject.get("Answers").getAsString();
+                                int index = display.indexOf(ans);
+                                if (index != -1) {
+                                    spinnerDropdown.setSelection(index);
+                                    dde_questions.setAnswer(ans);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    int index = display.indexOf(validationValue);
+                    if (index != -1) {
+                        spinnerDropdown.setSelection(index);
+                        dde_questions.setAnswer(validationValue);
+                    }
                 }
                 spinnerDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
@@ -610,7 +719,7 @@ public class DisplayQuestions extends AppCompatActivity {
                         }
                         LinearLayout linearLayout = (LinearLayout) adapterView.getParent();
                         String tag = linearLayout.getTag().toString();
-                        checkRuleCondion(tag, adapterView.getSelectedItem().toString(), "dropdown");
+                        checkRuleCondition(tag, adapterView.getSelectedItem().toString(), "dropdown");
 
                     }
 
@@ -632,7 +741,7 @@ public class DisplayQuestions extends AppCompatActivity {
         }
     }
 
-    private void checkRuleCondion(String tag, String ans, String queType) {
+    private void checkRuleCondition(String tag, String ans, String queType) {
         for (int i = 0; i < allRules.size(); i++) {
             JsonArray questionCondition = allRules.get(i).getQuestionCondition();
             Set conditionId = new LinkedHashSet();
@@ -823,7 +932,12 @@ public class DisplayQuestions extends AppCompatActivity {
                 answerJSonArrays.setEntryId(entryID);
                 answerJSonArrays.setFormId(formId);
                 answerJSonArrays.setDestColumnName(formIdWiseQuestions.get(ansIndex).getDestColumname());
-                answerJSonArrays.setAnswers(formIdWiseQuestions.get(ansIndex).getAnswer());
+                String ans = formIdWiseQuestions.get(ansIndex).getAnswer();
+                if (formIdWiseQuestions.get(ansIndex).getQuestionType().equalsIgnoreCase("multiple")) {
+                    if (ans.endsWith(","))
+                        ans = ans.substring(0, ans.length() - 1);
+                }
+                answerJSonArrays.setAnswers(ans);
                 answerJSonArrays.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
                 answerJSonArrays.setTransactionId(entryID);
                 answersList.add(answerJSonArrays);
@@ -877,7 +991,7 @@ public class DisplayQuestions extends AppCompatActivity {
 
                         if ((!validationObject.get("ValidationValue").isJsonNull()) && (!("null".equals(validationObject.get("ValidationValue").toString())))) {
                             ValidationValue = validationObject.get("ValidationValue").getAsString();
-                        }else{
+                        } else {
                             Toast.makeText(this, "Validation values may be null or empty.. ", Toast.LENGTH_SHORT).show();
                             //return false;
                         }

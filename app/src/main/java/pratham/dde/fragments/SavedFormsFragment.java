@@ -7,12 +7,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -54,8 +57,8 @@ public class SavedFormsFragment extends android.app.Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(getArguments()!=null){
-            userID=getArguments().getString("userID");
+        if (getArguments() != null) {
+            userID = getArguments().getString("userID");
         }
     }
 
@@ -84,7 +87,7 @@ public class SavedFormsFragment extends android.app.Fragment {
             for (int entryID = 0; distinctEntrys.size() > entryID; entryID++) {
                 AnswersSingleForm answersSingleForm = (AnswersSingleForm) distinctEntrys.get(entryID);
                 /*OUTER lINEAR LAYOUT*/
-                LinearLayout linLayoutSingleEntry = new LinearLayout(getActivity());
+                final LinearLayout linLayoutSingleEntry = new LinearLayout(getActivity());
                 linLayoutSingleEntry.setOrientation(LinearLayout.HORIZONTAL);
                 linLayoutSingleEntry.setBackground(getResources().getDrawable(R.drawable.roundedcornertext));
                 linLayoutSingleEntry.setPadding(20, 10, 20, 10);
@@ -161,8 +164,17 @@ public class SavedFormsFragment extends android.app.Fragment {
                         alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
-
+                                appDatabase.getAnswerDao().deleteAnswerEntryByEntryID(right.getTag().toString());
+                                Animation slide = AnimationUtils.loadAnimation(getActivity(),
+                                        R.anim.slide);
+                                linLayoutSingleEntry.startAnimation(slide);
+                                Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        linLayoutSingleEntry.setVisibility(View.GONE);
+                                    }
+                                }, 1000);
                             }
                         });
 

@@ -2,6 +2,7 @@ package pratham.dde.dao;
 
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
+import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 import android.database.Cursor;
 
@@ -12,7 +13,7 @@ import pratham.dde.domain.AnswersSingleForm;
 @Dao
 public interface AnswerDao {
 
-    @Insert
+    @Insert( onConflict = OnConflictStrategy.REPLACE)
     public long insertAnswer(AnswersSingleForm answersSingleForm);
 
     @Query("SELECT distinct FormId FROM AnswersSingleForm")
@@ -22,7 +23,7 @@ public interface AnswerDao {
     public List<AnswersSingleForm> getAnswers();
 
     @Query("SELECT * FROM AnswersSingleForm where EntryId=:entryID")
-    public List<AnswersSingleForm> getAnswersByEntryId(String entryID);
+    AnswersSingleForm getAnswersByEntryId(String entryID);
 
     @Query("select distinct count(*) as cnt, FormId from AnswersSingleForm group by FormId")
     public Cursor getFormCount();
@@ -35,4 +36,7 @@ public interface AnswerDao {
 
     @Query("select userID  from AnswersSingleForm Where EntryId=:entryId")
     public String getUserIDByEntryID(String entryId);
+
+    @Query("update AnswersSingleForm set Where EntryId=:entryId")
+    public void deleteAnswerEntryByEntryID(String entryId);
 }
