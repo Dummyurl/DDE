@@ -13,7 +13,7 @@ import pratham.dde.domain.AnswersSingleForm;
 public interface AnswerDao {
 
     @Insert
-    public long  insertAnswer(AnswersSingleForm answersSingleForm);
+    public long insertAnswer(AnswersSingleForm answersSingleForm);
 
     @Query("SELECT distinct FormId FROM AnswersSingleForm")
     public Cursor getNoOfForms();
@@ -21,11 +21,14 @@ public interface AnswerDao {
     @Query("SELECT * FROM AnswersSingleForm")
     public List<AnswersSingleForm> getAnswers();
 
-   /* @Insert()
-    public void insertAnswers(AnswersSingleForm answers);
-*/
+    /* @Insert()
+     public void insertAnswers(AnswersSingleForm answers);
+ */
     @Query("select distinct count(*) as cnt, FormId from AnswersSingleForm group by FormId")
     public Cursor getFormCount();
+
+    @Query("select distinct EntryId from AnswersSingleForm where isPushed=='false'")
+    public List<String> getDistinctEntrys();
 
 
 }
