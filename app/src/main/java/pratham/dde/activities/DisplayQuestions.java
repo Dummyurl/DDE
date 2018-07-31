@@ -90,7 +90,7 @@ public class DisplayQuestions extends AppCompatActivity {
     public static final int PICK_IMAGE_FROM_GALLERY = 1;
     public static final int CAPTURE_IMAGE = 0;
     ImageView selectedImage;
-    String userId;//logged UserId
+        String userId;//logged UserId
     String formId;
     boolean editFormFlag = false;
     String imageName = "";
@@ -450,14 +450,14 @@ public class DisplayQuestions extends AppCompatActivity {
                 tv_img.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
                 tv_img.setText("Select Image");
                 outerLinearLayout.addView(tv_img);
-                selectedImage = new ImageView(this);
+                final ImageView selectedImageTemp = new ImageView(this);
                 // selectedImage.setLayoutParams(new android.view.ViewGroup.LayoutParams(150, 150));
-                selectedImage.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                selectedImage.setPadding(10, 5, 5, 5);
+                selectedImageTemp.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                selectedImageTemp.setPadding(10, 5, 5, 5);
                 LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(200, 200);
                 buttonLayoutParams.setMargins(50, 0, 0, 0);
-                selectedImage.setLayoutParams(buttonLayoutParams);
-                outerLinearLayout.addView(selectedImage);
+                selectedImageTemp.setLayoutParams(buttonLayoutParams);
+                outerLinearLayout.addView(selectedImageTemp);
 
                 if (editFormFlag) {
                     String dest_column = dde_questions.getDestColumname();
@@ -466,7 +466,7 @@ public class DisplayQuestions extends AppCompatActivity {
                         if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
                             ans = ansObject.get("Answers").getAsString();
                             Bitmap bmp = BitmapFactory.decodeFile(ans);
-                            selectedImage.setImageBitmap(bmp);
+                            selectedImageTemp.setImageBitmap(bmp);
                             dde_questions.setAnswer(ans);
                         }
                     }
@@ -481,10 +481,11 @@ public class DisplayQuestions extends AppCompatActivity {
                             @Override
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
-                                Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                startActivityForResult(takePicture, CAPTURE_IMAGE);
                                 imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
                                 dde_questions.setAnswer("/sdcard/DDEImages/" + imageName);
+                                selectedImage = selectedImageTemp;
+                                Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                startActivityForResult(takePicture, CAPTURE_IMAGE);
                             }
                         });
 
@@ -492,12 +493,13 @@ public class DisplayQuestions extends AppCompatActivity {
                             @Override
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
+                                imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
+                                dde_questions.setAnswer("/sdcard/DDEImages/" + imageName);
+                                selectedImage = selectedImageTemp;
                                 Intent intent = new Intent();
                                 intent.setType("image/*");
                                 intent.setAction(Intent.ACTION_GET_CONTENT);
                                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_FROM_GALLERY);
-                                imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
-                                dde_questions.setAnswer("/sdcard/DDEImages/" + imageName);
                             }
                         });
 
