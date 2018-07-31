@@ -90,7 +90,7 @@ public class DisplayQuestions extends AppCompatActivity {
     public static final int PICK_IMAGE_FROM_GALLERY = 1;
     public static final int CAPTURE_IMAGE = 0;
     ImageView selectedImage;
-        String userId;//logged UserId
+    String userId;//logged UserId
     String formId;
     boolean editFormFlag = false;
     String imageName = "";
@@ -372,8 +372,7 @@ public class DisplayQuestions extends AppCompatActivity {
                 GridLayout gridLayout = new GridLayout(this);
                 gridLayout.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 gridLayout.setColumnCount(3);
-                if (!validationValue.endsWith(","))
-                    validationValue += ",";
+                if (!validationValue.endsWith(",")) validationValue += ",";
 
                 if (editFormFlag) {
                     String dest_column = dde_questions.getDestColumname();
@@ -381,8 +380,7 @@ public class DisplayQuestions extends AppCompatActivity {
                         JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
                         if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
                             ans = ansObject.get("Answers").getAsString();
-                            if (!ans.endsWith(","))
-                                ans += ",";
+                            if (!ans.endsWith(",")) ans += ",";
                         }
                     }
                 }
@@ -936,8 +934,7 @@ public class DisplayQuestions extends AppCompatActivity {
                 answerJSonArrays.setDestColumnName(formIdWiseQuestions.get(ansIndex).getDestColumname());
                 String ans = formIdWiseQuestions.get(ansIndex).getAnswer();
                 if (formIdWiseQuestions.get(ansIndex).getQuestionType().equalsIgnoreCase("multiple")) {
-                    if (ans.endsWith(","))
-                        ans = ans.substring(0, ans.length() - 1);
+                    if (ans.endsWith(",")) ans = ans.substring(0, ans.length() - 1);
                 }
                 answerJSonArrays.setAnswers(ans);
                 answerJSonArrays.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
@@ -1337,7 +1334,7 @@ public class DisplayQuestions extends AppCompatActivity {
                 Uri selectedImage = data.getData();
                 this.selectedImage.setImageURI(selectedImage);
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                createDirectoryAndSaveFile(bitmap,imageName);
+                createDirectoryAndSaveFile(bitmap, imageName);
 
             } else if (requestCode == CAPTURE_IMAGE) {
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
@@ -1352,7 +1349,7 @@ public class DisplayQuestions extends AppCompatActivity {
 
     private void createDirectoryAndSaveFile(Bitmap imageToSave, String fileName) {
 
-        File direct = new File(Environment.getExternalStorageDirectory() + "/DDEImages");
+        /*File direct = new File(Environment.getExternalStorageDirectory() + "/DDEImages");
 
         if (!direct.exists()) {
             File imagesDirectory = new File("/sdcard/DDEImages/");
@@ -1370,7 +1367,22 @@ public class DisplayQuestions extends AppCompatActivity {
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
+        }*/
+        try {
+            String path = Environment.getExternalStorageDirectory().toString();
+            File direct = new File(path + "/DDEImages");
+            if (!direct.exists()) direct.mkdir();
+
+            File file = new File(direct, fileName);
+
+            FileOutputStream out = new FileOutputStream(file);
+            imageToSave.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
 }

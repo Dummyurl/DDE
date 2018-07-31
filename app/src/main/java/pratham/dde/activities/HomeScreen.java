@@ -93,19 +93,14 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         dialog = new ProgressDialog(mContext);
         userName = this.getIntent().getStringExtra("userName");
         password = this.getIntent().getStringExtra("password");
-        userId=String.valueOf(appDatabase.getUserDao().getUserId(userName,password));
+        userId = String.valueOf(appDatabase.getUserDao().getUserId(userName, password));
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
                     case R.id.nav_saved_forms:
-
-                        Bundle bundle = new Bundle();
-                        bundle.putString("userID", userId);
-                        SavedFormsFragment savedFormsFragment = new SavedFormsFragment();
-                        savedFormsFragment.setArguments(bundle);
-                        FragmentManager fm = getFragmentManager();
-                        fm.beginTransaction().replace(R.id.fragment, savedFormsFragment).commit();
+                        menuItem.setChecked(true);
+                        showSavedOldForms();
                         break;
 
                     case R.id.nav_get_new_forms:
@@ -123,6 +118,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         break;
 
                     case R.id.nav_fill_forms:
+                        menuItem.setChecked(true);
                         callFillforms();
                         break;
 
@@ -326,9 +322,16 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     protected void onResume() {
         super.onResume();
         updateFormEntries();
-       /* SavedFormsFragment savedFormsFragment = new SavedFormsFragment();
+        showSavedOldForms();
+    }
+
+    private void showSavedOldForms() {
+        Bundle bundle = new Bundle();
+        bundle.putString("userID", userId);
+        SavedFormsFragment savedFormsFragment = new SavedFormsFragment();
+        savedFormsFragment.setArguments(bundle);
         FragmentManager fm = getFragmentManager();
-        fm.beginTransaction().replace(R.id.fragment, savedFormsFragment).commit();*/
+        fm.beginTransaction().replace(R.id.fragment, savedFormsFragment).commit();
     }
 
     private void getQuestionsAndData(int formId) {
@@ -520,11 +523,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     }
 
     public void uploadImageToServer(String url, File file) {
-        AndroidNetworking.upload(url).addMultipartFile("image", file)
-                .addMultipartParameter("key", "value")
-                .setTag("uploadTest")
-                .build()
-                .setUploadProgressListener(new UploadProgressListener() {
+        AndroidNetworking.upload(url).addMultipartFile("image", file).addMultipartParameter("key", "value").setTag("uploadTest").build().setUploadProgressListener(new UploadProgressListener() {
             @Override
             public void onProgress(long bytesUploaded, long totalBytes) {
                 // do anything with progress
@@ -565,6 +564,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     }
 
     private void callFillforms() {
+        navigationView.getMenu().getItem(2).setChecked(true);
         Bundle bundle = new Bundle();
         bundle.putString("userName", userName);
         bundle.putString("password", password);
