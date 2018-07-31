@@ -63,7 +63,7 @@ public class FillFormsFragment extends Fragment {
 
     /*fetching  forms according to programid*/
     private void getFormsfromDb() {
-       // DDE_Forms[] dde = appDatabase.getDDE_FormsDao().getAllForms();
+        // DDE_Forms[] dde = appDatabase.getDDE_FormsDao().getAllForms();
 
         String[] programIdArray = programId.split(",");
         forms = new ArrayList();
@@ -105,7 +105,7 @@ public class FillFormsFragment extends Fragment {
     }
 
     private void checkFormPassword(final String formId) {
-        final int UserId=appDatabase.getUserDao().getUserId(userName,password);
+        final int UserId = appDatabase.getUserDao().getUserId(userName, password);
         List<DDE_Questions> formIdWiseQuestions = new ArrayList<>();
         formIdWiseQuestions = appDatabase.getDDE_QuestionsDao().getFormIdWiseQuestions(formId);
         if (!formIdWiseQuestions.isEmpty()) {
@@ -147,7 +147,7 @@ public class FillFormsFragment extends Fragment {
                 Intent questionIntent = new Intent(getActivity(), DisplayQuestions.class);
                 questionIntent.putExtra("formId", formId);
                 questionIntent.putExtra("userId", String.valueOf(UserId));
-                questionIntent.putExtra("formEdit", "false");
+                questionIntent.putExtra("formEdit", "false1");
                 startActivity(questionIntent);
             }
         } else {
