@@ -26,4 +26,7 @@ public interface UserDao {
 
     @Query("SELECT Id from User where UserName = :UserName and Password = :Password")
     int getUserId(String UserName, String Password);
+
+    @Query("SELECT UserToken from User where Id=:userId")
+    String getUserTokenByUserID(String userId);
 }
