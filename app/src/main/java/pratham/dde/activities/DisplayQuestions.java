@@ -70,6 +70,7 @@ import pratham.dde.domain.AnswerJSonArrays;
 import pratham.dde.domain.AnswersSingleForm;
 import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleTable;
+import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.BaseActivity.appDatabase;
@@ -107,7 +108,7 @@ public class DisplayQuestions extends AppCompatActivity {
         userId = getIntent().getStringExtra("userId");
         entryID = getIntent().getStringExtra("entryId");
         String formEdit = getIntent().getStringExtra("formEdit");
-        path = Environment.getExternalStorageDirectory().toString()+ "/DDEImages";
+        path = Environment.getExternalStorageDirectory().toString() + "/DDEImages";
         if (formEdit.equals("true")) {
             editFormFlag = true;
         } else {
@@ -482,7 +483,7 @@ public class DisplayQuestions extends AppCompatActivity {
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
                                 imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
-                                dde_questions.setAnswer(path +"/" + imageName);
+                                dde_questions.setAnswer(path + "/" + imageName);
                                 selectedImage = selectedImageTemp;
                                 Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                                 startActivityForResult(takePicture, CAPTURE_IMAGE);
@@ -494,7 +495,7 @@ public class DisplayQuestions extends AppCompatActivity {
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
                                 imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
-                                dde_questions.setAnswer(path +"/" + imageName);
+                                dde_questions.setAnswer(path + "/" + imageName);
                                 selectedImage = selectedImageTemp;
                                 Intent intent = new Intent();
                                 intent.setType("image/*");
@@ -956,6 +957,7 @@ public class DisplayQuestions extends AppCompatActivity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     /*UPLOAD TO SERVER*/
+                    appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
                     update();
                 }
             });
@@ -964,8 +966,8 @@ public class DisplayQuestions extends AppCompatActivity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
-                    List s = appDatabase.getAnswerDao().getAnswers();
-                    Log.d("ans111", s.toString());
+                    // List s = appDatabase.getAnswerDao().getAnswers();
+                    //  Log.d("ans111", s.toString());
                 }
             });
             alertDialogBuilder.show();
@@ -974,6 +976,13 @@ public class DisplayQuestions extends AppCompatActivity {
 
     private void update() {
         /*UPLOAD TO SERVER*/
+        AnswersSingleForm answersSingleForms = appDatabase.getAnswerDao().getAnswersByEntryId(entryID);
+        JsonArray answerToUpload = answersSingleForms.getAnswerArrayOfSingleForm();
+        Log.d("qqq", answerToUpload.toString());
+        String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
+        if(answerToUpload.size()>0)
+        UploadAnswerAndImageToServer.uploadAnswer(answerToUpload, token);
+
 
     }
 

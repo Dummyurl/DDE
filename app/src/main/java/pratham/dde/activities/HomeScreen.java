@@ -222,7 +222,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         dialog.setCancelable(false);
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();*/
-        AndroidNetworking.post(url).setContentType("application/json").addHeaders("Authorization", token).addHeaders("Content-Type", "application/json").addStringBody(json).build().getAsString(new StringRequestListener() {
+        AndroidNetworking.post(url).setContentType("application/json").addHeaders("Authorization", token).addHeaders("Content-Type", "application/json")
+                .addStringBody(json).build().getAsString(new StringRequestListener() {
             @Override
             public void onResponse(String response) {
                 Log.d("response", response);
@@ -522,24 +523,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         }
     }
 
-    public void uploadImageToServer(String url, File file) {
-        AndroidNetworking.upload(url).addMultipartFile("image", file).addMultipartParameter("key", "value").setTag("uploadTest").build().setUploadProgressListener(new UploadProgressListener() {
-            @Override
-            public void onProgress(long bytesUploaded, long totalBytes) {
-                // do anything with progress
-            }
-        }).getAsJSONObject(new JSONObjectRequestListener() {
-            @Override
-            public void onResponse(JSONObject response) {
-                // do anything with response
-            }
 
-            @Override
-            public void onError(ANError error) {
-                // handle error
-            }
-        });
-    }
 
 
     @Override
