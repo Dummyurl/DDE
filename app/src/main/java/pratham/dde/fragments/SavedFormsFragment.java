@@ -42,6 +42,8 @@ public class SavedFormsFragment extends android.app.Fragment {
     FloatingActionButton fab;
     @BindView(R.id.linearlayout)
     LinearLayout linearlayout;
+    @BindView(R.id.savedform)
+    TextView titale;
 
     FabInterface fabInterface;
     Context context;
@@ -78,6 +80,7 @@ public class SavedFormsFragment extends android.app.Fragment {
         // pass user to veryfy
         List distinctEntrys = appDatabase.getAnswerDao().getDistinctEntrys(userID);
         if (distinctEntrys != null && distinctEntrys.size() > 0) {
+            titale.setText("OLD SAVED FORMS ARE");
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             params.setMargins(20, 10, 20, 10);
             LinearLayout.LayoutParams paramsLeft = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 6);
@@ -99,8 +102,7 @@ public class SavedFormsFragment extends android.app.Fragment {
                 /*SET FORM NAME*/
                 TextView formName = new TextView(getActivity());
                 formName.setLayoutParams(textViewParam);
-                formName.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
-                formName.setTypeface(null, Typeface.BOLD);
+                formName.setTextSize(1, 22);
                 formName.setText(appDatabase.getDDE_FormsDao().getFormName(answersSingleForm.getFormId()));
                 /*SET FORM DATE*/
                 TextView formDate = new TextView(getActivity());
@@ -165,8 +167,7 @@ public class SavedFormsFragment extends android.app.Fragment {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 appDatabase.getAnswerDao().deleteAnswerEntryByEntryID(right.getTag().toString());
-                                Animation slide = AnimationUtils.loadAnimation(getActivity(),
-                                        R.anim.slide);
+                                Animation slide = AnimationUtils.loadAnimation(getActivity(), R.anim.slide);
                                 linLayoutSingleEntry.startAnimation(slide);
                                 Handler handler = new Handler();
                                 handler.postDelayed(new Runnable() {
@@ -194,6 +195,8 @@ public class SavedFormsFragment extends android.app.Fragment {
                 linLayoutSingleEntry.addView(right);
                 linearlayout.addView(linLayoutSingleEntry);
             }
+        } else {
+            titale.setText("OLD SAVED FORMS ARE NOT AVAILABLE");
         }
     }
 

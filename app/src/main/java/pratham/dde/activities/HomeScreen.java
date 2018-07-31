@@ -15,6 +15,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.androidnetworking.AndroidNetworking;
@@ -104,6 +106,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         break;
 
                     case R.id.nav_get_new_forms:
+                        navigationView.getMenu().getItem(1).setChecked(false);
                         formIndex = 0;
                         token = appDatabase.getUserDao().getToken(userName, password);
                         forms = appDatabase.getDDE_FormsDao().getAllForms();
@@ -326,6 +329,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     }
 
     private void showSavedOldForms() {
+        navigationView.getMenu().getItem(0).setChecked(true);
         Bundle bundle = new Bundle();
         bundle.putString("userID", userId);
         SavedFormsFragment savedFormsFragment = new SavedFormsFragment();
