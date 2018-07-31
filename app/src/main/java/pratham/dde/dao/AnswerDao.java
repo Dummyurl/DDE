@@ -37,6 +37,6 @@ public interface AnswerDao {
     @Query("select userID  from AnswersSingleForm Where EntryId=:entryId")
     public String getUserIDByEntryID(String entryId);
 
-    @Query("update AnswersSingleForm set Where EntryId=:entryId")
+    @Query("delete from AnswersSingleForm where  EntryId=:entryId")
     public void deleteAnswerEntryByEntryID(String entryId);
 }
