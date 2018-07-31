@@ -96,6 +96,7 @@ public class DisplayQuestions extends AppCompatActivity {
     String imageName = "";
     String entryID;
     JsonArray answerJsonArray;
+    String path;
 
 
     @Override
@@ -106,6 +107,7 @@ public class DisplayQuestions extends AppCompatActivity {
         userId = getIntent().getStringExtra("userId");
         entryID = getIntent().getStringExtra("entryId");
         String formEdit = getIntent().getStringExtra("formEdit");
+        path = Environment.getExternalStorageDirectory().toString()+ "/DDEImages";
         if (formEdit.equals("true")) {
             editFormFlag = true;
         } else {
@@ -480,7 +482,7 @@ public class DisplayQuestions extends AppCompatActivity {
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
                                 imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
-                                dde_questions.setAnswer("/sdcard/DDEImages/" + imageName);
+                                dde_questions.setAnswer(path +"/" + imageName);
                                 selectedImage = selectedImageTemp;
                                 Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                                 startActivityForResult(takePicture, CAPTURE_IMAGE);
@@ -492,7 +494,7 @@ public class DisplayQuestions extends AppCompatActivity {
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
                                 imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
-                                dde_questions.setAnswer("/sdcard/DDEImages/" + imageName);
+                                dde_questions.setAnswer(path +"/" + imageName);
                                 selectedImage = selectedImageTemp;
                                 Intent intent = new Intent();
                                 intent.setType("image/*");
@@ -1369,8 +1371,7 @@ public class DisplayQuestions extends AppCompatActivity {
             e.printStackTrace();
         }*/
         try {
-            String path = Environment.getExternalStorageDirectory().toString();
-            File direct = new File(path + "/DDEImages");
+            File direct = new File(path);
             if (!direct.exists()) direct.mkdir();
 
             File file = new File(direct, fileName);
