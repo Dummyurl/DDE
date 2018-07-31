@@ -96,6 +96,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         userName = this.getIntent().getStringExtra("userName");
         password = this.getIntent().getStringExtra("password");
         userId = String.valueOf(appDatabase.getUserDao().getUserId(userName, password));
+
+        View hView = navigationView.getHeaderView(0);
+        TextView nav_user = (TextView) hView.findViewById(R.id.userName);
+        nav_user.setText(userName);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
