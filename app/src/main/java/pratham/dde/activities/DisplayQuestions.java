@@ -228,7 +228,8 @@ public class DisplayQuestions extends AppCompatActivity {
                 for (int i = 0; i < option.size(); i++) {
                     JsonElement jsonElement = option.get(i);
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
-                    final RadioButton radioButton = new RadioButton(this);
+                    RadioButton radioButton = new RadioButton(this);
+                    radioButton.setId(i);
                     radioButton.setLayoutParams(paramsWrapContaint);
                     radioButton.setTag(jsonObject.get("value").getAsString());
                     String text = jsonObject.get("display").getAsString();
@@ -978,12 +979,14 @@ public class DisplayQuestions extends AppCompatActivity {
         /*UPLOAD TO SERVER*/
         AnswersSingleForm answersSingleForms = appDatabase.getAnswerDao().getAnswersByEntryId(entryID);
         JsonArray answerToUpload = answersSingleForms.getAnswerArrayOfSingleForm();
-        Log.d("qqq", answerToUpload.toString());
+      /*  for(int i=0;i<answerToUpload.size();i++){
+            answerToUpload.get(i)
+        }
+*/
+        Log.d("qqq", answerToUpload.get(1).toString());
         String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
-        if(answerToUpload.size()>0)
-        UploadAnswerAndImageToServer.uploadAnswer(answerToUpload, token);
-
-
+        if (answerToUpload.size() > 0)
+            UploadAnswerAndImageToServer.uploadAnswer(answerToUpload, token);
     }
 
     private boolean checkValidations() {
