@@ -1335,7 +1335,7 @@ public class DisplayQuestions extends AppCompatActivity {
                 Uri selectedImage = data.getData();
                 this.selectedImage.setImageURI(selectedImage);
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                createDirectoryAndSaveFile(bitmap, imageName);
+                createDirectoryAndSaveFile(bitmap,imageName);
 
             } else if (requestCode == CAPTURE_IMAGE) {
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
