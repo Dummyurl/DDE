@@ -25,6 +25,9 @@ public interface AnswerDao {
     @Query("SELECT * FROM AnswersSingleForm where EntryId=:entryID")
     AnswersSingleForm getAnswersByEntryId(String entryID);
 
+    @Query("SELECT * FROM AnswersSingleForm where FormId=:fId")
+    List<AnswersSingleForm> getAllAnswersByFormId(String fId);
+
     @Query("select distinct count(*) as cnt, FormId from AnswersSingleForm group by FormId")
     public Cursor getFormCount();
 
