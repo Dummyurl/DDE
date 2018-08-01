@@ -22,9 +22,9 @@ import android.widget.Toast;
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
-import com.androidnetworking.interfaces.StringRequestListener;
-import com.androidnetworking.interfaces.UploadProgressListener;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
@@ -54,6 +54,7 @@ import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.SavedFormsFragment;
 import pratham.dde.interfaces.FabInterface;
 import pratham.dde.services.SyncUtility;
+import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.BaseActivity.appDatabase;
@@ -135,7 +136,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                             Utility.showDialogue(HomeScreen.this, "Data is already Synced...");
                         } else {
                             if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
-                                uploadOldFormsAsync();
+                                uploadOldFormsAsync(allAnswersSingleForms);
                             } else {
 
                             }
@@ -151,25 +152,51 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     }
 
 
-    private void uploadOldFormsAsync() {
+    private void uploadOldFormsAsync(final List<AnswersSingleForm> allAnswersSingleForms) {
         new AsyncTask<Void, Void, String>() {
 
             @Override
             protected void onPreExecute() {
-                Dialog dialog = new ProgressDialog(HomeScreen.this);
-                Utility.showDialogInApiCalling(dialog, HomeScreen.this, "Uploading Data to Server...");
+     //           Dialog dialog = new ProgressDialog(HomeScreen.this);
+      //          Utility.showDialogInApiCalling(dialog, HomeScreen.this, "Uploading Data to Server...");
             }
 
             @Override
             protected String doInBackground(Void... voids) {
+                if (allAnswersSingleForms.size() > 0) {
+                    for (int i = 0; i < allAnswersSingleForms.size(); i++) {
+                        JsonArray answerToUpload = allAnswersSingleForms.get(i).getAnswerArrayOfSingleForm();
+                        for (int answerTOUploadIndex = 0; answerTOUploadIndex < answerToUpload.size(); answerTOUploadIndex++) {
+                            JsonObject jsonObject = answerToUpload.get(answerTOUploadIndex).getAsJsonObject();
+                            String FormId = jsonObject.get("FormId").getAsString();
+                            String DestColumnName = jsonObject.get("DestColumnName").getAsString();
+                            String questionType = appDatabase.getDDE_QuestionsDao().getQueTypeByFormIDAndDestColName(FormId, DestColumnName);
+
+                            if (questionType.equalsIgnoreCase("image")) {
+                                String imgPath = jsonObject.get("Answers").getAsString();
+                                File imgFile = new File(imgPath);
+                                if (imgFile.exists()) {
+                                    UploadAnswerAndImageToServer.uploadImageToServer(imgFile, mContext);
+                                } else {
+//                                    Toast.makeText(mContext, "Image Does not exist..", Toast.LENGTH_SHORT).show();
+                                    //continue;
+                                }
+                            }
+                        }
+                     if (answerToUpload.size() > 0)
+                        UploadAnswerAndImageToServer.uploadAnswer(answerToUpload, token,mContext);
+                }
+                } else {
+                    Toast.makeText(mContext, "No Answers To Upload..", Toast.LENGTH_SHORT).show();
+                }
+
                 return null;
             }
 
             @Override
             protected void onPostExecute(String s) {
                 // JSONObject metadataObj = getMetaData();
-                String uploadDataUrl = Utility.getProperty("uploadData", mContext);
-
+                //String uploadDataUrl = Utility.getProperty("uploadData", mContext);
                 // String requestString = "{ 'Metadata': "+metadataObj+", 'Answers': " + jsonArray.toString() + "}";
                 //uploadData(uploadDataUrl,requestString);
 
@@ -222,32 +249,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         }
         return obj;
     }
-
-    private void uploadData(String url, String json) {
-      /*  final ProgressDialog dialog = new ProgressDialog(this);
-        dialog.setTitle("UPLOADING ... ");
-        dialog.setCancelable(false);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.show();*/
-        AndroidNetworking.post(url).setContentType("application/json").addHeaders("Authorization", token).addHeaders("Content-Type", "application/json")
-                .addStringBody(json).build().getAsString(new StringRequestListener() {
-            @Override
-            public void onResponse(String response) {
-                Log.d("response", response);
-                //  dialog.dismiss();
-                finish();
-            }
-
-            @Override
-            public void onError(ANError anError) {
-
-                Toast.makeText(HomeScreen.this, "NO Internet Connection", Toast.LENGTH_LONG).show();
-                //Log.d("anError", "" + anError);
-                dialog.dismiss();
-            }
-        });
-    }
-
 
     /* load Question SourceDta */
     private void fetchQuestionsSourceData() {
@@ -530,8 +531,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             e.printStackTrace();
         }
     }
-
-
 
 
     @Override

@@ -23,6 +23,9 @@ public interface DDE_QuestionsDao {
     @Query("SELECT DestColumname FROM DDE_Questions WHERE formid =:formId")
     public List<String> getColumnNamesByFormID(String formId);
 
+    @Query("SELECT QuestionType FROM DDE_Questions WHERE formid =:formId and DestColumname=:destColName")
+    public String getQueTypeByFormIDAndDestColName(String formId,String destColName);
+
     @Query("DELETE FROM DDE_Questions WHERE formid =:formId")
     public void deleteQuestionsByFormID(String formId);
 

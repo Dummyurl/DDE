@@ -979,14 +979,32 @@ public class DisplayQuestions extends AppCompatActivity {
         /*UPLOAD TO SERVER*/
         AnswersSingleForm answersSingleForms = appDatabase.getAnswerDao().getAnswersByEntryId(entryID);
         JsonArray answerToUpload = answersSingleForms.getAnswerArrayOfSingleForm();
-      /*  for(int i=0;i<answerToUpload.size();i++){
-            answerToUpload.get(i)
+        for (int i = 0; i < answerToUpload.size(); i++) {
+            JsonObject jsonObject = answerToUpload.get(i).getAsJsonObject();
+            String FormId = jsonObject.get("FormId").getAsString();
+            String DestColumnName = jsonObject.get("DestColumnName").getAsString();
+            String questionType = appDatabase.getDDE_QuestionsDao().getQueTypeByFormIDAndDestColName(FormId, DestColumnName);
+
+            if(questionType.equalsIgnoreCase("image")){
+               String imgPath= jsonObject.get("Answers").getAsString();
+                File imgFile = new  File(imgPath);
+                if(imgFile.exists()){
+                    UploadAnswerAndImageToServer.uploadImageToServer(imgFile,DisplayQuestions.this);
+                }
+                else{
+                    Toast.makeText(this, "Image Does not exist..", Toast.LENGTH_SHORT).show();
+                }
+
+
+            }
+
         }
-*/
-        Log.d("qqq", answerToUpload.get(1).toString());
+
+
+        Log.d("qqq", answerToUpload.toString());
         String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
         if (answerToUpload.size() > 0)
-            UploadAnswerAndImageToServer.uploadAnswer(answerToUpload, token);
+            UploadAnswerAndImageToServer.uploadAnswer(answerToUpload, token,DisplayQuestions.this);
     }
 
     private boolean checkValidations() {
