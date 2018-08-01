@@ -29,4 +29,11 @@ public interface DDE_QuestionsDao {
     @Query("DELETE FROM DDE_Questions WHERE formid =:formId")
     public void deleteQuestionsByFormID(String formId);
 
+    @Query("SELECT formid FROM DDE_Questions WHERE QuestionId =:qId")
+    public String getFormIdByQuestionID(String qId);
+
+    @Query("SELECT DestColumname FROM DDE_Questions WHERE QuestionId =:qId")
+    public String getDestColumnByQid(String qId);
+
+
 }
