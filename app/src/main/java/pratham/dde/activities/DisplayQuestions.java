@@ -736,6 +736,85 @@ public class DisplayQuestions extends AppCompatActivity {
                 break;
 
             case "datasourcelist":
+                                /*Spinner spinnerDataSource = new Spinner(this);
+                spinnerDataSource.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                List<String> spinnerAnswers = new ArrayList<>();
+                spinnerAnswers.add("add items");
+                String queIdentifier = dde_questions.getDataSourceQuestionIdentifier();
+                if (queIdentifier != null) {
+                    List<AnswersSingleForm> answerList;
+                    String givenAns = "";
+                    String formId = appDatabase.getDDE_QuestionsDao().getFormIdByQuestionID(queIdentifier);
+                    if (formId != null && (!formId.equals(""))) {
+                        answerList = appDatabase.getAnswerDao().getAllAnswersByFormId(formId);
+//                        JsonArray[] allAnswers = new JsonArray[answerList.size()];
+                        String dataSourceIdentifier = dde_questions.getDataSourceQuestionIdentifier();
+                        String destColumnName = appDatabase.getDDE_QuestionsDao().getDestColumnByQid(dataSourceIdentifier);
+                        for (int arrayCnt = 0; arrayCnt < answerList.size(); arrayCnt++) {
+                            //allAnswers[arrayCnt] = answerList.get(arrayCnt).getAnswerArrayOfSingleForm();
+                            JsonArray jsonArray = answerList.get(arrayCnt).getAnswerArrayOfSingleForm();
+                            for (int objInd = 0; objInd < jsonArray.size(); objInd++) {
+                                JsonObject jsonObject = jsonArray.get(objInd).getAsJsonObject();
+                                if (jsonObject.get("DestColumnName").getAsString().equals(destColumnName)) {
+                                    spinnerAnswers.add(jsonObject.get("DestColumnName").getAsString());
+                                }
+                            }
+                        }
+
+                        String depQueIdentifier = dde_questions.getDependentQuestionIdentifier();
+                        if (depQueIdentifier != null) {
+                            spinnerAnswers.clear();
+                            for (int queCnt = 0; queCnt < formIdWiseQuestions.size(); queCnt++) {
+                                DDE_Questions dde_questionTemp = formIdWiseQuestions.get(queCnt);
+                                if (dde_questionTemp.getQuestionId().equals(depQueIdentifier)) {
+                                    givenAns = dde_questionTemp.getAnswer();
+//                                    String dataSourceIdentifier = dde_questionTemp.getDataSourceQuestionIdentifier();
+                                    String destColumnFinal = appDatabase.getDDE_QuestionsDao().getDestColumnByQid(dataSourceIdentifier);
+                                    List<AnswersSingleForm> answerListFinal = appDatabase.getAnswerDao().getAnswers();
+                                    for (int ansCntr = 0; ansCntr < answerListFinal.size(); ansCntr++) {
+                                        JsonArray jsonArray = answerListFinal.get(ansCntr).getAnswerArrayOfSingleForm();
+                                        for (int innerCnt = 0; innerCnt < jsonArray.size(); innerCnt++) {
+                                            JsonObject jsonObject = jsonArray.get(innerCnt).getAsJsonObject();
+                                            if (!jsonObject.isJsonNull() && jsonObject.get("DestColumnName").getAsString().equals(destColumnFinal) && jsonObject.get("Answers").getAsString().equals(givenAns)) {
+                                                String id = dde_questions.getDataSourceQuestionIdentifier();
+                                                String dcn = appDatabase.getDDE_QuestionsDao().getDestColumnByQid(id);
+                                                for (int mostInnerCnt = 0; mostInnerCnt < jsonArray.size(); mostInnerCnt++) {
+                                                    JsonObject jsonObjectTempo = jsonArray.get(mostInnerCnt).getAsJsonObject();
+                                                    if (!jsonObjectTempo.isJsonNull() && jsonObjectTempo.get("DestColumnName").getAsString().equals(dcn)) {
+                                                        spinnerAnswers.add(jsonObject.get("Answers").getAsString());
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                ArrayAdapter<String> spinnerArrayAdapterDataSource = new ArrayAdapter<String>(this, android.R.layout.simple_selectable_list_item, spinnerAnswers);
+                spinnerDataSource.setAdapter(spinnerArrayAdapterDataSource);
+                spinnerDataSource.setLayoutParams(paramsWrapContaint);
+          *//*      spinnerDataSource.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        if (adapterView.getSelectedItem().toString().equals("select option")) {
+                            dde_questions.setAnswer("");
+                        } else {
+                            dde_questions.setAnswer(adapterView.getSelectedItem().toString());
+                        }
+                        LinearLayout linearLayout = (LinearLayout) adapterView.getParent();
+                        String tag = linearLayout.getTag().toString();
+                        checkRuleCondition(tag, adapterView.getSelectedItem().toString(), "dropdown");
+
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });*//*
+                layout.addView(spinnerDataSource);*/
                 break;
         }
         renderAllQuestionsLayout.addView(layout);
