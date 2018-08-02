@@ -101,6 +101,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         View hView = navigationView.getHeaderView(0);
         TextView nav_user = (TextView) hView.findViewById(R.id.userName);
         nav_user.setText(userName);
+        showSavedOldForms();
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
@@ -147,6 +148,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 return true;
             }
         });
+        updateFormEntries();
        /* fusedLocationAPI = new FusedLocationAPI(this);
         fusedLocationAPI.startLocationButtonClick();*/
     }
@@ -330,8 +332,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     @Override
     protected void onResume() {
         super.onResume();
-        updateFormEntries();
-        showSavedOldForms();
     }
 
     private void showSavedOldForms() {
