@@ -6,12 +6,13 @@ import android.util.Log;
 
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
+import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.androidnetworking.interfaces.StringRequestListener;
-import com.androidnetworking.interfaces.UploadProgressListener;
 import com.google.gson.JsonArray;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 
@@ -25,8 +26,11 @@ public class UploadAnswerAndImageToServer {
     static String uploadDataUrl = "http://www.dde.prathamskills.org/api/ddedataentry/savebulkdata";
     // static String uploadImageUrl = "http://www.dde.prathamskills.org/content/files/";
     static String uploadImageUrl = " http://www.ddeapi.prathamskills.org/api/ddedataentry/SaveImage";
+    static int imageFailCnt = 0;
 
-    public static void uploadImageToServer(File file, String token, final Context context) {
+
+    public static void uploadImageToServer(final File file, final String token, final Context context) {
+        imageFailCnt = 0;
         final ProgressDialog dialog = new ProgressDialog(context);
         Utility.showDialogInApiCalling(dialog, context, "Uploading Image(s)..");
         String fName = file.getName();
@@ -44,22 +48,30 @@ public class UploadAnswerAndImageToServer {
                         Log.d("bytesUploaded", String.valueOf(bytesUploaded));
                     }
                 })*/
-                .getAsString(new StringRequestListener() {
-            @Override
-            public void onResponse(String response) {
-                //Toast.makeText(context, "NO Internet Connection", Toast.LENGTH_LONG).show();
-                Utility.dismissDialog(dialog);
-                Log.d("imgresponse", response.toString());
-            }
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Utility.dismissDialog(dialog);
+                        Log.d("imgresponse", response.toString());
+                        try {
+                            if (response.getBoolean("success")) {
+                            } else {
+                                imageFailCnt++;
+                                if (imageFailCnt <= 3) {
+                                    uploadImageToServer(file, token, context);
+                                }
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
 
-            @Override
-            public void onError(ANError anError) {
-                // handle error
-                //         dialog.dismiss();
-                Utility.dismissDialog(dialog);
-                Log.d("imgerror", anError.toString());
-            }
-        });
+                    @Override
+                    public void onError(ANError anError) {
+                        Utility.dismissDialog(dialog);
+                        Log.d("imgerror", anError.toString());
+                    }
+                });
     }
 
 
@@ -73,7 +85,7 @@ public class UploadAnswerAndImageToServer {
             Utility.showDialogInApiCalling(dialog, context, "Uploading Data..");
 
             AndroidNetworking.post(uploadDataUrl)
-                    .setContentType("application/json")
+//                    .setContentType("application/json")
                     .addHeaders("Authorization", token)
                     .addHeaders("Content-Type", "application/json")
                     .addJSONArrayBody(jsonArrayData).build().getAsString(new StringRequestListener() {

@@ -1084,17 +1084,12 @@ public class DisplayQuestions extends AppCompatActivity {
                 File imgFile = new File(imgPath);
                 if (imgFile.exists()) {
                     String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
-                    UploadAnswerAndImageToServer.uploadImageToServer(imgFile,token, DisplayQuestions.this);
+                    UploadAnswerAndImageToServer.uploadImageToServer(imgFile, token, DisplayQuestions.this);
                 } else {
                     Toast.makeText(this, "Image Does not exist..", Toast.LENGTH_SHORT).show();
                 }
-
-
             }
-
         }
-
-
         Log.d("qqq", answerToUpload.toString());
         String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
         if (answerToUpload.size() > 0)
