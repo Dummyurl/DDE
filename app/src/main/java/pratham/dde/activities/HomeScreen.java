@@ -132,7 +132,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         break;
 
                     case R.id.nav_old_forms:
-                        List<AnswersSingleForm> allAnswersSingleForms = appDatabase.getAnswerDao().getAnswers();
+                        List<AnswersSingleForm> allAnswersSingleForms = appDatabase.getAnswerDao().getAnswersToPush();
                         if (allAnswersSingleForms.isEmpty()) {
                             Utility.showDialogue(HomeScreen.this, "Data is already Synced...");
                         } else {
@@ -178,7 +178,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                                 String imgPath = jsonObject.get("Answers").getAsString();
                                 File imgFile = new File(imgPath);
                                 if (imgFile.exists()) {
-                                    UploadAnswerAndImageToServer.uploadImageToServer(imgFile, mContext);
+                                    UploadAnswerAndImageToServer.uploadImageToServer(imgFile,token, mContext);
                                 } else {
 //                                    Toast.makeText(mContext, "Image Does not exist..", Toast.LENGTH_SHORT).show();
                                     //continue;

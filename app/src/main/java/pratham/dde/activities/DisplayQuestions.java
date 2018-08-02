@@ -1081,7 +1081,8 @@ public class DisplayQuestions extends AppCompatActivity {
                 String imgPath = jsonObject.get("Answers").getAsString();
                 File imgFile = new File(imgPath);
                 if (imgFile.exists()) {
-                    UploadAnswerAndImageToServer.uploadImageToServer(imgFile, DisplayQuestions.this);
+                    String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
+                    UploadAnswerAndImageToServer.uploadImageToServer(imgFile,token, DisplayQuestions.this);
                 } else {
                     Toast.makeText(this, "Image Does not exist..", Toast.LENGTH_SHORT).show();
                 }
