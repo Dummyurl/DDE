@@ -21,8 +21,9 @@ import static pratham.dde.BaseActivity.appDatabase;
  */
 
 public class UploadAnswerAndImageToServer {
-    static String uploadDataUrl = "baseUrl/api/ddedataentry/savebulkdata";
-    static String uploadImageUrl = "http://www.dde.prathamskills.org/content/files/";
+    static String uploadDataUrl = "http://www.dde.prathamskills.org/api/ddedataentry/savebulkdata";
+   // static String uploadImageUrl = "http://www.dde.prathamskills.org/content/files/";
+    static String uploadImageUrl = " http://www.ddeapi.prathamskills.org/api/ddedataentry/SaveImage";
 
 
     public static void uploadImageToServer(File file, String token, final Context context) {
