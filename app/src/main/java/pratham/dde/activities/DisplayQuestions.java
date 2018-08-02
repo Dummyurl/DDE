@@ -483,7 +483,7 @@ public class DisplayQuestions extends AppCompatActivity {
                             @Override
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
-                                imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
+                                imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
                                 dde_questions.setAnswer(path + "/" + imageName);
                                 selectedImage = selectedImageTemp;
                                 Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -495,7 +495,7 @@ public class DisplayQuestions extends AppCompatActivity {
                             @Override
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
-                                imageName = entryID + "_:" + dde_questions.getQuestionId() + ".jpg";
+                                imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
                                 dde_questions.setAnswer(path + "/" + imageName);
                                 selectedImage = selectedImageTemp;
                                 Intent intent = new Intent();
@@ -1050,6 +1050,7 @@ public class DisplayQuestions extends AppCompatActivity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     /*UPLOAD TO SERVER*/
+                    dialog.dismiss();
                     appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
                     update();
                 }
@@ -1058,6 +1059,7 @@ public class DisplayQuestions extends AppCompatActivity {
             alertDialogBuilder.setNegativeButton("Save Locally", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
                     appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
                     // List s = appDatabase.getAnswerDao().getAnswers();
                     //  Log.d("ans111", s.toString());
