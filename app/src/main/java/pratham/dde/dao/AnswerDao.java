@@ -13,7 +13,7 @@ import pratham.dde.domain.AnswersSingleForm;
 @Dao
 public interface AnswerDao {
 
-    @Insert( onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     public long insertAnswer(AnswersSingleForm answersSingleForm);
 
     @Query("SELECT distinct FormId FROM AnswersSingleForm")
@@ -42,4 +42,10 @@ public interface AnswerDao {
 
     @Query("delete from AnswersSingleForm where  EntryId=:entryId")
     public void deleteAnswerEntryByEntryID(String entryId);
+
+    @Query("SELECT * FROM AnswersSingleForm where isPushed=0")
+    public List<AnswersSingleForm> getAnswersToPush();
+
+    @Query("UPDATE AnswersSingleForm SET isPushed=1 where EntryId=:EntryId")
+    public void setIsPushed(String EntryId);
 }
