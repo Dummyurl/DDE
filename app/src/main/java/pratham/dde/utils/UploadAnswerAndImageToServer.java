@@ -127,6 +127,9 @@ public class UploadAnswerAndImageToServer {
                 jsonIndex++;
                 uploadImageToServer(array);
             }
+        }else {
+            uploadingIndex++;
+            uploadData();
         }
     }
 
@@ -140,8 +143,8 @@ public class UploadAnswerAndImageToServer {
                 Utility.showDialogInApiCalling(dialog, context, "Uploading Data..");
 
                 AndroidNetworking.post(uploadDataUrl)
-                        .addHeaders("Authorization", token)
                         .addHeaders("Content-Type", "application/json")
+                        .addHeaders("Authorization", token)
                         .addJSONArrayBody(jsonArrayData).build()
                         .getAsString(new StringRequestListener() {
 
