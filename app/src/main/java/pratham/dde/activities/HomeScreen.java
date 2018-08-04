@@ -117,12 +117,11 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         token = appDatabase.getUserDao().getToken(userName, password);
                         forms = appDatabase.getDDE_FormsDao().getAllForms();
                         if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
-                            Utility.showDialogInApiCalling(dialog, mContext, "getQuestion");
+                            Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
                             QuestionUrl = Utility.getProperty("getQuestionsAndData", mContext);
                             getQuestionsAndData(forms[formIndex].getFormid());
-
                         } else {
-
+                            Toast.makeText(mContext, "Check your internet connection.", Toast.LENGTH_SHORT).show();
                         }
                         break;
 
@@ -263,9 +262,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 dataSourceQuestionsList.add(questions.get(i));
             }
         }
-
         loadSourceData();
-
     }
 
     private void loadSourceData() {
@@ -276,10 +273,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 jsonObject.put("FilterList", "null");
                 jsonObject.put("FormId", formId);
                 jsonObject.put("PageNumber", PageNumber);
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
 
             AndroidNetworking.post(dataSourceUrl).addJSONObjectBody(jsonObject) // posting json
                     .build().
@@ -295,6 +288,11 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         }
                     });
             PageNumber++;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            Utility.dismissDialog(dialog);
         }
     }
 
@@ -351,7 +349,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             @Override
             public void onResponse(JSONObject response) {
                 saveData(response);
-                Utility.dismissDialog(dialog);
             }
 
             @Override
@@ -438,7 +435,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                     dde_ruleQuestion.setRuleId(singleRule.getString("RuleId"));
                     long aa = appDatabase.getDDE_RuleQuestionDao().insertRuleQuestionDao(dde_ruleQuestion);
                 }
-
             }
         } catch (JSONException e) {
             e.printStackTrace();
