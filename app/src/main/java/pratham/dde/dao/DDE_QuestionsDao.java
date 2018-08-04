@@ -35,5 +35,8 @@ public interface DDE_QuestionsDao {
     @Query("SELECT DestColumname FROM DDE_Questions WHERE QuestionId =:qId")
     public String getDestColumnByQid(String qId);
 
+    @Query("SELECT count(QuestionType) FROM DDE_Questions WHERE QuestionType='image' and formid =:formId")
+    public int getImageCountByFormID(String formId);
+
 
 }

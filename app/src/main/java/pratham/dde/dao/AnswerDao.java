@@ -28,6 +28,9 @@ public interface AnswerDao {
     @Query("SELECT * FROM AnswersSingleForm where FormId=:fId")
     List<AnswersSingleForm> getAllAnswersByFormId(String fId);
 
+    @Query("SELECT * FROM AnswersSingleForm where pushStatus=:statusCode")
+    List<AnswersSingleForm> getAllAnswersByStatus(int statusCode);
+
     @Query("select distinct count(*) as cnt, FormId from AnswersSingleForm group by FormId")
     public Cursor getFormCount();
 
@@ -43,9 +46,11 @@ public interface AnswerDao {
     @Query("delete from AnswersSingleForm where  EntryId=:entryId")
     public void deleteAnswerEntryByEntryID(String entryId);
 
-    @Query("SELECT * FROM AnswersSingleForm where isPushed=0")
-    public List<AnswersSingleForm> getAnswersToPush();
+ /*   @Query("SELECT * FROM AnswersSingleForm where isPushed=0")
+    public List<AnswersSingleForm> getAnswersToPush();*/
 
-    @Query("UPDATE AnswersSingleForm SET isPushed=1 where EntryId=:EntryId")
-    public void setIsPushed(String EntryId);
+    @Query("UPDATE AnswersSingleForm SET pushStatus=:statusCode where EntryId=:EntryId")
+    public void setPushedStatus(String EntryId,int statusCode);
+
+
 }

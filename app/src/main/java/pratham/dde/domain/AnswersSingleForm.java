@@ -16,7 +16,7 @@ public class AnswersSingleForm {
     private String date;
     private String FormId;
     private String TableName;
-    private boolean isPushed = false;
+    private int  pushStatus= 0;
     @TypeConverters(JSONArrayToString.class)
     private JsonArray answerArrayOfSingleForm;
 
@@ -62,12 +62,12 @@ public class AnswersSingleForm {
         TableName = tableName;
     }
 
-    public boolean isPushed() {
-        return isPushed;
+    public int getPushStatus() {
+        return pushStatus;
     }
 
-    public void setPushed(boolean pushed) {
-        isPushed = pushed;
+    public void setPushStatus(int pushStatus) {
+        this.pushStatus = pushStatus;
     }
 
     public JsonArray getAnswerArrayOfSingleForm() {

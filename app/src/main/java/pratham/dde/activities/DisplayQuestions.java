@@ -1061,8 +1061,6 @@ public class DisplayQuestions extends AppCompatActivity {
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.dismiss();
                     appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
-                    // List s = appDatabase.getAnswerDao().getAnswers();
-                    //  Log.d("ans111", s.toString());
                 }
             });
             alertDialogBuilder.show();
@@ -1071,7 +1069,11 @@ public class DisplayQuestions extends AppCompatActivity {
 
     private void update() {
         /*UPLOAD TO SERVER*/
-        AnswersSingleForm answersSingleForms = appDatabase.getAnswerDao().getAnswersByEntryId(entryID);
+        String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
+        List tempAnswerList = new ArrayList();
+        tempAnswerList.add(appDatabase.getAnswerDao().getAnswersByEntryId(entryID));
+        new UploadAnswerAndImageToServer(this, tempAnswerList, token);
+        /*
         JsonArray answerToUpload = answersSingleForms.getAnswerArrayOfSingleForm();
         for (int i = 0; i < answerToUpload.size(); i++) {
             JsonObject jsonObject = answerToUpload.get(i).getAsJsonObject();
@@ -1084,7 +1086,7 @@ public class DisplayQuestions extends AppCompatActivity {
                 File imgFile = new File(imgPath);
                 if (imgFile.exists()) {
                     String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
-                    UploadAnswerAndImageToServer.uploadImageToServer(imgFile, token, DisplayQuestions.this);
+                    new UploadAnswerAndImageToServer(this).uploadImageToServer(imgFile, token);
                 } else {
                     Toast.makeText(this, "Image Does not exist..", Toast.LENGTH_SHORT).show();
                 }
@@ -1093,7 +1095,7 @@ public class DisplayQuestions extends AppCompatActivity {
         Log.d("qqq", answerToUpload.toString());
         String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
         if (answerToUpload.size() > 0)
-            UploadAnswerAndImageToServer.uploadAnswer(answerToUpload, token, DisplayQuestions.this);
+            new UploadAnswerAndImageToServer(this).uploadAnswer(answerToUpload, token);*/
     }
 
     private boolean checkValidations() {
@@ -1469,26 +1471,6 @@ public class DisplayQuestions extends AppCompatActivity {
     }
 
     private void createDirectoryAndSaveFile(Bitmap imageToSave, String fileName) {
-
-        /*File direct = new File(Environment.getExternalStorageDirectory() + "/DDEImages");
-
-        if (!direct.exists()) {
-            File imagesDirectory = new File("/sdcard/DDEImages/");
-            imagesDirectory.mkdirs();
-        }
-
-        File file = new File(new File("/sdcard/DDEImages/"), fileName);
-        if (file.exists()) {
-            file.delete();
-        }
-        try {
-            FileOutputStream out = new FileOutputStream(file);
-            imageToSave.compress(Bitmap.CompressFormat.JPEG, 100, out);
-            out.flush();
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
         try {
             File direct = new File(path);
             if (!direct.exists()) direct.mkdir();
