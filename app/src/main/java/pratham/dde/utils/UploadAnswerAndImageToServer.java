@@ -2,7 +2,7 @@ package pratham.dde.utils;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.util.Log;
+import android.widget.Toast;
 
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.List;
 
 import pratham.dde.domain.AnswersSingleForm;
+import pratham.dde.interfaces.FillAgainListner;
 
 import static pratham.dde.BaseActivity.appDatabase;
 
@@ -33,7 +34,7 @@ public class UploadAnswerAndImageToServer {
     static int imageFailCnt = 0;
     int uploadingIndex = 0;
     String token;
-
+    FillAgainListner fillAgainListner;
     static int totalImages;
     static int imageUploadCnt = 0;
     static int IMAGEPUSHED = 1, ALLDATAPUSHED = 2;
@@ -41,12 +42,16 @@ public class UploadAnswerAndImageToServer {
 
     public UploadAnswerAndImageToServer(Context context, List<AnswersSingleForm> listAns, String token) {
         this.context = context;
+        fillAgainListner = (FillAgainListner) context;
         this.listAns = listAns;
         this.token = token;
         uploadDataUrl = (Utility.getProperty("uploadDataUrl", context));
         uploadImageUrl = (Utility.getProperty("uploadImageUrl", context));
         uploadingIndex = 0;
-        uploadData();
+        if (listAns.size() > 0) uploadData();
+        else {
+            Toast.makeText(context, "Nothing to upload ", Toast.LENGTH_SHORT).show();
+        }
     }
 
 
@@ -58,22 +63,27 @@ public class UploadAnswerAndImageToServer {
             JsonArray jsonArray = answersSingleForm.getAnswerArrayOfSingleForm().getAsJsonArray();
             String FormId = answersSingleForm.getFormId();
             totalImages = appDatabase.getDDE_QuestionsDao().getImageCountByFormID(FormId);
-            uploadImageToServer(jsonArray);
+            if (totalImages == 0 || answersSingleForm.getPushStatus() > 0) {
+                uploadingIndex++;
+                uploadData();
+            } else {
+                uploadImageToServer(jsonArray);
+            }
         } else {
             JsonArray wholeData = new JsonArray();
             //listAns = appDatabase.getAnswerDao().getAllAnswersByStatus(IMAGEPUSHED);
             String[] entryIdsOfAllForms = new String[listAns.size()];
-            for (int listCount=0;listCount<listAns.size();listCount++){
-                    JsonArray formAnsArray = listAns.get(listCount).getAnswerArrayOfSingleForm().getAsJsonArray();
-                    entryIdsOfAllForms[listCount] = listAns.get(listCount).getEntryId();
-                    wholeData.addAll(formAnsArray);
-                    /*for (int answerObjCount = 0 ; answerObjCount < formAnsArray.size(); answerObjCount++){
-                        wholeData.addAll(formAnsArray.get(answerObjCount));
-                    }*/
+            for (int listCount = 0; listCount < listAns.size(); listCount++) {
+                JsonArray formAnsArray = listAns.get(listCount).getAnswerArrayOfSingleForm().getAsJsonArray();
+                entryIdsOfAllForms[listCount] = listAns.get(listCount).getEntryId();
+                wholeData.addAll(formAnsArray);
             }
-            uploadAnswerDataToServer(wholeData,entryIdsOfAllForms);
-            //todo upload answer data
-            Log.d("answerData", "upload answer data");
+            if (wholeData.size() > 0) {
+                uploadAnswerDataToServer(wholeData, entryIdsOfAllForms);
+            } else {
+                Toast.makeText(context, "Data pushed successfully", Toast.LENGTH_SHORT).show();
+                updateStatusOfAllForms(entryIdsOfAllForms, ALLDATAPUSHED);
+            }
         }
     }
 
@@ -96,6 +106,7 @@ public class UploadAnswerAndImageToServer {
                         public void onResponse(JSONObject response) {
                             Utility.dismissDialog(dialog);
                             try {
+
                                 if (response.getBoolean("success")) {
                                     jsonIndex++;
                                     imageUploadCnt++;
@@ -117,58 +128,61 @@ public class UploadAnswerAndImageToServer {
 
                         @Override
                         public void onError(ANError anError) {
+                            Toast.makeText(context, "Image push failed", Toast.LENGTH_SHORT).show();
                             uploadingIndex++;
                             uploadData();
                             Utility.dismissDialog(dialog);
                         }
                     });
+                } else {
+                    jsonIndex++;
+                    uploadImageToServer(array);
                 }
             } else {
                 jsonIndex++;
                 uploadImageToServer(array);
             }
-        }else {
+        } else {
             uploadingIndex++;
             uploadData();
         }
     }
 
-    public void uploadAnswerDataToServer(final JsonArray data, final String[] entryIdsOfAllForms){
-            try {
-                String stringData = data.toString();
-                JSONArray jsonArrayData = new JSONArray(stringData);
-                //final String entryId = data.get(0).getAsJsonObject().get("EntryId").getAsString();
+    public void uploadAnswerDataToServer(final JsonArray data, final String[] entryIdsOfAllForms) {
+        try {
+            String stringData = data.toString();
+            JSONArray jsonArrayData = new JSONArray(stringData);
+            //final String entryId = data.get(0).getAsJsonObject().get("EntryId").getAsString();
 
-                final ProgressDialog dialog = new ProgressDialog(context);
-                Utility.showDialogInApiCalling(dialog, context, "Uploading Data..");
+            final ProgressDialog dialog = new ProgressDialog(context);
+            Utility.showDialogInApiCalling(dialog, context, "Uploading Data..");
 
-                AndroidNetworking.post(uploadDataUrl)
-                        .addHeaders("Content-Type", "application/json")
-                        .addHeaders("Authorization", token)
-                        .addJSONArrayBody(jsonArrayData).build()
-                        .getAsString(new StringRequestListener() {
+            AndroidNetworking.post(uploadDataUrl).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).addJSONArrayBody(jsonArrayData).build().getAsString(new StringRequestListener() {
 
-                    @Override
-                    public void onResponse(String response) {
-                        Log.d("dataresponse", response.toString());
-                        Utility.dismissDialog(dialog);
-                        updateStatusOfAllForms(entryIdsOfAllForms,ALLDATAPUSHED);
-                    }
+                @Override
+                public void onResponse(String response) {
+                    Toast.makeText(context, "Data pushed successfully", Toast.LENGTH_SHORT).show();
 
-                    @Override
-                    public void onError(ANError anError) {
-                        Log.d("dataError", "" + anError);
-                        updateStatusOfAllForms(entryIdsOfAllForms,IMAGEPUSHED);
-                        Utility.dismissDialog(dialog);
-                    }
-                });
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+                    updateStatusOfAllForms(entryIdsOfAllForms, ALLDATAPUSHED);
+                    Utility.dismissDialog(dialog);
+                }
+
+                @Override
+                public void onError(ANError anError) {
+                    Toast.makeText(context, "Data push failed", Toast.LENGTH_SHORT).show();
+                    updateStatusOfAllForms(entryIdsOfAllForms, IMAGEPUSHED);
+                    Utility.dismissDialog(dialog);
+                }
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+    }
 
-    private void updateStatusOfAllForms(String[] entryIdsOfAllForms, int statusCode) {
+    public void updateStatusOfAllForms(String[] entryIdsOfAllForms, int statusCode) {
         for (int statusCnt = 0; statusCnt < entryIdsOfAllForms.length; statusCnt++)
             appDatabase.getAnswerDao().setPushedStatus(entryIdsOfAllForms[statusCnt], statusCode);
+        fillAgainListner.fillAgainForm(true);
     }
+
 }

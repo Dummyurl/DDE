@@ -50,6 +50,7 @@ import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.SavedFormsFragment;
 import pratham.dde.interfaces.FabInterface;
 import pratham.dde.services.SyncUtility;
+import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.BaseActivity.appDatabase;
@@ -92,7 +93,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         userName = this.getIntent().getStringExtra("userName");
         password = this.getIntent().getStringExtra("password");
         userId = String.valueOf(appDatabase.getUserDao().getUserId(userName, password));
-
+        token = appDatabase.getUserDao().getToken(userName, password);
         View hView = navigationView.getHeaderView(0);
         TextView nav_user = (TextView) hView.findViewById(R.id.userName);
         nav_user.setText(userName);
@@ -109,7 +110,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                     case R.id.nav_get_new_forms:
                         navigationView.getMenu().getItem(1).setChecked(false);
                         formIndex = 0;
-                        token = appDatabase.getUserDao().getToken(userName, password);
                         forms = appDatabase.getDDE_FormsDao().getAllForms();
                         if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
                             Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
@@ -126,14 +126,14 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         break;
 
                     case R.id.nav_old_forms:
-                        List<AnswersSingleForm> allAnswersSingleForms = appDatabase.getAnswerDao().getAllAnswersByStatus(1);
+                        List<AnswersSingleForm> allAnswersSingleForms = appDatabase.getAnswerDao().getAllAnswersByStatusUnuploaded();
                         if (allAnswersSingleForms.isEmpty()) {
                             Utility.showDialogue(HomeScreen.this, "Data is already Synced...");
                         } else {
                             if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
                                 uploadOldFormsAsync(allAnswersSingleForms);
                             } else {
-
+                                Toast.makeText(mContext, "CHECK INTERNET CONNECTION", Toast.LENGTH_LONG).show();
                             }
                         }
                         break;
@@ -147,65 +147,11 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         fusedLocationAPI.startLocationButtonClick();*/
     }
 
+    private void uploadOldFormsAsync(List<AnswersSingleForm> allAnswersSingleForms) {
+        /*UploadAnswerAndImageToServer uploadAnswerAndImageToServer=*/
+        new UploadAnswerAndImageToServer(this, allAnswersSingleForms, token);
+    }
 
-       private void uploadOldFormsAsync(final List<AnswersSingleForm> allAnswersSingleForms) {
-           new AsyncTask<Void, Void, String>() {
-
-               @Override
-               protected void onPreExecute() {
-        //           Dialog dialog = new ProgressDialog(HomeScreen.this);
-         //          Utility.showDialogInApiCalling(dialog, HomeScreen.this, "Uploading Data to Server...");
-               }
-
-               @Override
-               protected String doInBackground(Void... voids) {
-                   if (allAnswersSingleForms.size() > 0) {
-                       for (int i = 0; i < allAnswersSingleForms.size(); i++) {
-                           JsonArray answerToUpload = allAnswersSingleForms.get(i).getAnswerArrayOfSingleForm();
-                           for (int answerTOUploadIndex = 0; answerTOUploadIndex < answerToUpload.size(); answerTOUploadIndex++) {
-                               JsonObject jsonObject = answerToUpload.get(answerTOUploadIndex).getAsJsonObject();
-                               String FormId = jsonObject.get("FormId").getAsString();
-                               String DestColumnName = jsonObject.get("DestColumnName").getAsString();
-                               String questionType = appDatabase.getDDE_QuestionsDao().getQueTypeByFormIDAndDestColName(FormId, DestColumnName);
-
-                               if (questionType.equalsIgnoreCase("image")) {
-                                   String imgPath = jsonObject.get("Answers").getAsString();
-                                   File imgFile = new File(imgPath);
-                                   if (imgFile.exists()) {
-                                       UploadAnswerAndImageToServer.uploadImageToServer(imgFile,token, mContext);
-                                   } else {
-   //                                    Toast.makeText(mContext, "Image Does not exist..", Toast.LENGTH_SHORT).show();
-                                       //continue;
-                                   }
-                               }
-                           }
-                        if (answerToUpload.size() > 0)
-                           UploadAnswerAndImageToServer.uploadAnswer(answerToUpload, token,mContext);
-                   }
-                   } else {
-                       Toast.makeText(mContext, "No Answers To Upload..", Toast.LENGTH_SHORT).show();
-                   }
-
-                   return null;
-               }
-
-               @Override
-               protected void onPostExecute(String s) {
-                   // JSONObject metadataObj = getMetaData();
-                   //String uploadDataUrl = Utility.getProperty("uploadData", mContext);
-                   // String requestString = "{ 'Metadata': "+metadataObj+", 'Answers': " + jsonArray.toString() + "}";
-                   //uploadData(uploadDataUrl,requestString);
-
-               }
-
-               @Override
-               protected void onCancelled() {
-                   Utility.dismissDialog(dialog);
-               }
-           }.execute();
-
-       }
- 
     private JSONObject getMetaData() {
         JSONObject obj = new JSONObject();
 
@@ -365,7 +311,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         alertDialogBuilder.setPositiveButton("Reload", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                finish();
+                dialog.dismiss();
                 getQuestionsAndData(forms[formIndex].getFormid());
             }
         });
@@ -373,7 +319,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         alertDialogBuilder.setNegativeButton("Skip", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                finish();
+                dialog.dismiss();
                 formIndex++;
                 getQuestionsAndData(forms[formIndex].getFormid());
             }

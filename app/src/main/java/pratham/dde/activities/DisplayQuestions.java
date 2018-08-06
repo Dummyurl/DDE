@@ -70,12 +70,14 @@ import pratham.dde.domain.AnswerJSonArrays;
 import pratham.dde.domain.AnswersSingleForm;
 import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleTable;
+import pratham.dde.interfaces.FillAgainListner;
+import pratham.dde.services.SyncUtility;
 import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.BaseActivity.appDatabase;
 
-public class DisplayQuestions extends AppCompatActivity {
+public class DisplayQuestions extends AppCompatActivity implements FillAgainListner {
     @BindView(R.id.homeButton)
     ImageView homeButton;
     @BindView(R.id.formNameHeader)
@@ -91,8 +93,8 @@ public class DisplayQuestions extends AppCompatActivity {
     public static final int PICK_IMAGE_FROM_GALLERY = 1;
     public static final int CAPTURE_IMAGE = 0;
     ImageView selectedImage;
-    String userId;//logged UserId
-    String formId;
+    static String userId;//logged UserId
+    static String formId;
     boolean editFormFlag = false;
     String imageName = "";
     String entryID;
@@ -989,7 +991,6 @@ public class DisplayQuestions extends AppCompatActivity {
 
     @OnClick(R.id.homeButton)
     public void onHomeButtonClick() {
-
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setTitle("Alert");
         alertDialogBuilder.setCancelable(false);
@@ -1012,89 +1013,83 @@ public class DisplayQuestions extends AppCompatActivity {
 
     @OnClick(R.id.saveAllQuestions)
     public void save() {
-        if (checkValidations()) {
-            final List<AnswerJSonArrays> answersList = new ArrayList<>();
-            final AnswersSingleForm answersSingleForm = new AnswersSingleForm();
-            answersSingleForm.setEntryId(entryID);
-            answersSingleForm.setUserID(userId);
-            answersSingleForm.setDate(Utility.getCurrentDateTime());
-            answersSingleForm.setFormId(formId);
-            answersSingleForm.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
-            AnswerJSonArrays answerJSonArrays;
-            for (int ansIndex = 0; ansIndex < formIdWiseQuestions.size(); ansIndex++) {
-                answerJSonArrays = new AnswerJSonArrays();
-                String ansId = Utility.getUniqueID().toString();
-                answerJSonArrays.setAnswerId(ansId);
-                answerJSonArrays.setEntryId(entryID);
-                answerJSonArrays.setFormId(formId);
-                answerJSonArrays.setDestColumnName(formIdWiseQuestions.get(ansIndex).getDestColumname());
-                String ans = formIdWiseQuestions.get(ansIndex).getAnswer();
-                if (formIdWiseQuestions.get(ansIndex).getQuestionType().equalsIgnoreCase("multiple")) {
-                    if (ans.endsWith(",")) ans = ans.substring(0, ans.length() - 1);
-                }
-                answerJSonArrays.setAnswers(ans);
-                answerJSonArrays.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
-                answerJSonArrays.setTransactionId(entryID);
-                answersList.add(answerJSonArrays);
+        boolean queAttemptFlag = false;
+        for (int queAns = 0; formIdWiseQuestions.size() > queAns; queAns++) {
+            if (!formIdWiseQuestions.get(queAns).getAnswer().equals("")) {
+                queAttemptFlag = true;
+                break;
             }
-            Gson gson = new Gson();
-            JsonArray jsonArray = gson.fromJson(gson.toJson(answersList), JsonArray.class);
-            answersSingleForm.setAnswerArrayOfSingleForm(jsonArray);
-
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-            alertDialogBuilder.setTitle("Alert");
-            alertDialogBuilder.setMessage("Do you want to upload form to server?");
-
-            alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    /*UPLOAD TO SERVER*/
-                    dialog.dismiss();
-                    appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
-                    update();
+        }
+        if (queAttemptFlag) {
+            if (checkValidations()) {
+                final List<AnswerJSonArrays> answersList = new ArrayList<>();
+                final AnswersSingleForm answersSingleForm = new AnswersSingleForm();
+                answersSingleForm.setEntryId(entryID);
+                answersSingleForm.setUserID(userId);
+                answersSingleForm.setDate(Utility.getCurrentDateTime());
+                answersSingleForm.setFormId(formId);
+                answersSingleForm.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
+                AnswerJSonArrays answerJSonArrays;
+                for (int ansIndex = 0; ansIndex < formIdWiseQuestions.size(); ansIndex++) {
+                    answerJSonArrays = new AnswerJSonArrays();
+                    String ansId = Utility.getUniqueID().toString();
+                    answerJSonArrays.setAnswerId(ansId);
+                    answerJSonArrays.setEntryId(entryID);
+                    answerJSonArrays.setFormId(formId);
+                    answerJSonArrays.setDestColumnName(formIdWiseQuestions.get(ansIndex).getDestColumname());
+                    String ans = formIdWiseQuestions.get(ansIndex).getAnswer();
+                    if (formIdWiseQuestions.get(ansIndex).getQuestionType().equalsIgnoreCase("multiple")) {
+                        if (ans.endsWith(",")) ans = ans.substring(0, ans.length() - 1);
+                    }
+                    answerJSonArrays.setAnswers(ans);
+                    answerJSonArrays.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
+                    answerJSonArrays.setTransactionId(entryID);
+                    answersList.add(answerJSonArrays);
                 }
-            });
+                Gson gson = new Gson();
+                JsonArray jsonArray = gson.fromJson(gson.toJson(answersList), JsonArray.class);
+                answersSingleForm.setAnswerArrayOfSingleForm(jsonArray);
 
-            alertDialogBuilder.setNegativeButton("Save Locally", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
-                }
-            });
-            alertDialogBuilder.show();
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                alertDialogBuilder.setTitle("Alert");
+                alertDialogBuilder.setMessage("Do you want to upload form to server?");
+
+                alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        /*UPLOAD TO SERVER*/
+                        dialog.dismiss();
+                        appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
+                        if (SyncUtility.isDataConnectionAvailable(DisplayQuestions.this)) {
+                            upload();
+                        } else {
+                            Toast.makeText(DisplayQuestions.this, "CHECK INTERNET CONNECTION", Toast.LENGTH_LONG).show();
+                        }
+
+                    }
+                });
+
+                alertDialogBuilder.setNegativeButton("Save Locally", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
+                        fillAgain();
+                    }
+                });
+                alertDialogBuilder.show();
+            }
+        } else {
+            Toast.makeText(this, "Attempt at least one question", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void update() {
+    private void upload() {
         /*UPLOAD TO SERVER*/
         String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
         List tempAnswerList = new ArrayList();
         tempAnswerList.add(appDatabase.getAnswerDao().getAnswersByEntryId(entryID));
         new UploadAnswerAndImageToServer(this, tempAnswerList, token);
-        /*
-        JsonArray answerToUpload = answersSingleForms.getAnswerArrayOfSingleForm();
-        for (int i = 0; i < answerToUpload.size(); i++) {
-            JsonObject jsonObject = answerToUpload.get(i).getAsJsonObject();
-            String FormId = jsonObject.get("FormId").getAsString();
-            String DestColumnName = jsonObject.get("DestColumnName").getAsString();
-            String questionType = appDatabase.getDDE_QuestionsDao().getQueTypeByFormIDAndDestColName(FormId, DestColumnName);
-
-            if (questionType.equalsIgnoreCase("image")) {
-                String imgPath = jsonObject.get("Answers").getAsString();
-                File imgFile = new File(imgPath);
-                if (imgFile.exists()) {
-                    String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
-                    new UploadAnswerAndImageToServer(this).uploadImageToServer(imgFile, token);
-                } else {
-                    Toast.makeText(this, "Image Does not exist..", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-        Log.d("qqq", answerToUpload.toString());
-        String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
-        if (answerToUpload.size() > 0)
-            new UploadAnswerAndImageToServer(this).uploadAnswer(answerToUpload, token);*/
     }
 
     private boolean checkValidations() {
@@ -1441,6 +1436,7 @@ public class DisplayQuestions extends AppCompatActivity {
         return "" + Year + "/" + Month + "/" + Day;
     }
 
+
     class Sortbyroll implements Comparator<DDE_Questions> {
         // Used for sorting in ascending order of
         public int compare(DDE_Questions a, DDE_Questions b) {
@@ -1484,6 +1480,35 @@ public class DisplayQuestions extends AppCompatActivity {
             e.printStackTrace();
         }
 
+    }
+
+    @Override
+    public void fillAgainForm(boolean value) {
+        fillAgain();
+    }
+    public void fillAgain() {
+        AlertDialog.Builder alertDialog=new AlertDialog.Builder(this);
+        alertDialog.setTitle("Do you want to fill this form again?");
+        alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+                Intent questionIntent = new Intent(DisplayQuestions.this, DisplayQuestions.class);
+                questionIntent.putExtra("formId", formId);
+                questionIntent.putExtra("userId", String.valueOf(userId));
+                questionIntent.putExtra("formEdit", "false");
+                finish();
+                startActivity(questionIntent);
+            }
+        });
+        alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+                finish();
+            }
+        });
+        alertDialog.show();
     }
 
 }
