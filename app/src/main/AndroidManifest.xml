@@ -21,7 +21,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.MainActivity">
+        <activity
+            android:name=".activities.MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -31,15 +33,14 @@
         <activity
             android:name=".BaseActivity"
             android:label="@string/title_activity_base" />
-        <activity android:name=".activities.GalleryDemo"></activity>
-        <activity android:name=".activities.HomeScreen"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
- <activity android:name=".activities.DisplayQuestions"
-            android:theme="@style/AppTheme.NoActionBar">
-
-
-        </activity>
+        <activity
+            android:name=".activities.HomeScreen"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activities.DisplayQuestions"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

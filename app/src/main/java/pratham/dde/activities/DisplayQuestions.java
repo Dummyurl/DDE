@@ -130,7 +130,7 @@ public class DisplayQuestions extends AppCompatActivity {
 
 
         if (editFormFlag) {
-            AnswersSingleForm answersSingleForm = (AnswersSingleForm) appDatabase.getAnswerDao().getAnswersByEntryId(entryID);
+            AnswersSingleForm answersSingleForm = appDatabase.getAnswerDao().getAnswersByEntryId(entryID);
             answerJsonArray = answersSingleForm.getAnswerArrayOfSingleForm();
         } else {
             entryID = Utility.getUniqueID().toString();
@@ -1043,7 +1043,6 @@ public class DisplayQuestions extends AppCompatActivity {
 
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
             alertDialogBuilder.setTitle("Alert");
-            alertDialogBuilder.setCancelable(false);
             alertDialogBuilder.setMessage("Do you want to upload form to server?");
 
             alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {

@@ -1,9 +1,11 @@
 package pratham.dde.activities;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -23,15 +25,12 @@ import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,9 +43,6 @@ import pratham.dde.database.BackupDatabase;
 import pratham.dde.domain.AnswersSingleForm;
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.DDE_Questions;
-import pratham.dde.domain.DDE_RuleCondition;
-import pratham.dde.domain.DDE_RuleMaster;
-import pratham.dde.domain.DDE_RuleQuestion;
 import pratham.dde.domain.DDE_RuleTable;
 import pratham.dde.domain.DataSourceEntries;
 import pratham.dde.domain.User;
@@ -54,7 +50,6 @@ import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.SavedFormsFragment;
 import pratham.dde.interfaces.FabInterface;
 import pratham.dde.services.SyncUtility;
-import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.BaseActivity.appDatabase;
@@ -131,7 +126,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         break;
 
                     case R.id.nav_old_forms:
-                  /*      List<AnswersSingleForm> allAnswersSingleForms = appDatabase.getAnswerDao().getAnswersToPush();
+                        List<AnswersSingleForm> allAnswersSingleForms = appDatabase.getAnswerDao().getAllAnswersByStatus(1);
                         if (allAnswersSingleForms.isEmpty()) {
                             Utility.showDialogue(HomeScreen.this, "Data is already Synced...");
                         } else {
@@ -140,7 +135,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                             } else {
 
                             }
-                        }*/
+                        }
                         break;
                 }
                 drawer_layout.closeDrawer(GravityCompat.START);
@@ -153,64 +148,64 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     }
 
 
- /*   private void uploadOldFormsAsync(final List<AnswersSingleForm> allAnswersSingleForms) {
-        new AsyncTask<Void, Void, String>() {
+       private void uploadOldFormsAsync(final List<AnswersSingleForm> allAnswersSingleForms) {
+           new AsyncTask<Void, Void, String>() {
 
-            @Override
-            protected void onPreExecute() {
-     //           Dialog dialog = new ProgressDialog(HomeScreen.this);
-      //          Utility.showDialogInApiCalling(dialog, HomeScreen.this, "Uploading Data to Server...");
-            }
+               @Override
+               protected void onPreExecute() {
+        //           Dialog dialog = new ProgressDialog(HomeScreen.this);
+         //          Utility.showDialogInApiCalling(dialog, HomeScreen.this, "Uploading Data to Server...");
+               }
 
-            @Override
-            protected String doInBackground(Void... voids) {
-                if (allAnswersSingleForms.size() > 0) {
-                    for (int i = 0; i < allAnswersSingleForms.size(); i++) {
-                        JsonArray answerToUpload = allAnswersSingleForms.get(i).getAnswerArrayOfSingleForm();
-                        for (int answerTOUploadIndex = 0; answerTOUploadIndex < answerToUpload.size(); answerTOUploadIndex++) {
-                            JsonObject jsonObject = answerToUpload.get(answerTOUploadIndex).getAsJsonObject();
-                            String FormId = jsonObject.get("FormId").getAsString();
-                            String DestColumnName = jsonObject.get("DestColumnName").getAsString();
-                            String questionType = appDatabase.getDDE_QuestionsDao().getQueTypeByFormIDAndDestColName(FormId, DestColumnName);
+               @Override
+               protected String doInBackground(Void... voids) {
+                   if (allAnswersSingleForms.size() > 0) {
+                       for (int i = 0; i < allAnswersSingleForms.size(); i++) {
+                           JsonArray answerToUpload = allAnswersSingleForms.get(i).getAnswerArrayOfSingleForm();
+                           for (int answerTOUploadIndex = 0; answerTOUploadIndex < answerToUpload.size(); answerTOUploadIndex++) {
+                               JsonObject jsonObject = answerToUpload.get(answerTOUploadIndex).getAsJsonObject();
+                               String FormId = jsonObject.get("FormId").getAsString();
+                               String DestColumnName = jsonObject.get("DestColumnName").getAsString();
+                               String questionType = appDatabase.getDDE_QuestionsDao().getQueTypeByFormIDAndDestColName(FormId, DestColumnName);
 
-                            if (questionType.equalsIgnoreCase("image")) {
-                                String imgPath = jsonObject.get("Answers").getAsString();
-                                File imgFile = new File(imgPath);
-                                if (imgFile.exists()) {
-                                    UploadAnswerAndImageToServer.uploadImageToServer(imgFile,token, mContext);
-                                } else {
-//                                    Toast.makeText(mContext, "Image Does not exist..", Toast.LENGTH_SHORT).show();
-                                    //continue;
-                                }
-                            }
-                        }
-                     if (answerToUpload.size() > 0)
-                        UploadAnswerAndImageToServer.uploadAnswer(answerToUpload, token,mContext);
-                }
-                } else {
-                    Toast.makeText(mContext, "No Answers To Upload..", Toast.LENGTH_SHORT).show();
-                }
+                               if (questionType.equalsIgnoreCase("image")) {
+                                   String imgPath = jsonObject.get("Answers").getAsString();
+                                   File imgFile = new File(imgPath);
+                                   if (imgFile.exists()) {
+                                       UploadAnswerAndImageToServer.uploadImageToServer(imgFile,token, mContext);
+                                   } else {
+   //                                    Toast.makeText(mContext, "Image Does not exist..", Toast.LENGTH_SHORT).show();
+                                       //continue;
+                                   }
+                               }
+                           }
+                        if (answerToUpload.size() > 0)
+                           UploadAnswerAndImageToServer.uploadAnswer(answerToUpload, token,mContext);
+                   }
+                   } else {
+                       Toast.makeText(mContext, "No Answers To Upload..", Toast.LENGTH_SHORT).show();
+                   }
 
-                return null;
-            }
+                   return null;
+               }
 
-            @Override
-            protected void onPostExecute(String s) {
-                // JSONObject metadataObj = getMetaData();
-                //String uploadDataUrl = Utility.getProperty("uploadData", mContext);
-                // String requestString = "{ 'Metadata': "+metadataObj+", 'Answers': " + jsonArray.toString() + "}";
-                //uploadData(uploadDataUrl,requestString);
+               @Override
+               protected void onPostExecute(String s) {
+                   // JSONObject metadataObj = getMetaData();
+                   //String uploadDataUrl = Utility.getProperty("uploadData", mContext);
+                   // String requestString = "{ 'Metadata': "+metadataObj+", 'Answers': " + jsonArray.toString() + "}";
+                   //uploadData(uploadDataUrl,requestString);
 
-            }
+               }
 
-            @Override
-            protected void onCancelled() {
-                Utility.dismissDialog(dialog);
-            }
-        }.execute();
+               @Override
+               protected void onCancelled() {
+                   Utility.dismissDialog(dialog);
+               }
+           }.execute();
 
-    }
-*/
+       }
+ 
     private JSONObject getMetaData() {
         JSONObject obj = new JSONObject();
 
@@ -274,20 +269,20 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 jsonObject.put("FormId", formId);
                 jsonObject.put("PageNumber", PageNumber);
 
-            AndroidNetworking.post(dataSourceUrl).addJSONObjectBody(jsonObject) // posting json
-                    .build().
-                    getAsJSONObject(new JSONObjectRequestListener() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            saveSourceData(response);
-                        }
+                AndroidNetworking.post(dataSourceUrl).addJSONObjectBody(jsonObject) // posting json
+                        .build().
+                        getAsJSONObject(new JSONObjectRequestListener() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                saveSourceData(response);
+                            }
 
-                        @Override
-                        public void onError(ANError anError) {
+                            @Override
+                            public void onError(ANError anError) {
 
-                        }
-                    });
-            PageNumber++;
+                            }
+                        });
+                PageNumber++;
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -305,7 +300,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                     JSONObject tableObj = tableArray.getJSONObject(tableIndex);
                     Iterator iterator = tableObj.keys();
                     DataSourceEntries dataSourceEntries = new DataSourceEntries();
-                    ;
                     while (iterator.hasNext()) {
                         if ((!iterator.next().equals("ROWNUMBER")) && (!iterator.next().equals("EntryId")) && (!iterator.next().equals("EntryId")) && (!iterator.next().equals("CreatedBy")) && (!iterator.next().equals("UpdatedBy")) && (!iterator.next().equals("Createdon")) && (!iterator.next().equals("Updatedon"))) {
                             String formId = dataSourceQuestionsList.get(dataSourceIndex).getFormId();
@@ -342,27 +336,53 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         fm.beginTransaction().replace(R.id.fragment, savedFormsFragment).commit();
     }
 
-    private void getQuestionsAndData(int formId) {
+    private void getQuestionsAndData(final int formId) {
         // TODO get questions and data if required
         String url = QuestionUrl + formId;
         AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
             @Override
             public void onResponse(JSONObject response) {
+                formIndex++;
                 saveData(response);
             }
 
             @Override
             public void onError(ANError anError) {
+                showErrorDialog(formId);
                 Utility.dismissDialog(dialog);
-                Log.d("responceError123", anError.toString());
-
+                /*Log.d("responceError123", anError.toString());*/
             }
         });
     }
 
+    private void showErrorDialog(int formId) {
+        String formName = appDatabase.getDDE_FormsDao().getFormName(String.valueOf(formId));
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("Error");
+        alertDialogBuilder.setCancelable(false);
+        alertDialogBuilder.setMessage("Problem in pulling " + formName + " !");
+
+        alertDialogBuilder.setPositiveButton("Reload", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+                getQuestionsAndData(forms[formIndex].getFormid());
+            }
+        });
+
+        alertDialogBuilder.setNegativeButton("Skip", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+                formIndex++;
+                getQuestionsAndData(forms[formIndex].getFormid());
+            }
+        });
+        alertDialogBuilder.show();
+    }
+
     private void saveData(JSONObject response) {
         saveQuestion(response);
-        formIndex++;
         if (formIndex < forms.length) {
             getQuestionsAndData(forms[formIndex].getFormid());
         } else {
@@ -400,7 +420,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
                 formId = response.getJSONObject("Formdata").getString("formid");
                 appDatabase.getDDE_FormsDao().updatePulledDate(formId, "" + Utility.getCurrentDateTime());
-                //save Rules to database
+              /*  //save Rules to database
                 JSONArray rules = data.getJSONArray("Rules");
                 DDE_RuleMaster dde_ruleMaster;
                 JSONObject singleRule;
@@ -434,7 +454,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                     dde_ruleQuestion.setRuleQuestion(singleRule.getString("ShowQuestionIdentifier"));
                     dde_ruleQuestion.setRuleId(singleRule.getString("RuleId"));
                     long aa = appDatabase.getDDE_RuleQuestionDao().insertRuleQuestionDao(dde_ruleQuestion);
-                }
+                }*/
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -454,10 +474,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     private void getNewForms(String url, String access_token) {
         if (SyncUtility.isDataConnectionAvailable(this)) {
             Utility.showDialogInApiCalling(dialog, mContext, "Getting new forms... Please wait.");
-            AndroidNetworking.get(url)
-                    .addHeaders("Content-Type", "application/json")
-                    .addHeaders("Authorization", access_token).build()
-                    .getAsJSONObject(new JSONObjectRequestListener() {
+            AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONObject(new JSONObjectRequestListener() {
                 @Override
                 public void onResponse(JSONObject response) {
                     Log.d("pk-log", "" + response.length());

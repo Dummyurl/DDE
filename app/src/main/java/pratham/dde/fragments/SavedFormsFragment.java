@@ -2,15 +2,12 @@ package pratham.dde.fragments;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,17 +40,15 @@ public class SavedFormsFragment extends android.app.Fragment {
     @BindView(R.id.linearlayout)
     LinearLayout linearlayout;
     @BindView(R.id.savedform)
-    TextView titale;
+    TextView title;
 
     FabInterface fabInterface;
-    Context context;
     String userID;
 
     @Override
     public void onAttach(Activity context) {
         super.onAttach(context);
         fabInterface = (FabInterface) context;
-        context = context;
     }
 
     @Override
@@ -78,9 +73,9 @@ public class SavedFormsFragment extends android.app.Fragment {
 
     private void showOldSavedForm() {
         // pass user to veryfy
-        List distinctEntrys = appDatabase.getAnswerDao().getDistinctEntrys(userID);
+        List distinctEntrys = appDatabase.getAnswerDao().getDistinctEntrys(userID, 0);
         if (distinctEntrys != null && distinctEntrys.size() > 0) {
-            titale.setText("OLD SAVED FORMS ARE");
+            title.setText("OLD SAVED FORMS ARE");
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             params.setMargins(20, 10, 20, 10);
             LinearLayout.LayoutParams paramsLeft = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 6);
@@ -196,7 +191,7 @@ public class SavedFormsFragment extends android.app.Fragment {
                 linearlayout.addView(linLayoutSingleEntry);
             }
         } else {
-            titale.setText("OLD SAVED FORMS ARE NOT AVAILABLE");
+            title.setText("OLD SAVED FORMS ARE NOT AVAILABLE");
         }
     }
 
