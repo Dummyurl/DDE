@@ -7,12 +7,14 @@
 
     <TextView
         android:id="@+id/title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
+        android:padding="10dp"
+        android:background="@drawable/rectangular_box"
         android:text="Fill forms"
-        android:textSize="20sp" />
+        android:textSize="30sp" />
 
     <ScrollView
         android:layout_width="match_parent"

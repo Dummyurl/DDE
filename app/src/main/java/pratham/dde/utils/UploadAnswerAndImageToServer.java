@@ -2,6 +2,7 @@ package pratham.dde.utils;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.os.Environment;
 import android.widget.Toast;
 
 import com.androidnetworking.AndroidNetworking;
@@ -96,12 +97,16 @@ public class UploadAnswerAndImageToServer {
             String questionType = appDatabase.getDDE_QuestionsDao().getQueTypeByFormIDAndDestColName(FormId, DestColumnName);
             if (questionType.equalsIgnoreCase("image")) {
                 String imgPath = jsonObject.get("Answers").getAsString();
-                File file = new File(imgPath);
+                File file = new File(Environment.getExternalStorageDirectory().toString() + "/DDEImages/"+imgPath);
                 if (file.exists()) {
                     final ProgressDialog dialog = new ProgressDialog(context);
                     Utility.showDialogInApiCalling(dialog, context, "Uploading Image(s)..");
                     String fName = file.getName();
-                    AndroidNetworking.upload(uploadImageUrl).addMultipartFile(fName, file).addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
+                    AndroidNetworking.upload(uploadImageUrl)
+                            .addMultipartFile(fName, file)
+                            .addHeaders("Authorization", token)
+                            .build()
+                            .getAsJSONObject(new JSONObjectRequestListener() {
                         @Override
                         public void onResponse(JSONObject response) {
                             Utility.dismissDialog(dialog);
@@ -157,7 +162,12 @@ public class UploadAnswerAndImageToServer {
             final ProgressDialog dialog = new ProgressDialog(context);
             Utility.showDialogInApiCalling(dialog, context, "Uploading Data..");
 
-            AndroidNetworking.post(uploadDataUrl).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).addJSONArrayBody(jsonArrayData).build().getAsString(new StringRequestListener() {
+            AndroidNetworking.post(uploadDataUrl)
+                    .addHeaders("Content-Type", "application/json")
+                    .addHeaders("Authorization", token)
+                    .addJSONArrayBody(jsonArrayData)
+                    .build()
+                    .getAsString(new StringRequestListener() {
 
                 @Override
                 public void onResponse(String response) {

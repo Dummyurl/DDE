@@ -9,11 +9,13 @@
 
         <TextView
             android:id="@+id/savedform"
-            android:padding="5dp"
-            android:layout_width="wrap_content"
+            android:padding="10dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:textSize="25sp" />
+            android:gravity="center"
+            android:background="@drawable/rectangular_box"
+            android:textSize="30sp" />
 
         <ScrollView
             android:layout_width="match_parent"

@@ -75,7 +75,7 @@ public class SavedFormsFragment extends android.app.Fragment {
         // pass user to veryfy
         List distinctEntrys = appDatabase.getAnswerDao().getDistinctEntrys(userID, 0);
         if (distinctEntrys != null && distinctEntrys.size() > 0) {
-            title.setText("OLD SAVED FORMS ARE");
+            title.setText("Saved forms");
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             params.setMargins(20, 10, 20, 10);
             LinearLayout.LayoutParams paramsLeft = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 6);
@@ -191,7 +191,7 @@ public class SavedFormsFragment extends android.app.Fragment {
                 linearlayout.addView(linLayoutSingleEntry);
             }
         } else {
-            title.setText("OLD SAVED FORMS ARE NOT AVAILABLE");
+            title.setText("No saved forms");
         }
     }
 

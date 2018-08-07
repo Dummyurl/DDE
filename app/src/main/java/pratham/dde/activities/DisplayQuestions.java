@@ -156,7 +156,7 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
         textView.setText(/*dde_questions.getFieldSeqNo() + ". " + */dde_questions.getQuestion());
         textView.setTag("que" + dde_questions.getQuestionId());
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 25);
-        textView.setTextColor(getResources().getColor(R.color.colorAccentDark));
+        textView.setTextColor(getResources().getColor(R.color.black));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
         params.setMargins(10, 0, 0, 0);
         textView.setLayoutParams(params);
@@ -469,7 +469,7 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
                         JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
                         if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
                             ans = ansObject.get("Answers").getAsString();
-                            Bitmap bmp = BitmapFactory.decodeFile(ans);
+                            Bitmap bmp = BitmapFactory.decodeFile(path+"/"+ans);
                             selectedImageTemp.setImageBitmap(bmp);
                             dde_questions.setAnswer(ans);
                         }
@@ -486,7 +486,7 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
                                 imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
-                                dde_questions.setAnswer(path + "/" + imageName);
+                                dde_questions.setAnswer(imageName);
                                 selectedImage = selectedImageTemp;
                                 Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                                 startActivityForResult(takePicture, CAPTURE_IMAGE);
@@ -498,7 +498,7 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
                                 imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
-                                dde_questions.setAnswer(path + "/" + imageName);
+                                dde_questions.setAnswer(imageName);
                                 selectedImage = selectedImageTemp;
                                 Intent intent = new Intent();
                                 intent.setType("image/*");
@@ -1248,31 +1248,31 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
                             switch (validationType) {
                                 case "<":
                                     if ((Integer.parseInt(answer) >= ans)) {
-                                        Toast.makeText(this, "AnswersSingleForm Must be Smaller Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "Must be Smaller Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                         return false;
                                     }
                                     return true;
                                 case ">":
                                     if ((Integer.parseInt(answer) <= ans)) {
-                                        Toast.makeText(this, "AnswersSingleForm Must be Greater Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "Must be Greater Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                         return false;
                                     }
                                     return true;
                                 case "=":
                                     if ((Integer.parseInt(answer) != ans)) {
-                                        Toast.makeText(this, "AnswersSingleForm Must be Equal To " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "Must be Equal To " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                         return false;
                                     }
                                     return true;
                                 case "<=":
                                     if ((Integer.parseInt(answer) > ans)) {
-                                        Toast.makeText(this, "AnswersSingleForm Must be Smaller Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "Must be Smaller Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                         return false;
                                     }
                                     return true;
                                 case ">=":
                                     if ((Integer.parseInt(answer) < ans)) {
-                                        Toast.makeText(this, "AnswersSingleForm Must be Greater Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "Must be Greater Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                         return false;
                                     }
                                     return true;
@@ -1289,31 +1289,31 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
                                 switch (validationType) {
                                     case "<":
                                         if (dependingAns.compareTo(dependentAns) >= 0) {
-                                            Toast.makeText(this, "AnswersSingleForm Must be Before " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                            Toast.makeText(this, "Must be Before " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
                                             return false;
                                         }
                                         return true;
                                     case ">":
                                         if (dependingAns.compareTo(dependentAns) <= 0) {
-                                            Toast.makeText(this, "AnswersSingleForm Must be After " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                            Toast.makeText(this, "Must be After " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
                                             return false;
                                         }
                                         return true;
                                     case "=":
                                         if (dependingAns.compareTo(dependentAns) != 0) {
-                                            Toast.makeText(this, "AnswersSingleForm Must be Equal to " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                            Toast.makeText(this, "Must be Equal to " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
                                             return false;
                                         }
                                         return true;
                                     case "<=":
                                         if (dependingAns.compareTo(dependentAns) > 0) {
-                                            Toast.makeText(this, "AnswersSingleForm Must be Before Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                            Toast.makeText(this, "Must be Before Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
                                             return false;
                                         }
                                         return true;
                                     case ">=":
                                         if (dependingAns.compareTo(dependentAns) < 0) {
-                                            Toast.makeText(this, "AnswersSingleForm Must be After Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                            Toast.makeText(this, "Must be After Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
                                             return false;
                                         }
                                         return true;
@@ -1486,8 +1486,9 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
     public void fillAgainForm(boolean value) {
         fillAgain();
     }
+
     public void fillAgain() {
-        AlertDialog.Builder alertDialog=new AlertDialog.Builder(this);
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle("Do you want to fill this form again?");
         alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override

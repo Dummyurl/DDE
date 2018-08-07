@@ -6,6 +6,7 @@ import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -32,7 +33,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -49,13 +52,14 @@ import pratham.dde.domain.User;
 import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.SavedFormsFragment;
 import pratham.dde.interfaces.FabInterface;
+import pratham.dde.interfaces.FillAgainListner;
 import pratham.dde.services.SyncUtility;
 import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.BaseActivity.appDatabase;
 
-public class HomeScreen extends AppCompatActivity implements FabInterface/* implements LocationLisner */ {
+public class HomeScreen extends AppCompatActivity implements FabInterface, FillAgainListner/* implements LocationLisner */ {
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -78,6 +82,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     List<DDE_Questions> dataSourceQuestionsList;
     int dataSourceIndex = 0;
     int PageNumber = 1;
+    String unUpdatedForms = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,6 +142,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                             }
                         }
                         break;
+
+                        case R.id.nav_logout:
+                        finish();
+                        break;
                 }
                 drawer_layout.closeDrawer(GravityCompat.START);
                 return true;
@@ -154,18 +163,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
 
     private JSONObject getMetaData() {
         JSONObject obj = new JSONObject();
-
-       /* AnswersSingleForm answerObj = new AnswersSingleForm();
-        answerObj.setAnswerId(5);
-        answerObj.setEntryId("1");
-        answerObj.setFormId(3);
-        answerObj.setQuestionType("single Choice");
-        answerObj.setAnswers("answers");
-        answerObj.setTableName("table");
-        answerObj.setDestColumnName("dest");
-        appDatabase.getAnswerDao().insertAnswers(answerObj);
-        Log.d("answerObj",answerObj.toString());*/
-
         Cursor noOfForms = appDatabase.getAnswerDao().getNoOfForms();
         try {
             obj.put("noOfForms", noOfForms.getCount());
@@ -270,6 +267,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     @Override
     protected void onResume() {
         super.onResume();
+        showSavedOldForms();
     }
 
     private void showSavedOldForms() {
@@ -332,7 +330,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         if (formIndex < forms.length) {
             getQuestionsAndData(forms[formIndex].getFormid());
         } else {
-            fetchQuestionsSourceData();
+            Utility.dismissDialog(dialog);
+            //fetchQuestionsSourceData();
         }
     }
 
@@ -366,41 +365,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                 appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
                 formId = response.getJSONObject("Formdata").getString("formid");
                 appDatabase.getDDE_FormsDao().updatePulledDate(formId, "" + Utility.getCurrentDateTime());
-              /*  //save Rules to database
-                JSONArray rules = data.getJSONArray("Rules");
-                DDE_RuleMaster dde_ruleMaster;
-                JSONObject singleRule;
-                JSONArray questionConditionArray;
-                for (int i = 0; i < rules.length(); i++) {
-                    singleRule = rules.getJSONObject(i);
-                    dde_ruleMaster = new DDE_RuleMaster();
-                    dde_ruleMaster.setFormId(formId);
-                    dde_ruleMaster.setRuleId(singleRule.getString("RuleId"));
-                    dde_ruleMaster.setConditionToBeMatched(singleRule.getString("ConditionsMatch"));
-                    questionConditionArray = singleRule.getJSONArray("QuestionCondition");
-
-                    long rm = appDatabase.getDDE_RuleMasterDao().insertRuleMaster(dde_ruleMaster);
-                    DDE_RuleCondition dde_ruleCondition;
-                    JSONObject questionConditionSingleObj;
-                    for (int j = 0; j < questionConditionArray.length(); j++) {
-                        questionConditionSingleObj = questionConditionArray.getJSONObject(j);
-                        dde_ruleCondition = new DDE_RuleCondition();
-                        dde_ruleCondition.setFormID(formId);
-                        dde_ruleCondition.setConditionId(questionConditionSingleObj.getString("ConditionId"));
-                        dde_ruleCondition.setQuestionIdentifier(questionConditionSingleObj.getString("QuestionIdentifier"));
-                        dde_ruleCondition.setConditiontype(questionConditionSingleObj.getString("ConditionType"));
-                        dde_ruleCondition.setSelectValue(questionConditionSingleObj.getString("SelectValue"));
-                        dde_ruleCondition.setSelectValueQuestion(questionConditionSingleObj.getString("SelectValueQuestion"));
-                        dde_ruleCondition.setRuleQuestionForWhichQue(singleRule.getString("ShowQuestionIdentifier"));
-                        dde_ruleCondition.setRuleId(singleRule.getString("RuleId"));
-                        long l = appDatabase.getDDE_RuleConditionDao().insertRuleCondition(dde_ruleCondition);
-                    }
-                    DDE_RuleQuestion dde_ruleQuestion = new DDE_RuleQuestion();
-                    dde_ruleQuestion.setRuleQuestionId("" + i);
-                    dde_ruleQuestion.setRuleQuestion(singleRule.getString("ShowQuestionIdentifier"));
-                    dde_ruleQuestion.setRuleId(singleRule.getString("RuleId"));
-                    long aa = appDatabase.getDDE_RuleQuestionDao().insertRuleQuestionDao(dde_ruleQuestion);
-                }*/
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -409,11 +373,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     }
 
     private void updateFormEntries() {
+        unUpdatedForms = "";
         User user = appDatabase.getUserDao().getUserDetails(userName, password);
         if (user != null)
             getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
-        /*else
-            Toast.makeText(mContext, "Problem with the database, Contact administrator.", Toast.LENGTH_SHORT).show();*/
     }
 
     /* getFormsfromServer */
@@ -423,7 +386,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONObject(new JSONObjectRequestListener() {
                 @Override
                 public void onResponse(JSONObject response) {
-                    Log.d("pk-log", "" + response.length());
+                    /*  Log.d("pk-log", "" + response.length());*/
                     Utility.setMessage(dialog, "Updating forms in Database... Please wait.");
                     updateFormsInDatabase(response);
                 }
@@ -434,9 +397,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                     Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
                 }
             });
-        } /*else {
-            Toast.makeText(mContext, "Internet not available", Toast.LENGTH_SHORT);
-        }*/
+        }
     }
 
     private void updateFormsInDatabase(JSONObject response) {
@@ -445,7 +406,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
             JSONObject tempObj;
             DDE_Forms dde_form;
             final DDE_Forms[] dde_forms;
-
             if (response.length() > 1) {
                 JSONObject result = response.getJSONObject("Result");
                 if (result.getString("success").equals("true")) {
@@ -459,8 +419,24 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         dde_form.setFormpassword(tempObj.getString("formpassword"));
                         dde_form.setProgramid(tempObj.getString("programid"));
                         dde_form.setTablename(tempObj.getString("tablename"));
-                        dde_form.setUpdateddate(tempObj.getString("updateddate"));
-                        dde_form.setPulledDateTime(Utility.getCurrentDateTime());
+                        //dde_form.setUpdateddate(tempObj.getString("updateddate"));
+                        // dde_form.setPulledDateTime(Utility.getCurrentDateTime());
+                        String pulledDateString = appDatabase.getDDE_FormsDao().getPulledDateTimeByFormID(tempObj.getString("formid"));
+                        if (pulledDateString == null) {
+                            unUpdatedForms = unUpdatedForms + tempObj.getString("formname") + "\n";
+                        } else {
+                            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
+                            Date pulledDateDate = simpleDateFormat.parse(pulledDateString);
+                            String updateddate = tempObj.getString("updateddate");
+                            if (updateddate.equals("null")) {
+                                updateddate = tempObj.getString("createddate");
+                            }
+                            Date update = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(updateddate);
+                            if (pulledDateDate.compareTo(update) < 0) {
+                                unUpdatedForms = unUpdatedForms + tempObj.getString("formname") + "\n";
+                            }
+
+                        }
                         dde_forms[i] = dde_form;
                     }
 
@@ -476,6 +452,13 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                             appDatabase.getStatusDao().updateValue("LastPulledDate", Utility.getCurrentDateTime());
                             BackupDatabase.backup(mContext);
                             Utility.dismissDialog(dialog);
+                            if (!unUpdatedForms.equals("")) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(HomeScreen.this);
+                                builder.setTitle("Questions under below form has been updated");
+                                builder.setMessage(unUpdatedForms + "\n\n\n Please pull the form(s) again.");
+                                builder.setCancelable(true);
+                                builder.show();
+                            }
                         }
 
                         @Override
@@ -484,12 +467,14 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
                         }
                     }.execute();
                 } else {
-                    Utility.showDialogue(this, "Problem with server");
+                    Toast.makeText(mContext, "Problem with server", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                Utility.showDialogue(this, "Problem in updating Forms in database");
+                Toast.makeText(mContext, "Empty Response", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
+            Toast.makeText(mContext, "Error ...", Toast.LENGTH_SHORT).show();
+            Utility.dismissDialog(dialog);
             e.printStackTrace();
         }
     }
@@ -499,12 +484,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-
-                // GenericDao genericDao = new GenericDao();
-                //  genericDao.createTable("Employee", "name,age,work");
-                //  genericDao.getTableCount();
-
-
                 drawer_layout.openDrawer(GravityCompat.START);
                 return true;
         }
@@ -527,11 +506,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface/* impl
         manager.beginTransaction().replace(R.id.fragment, fillFormsFragment).commit();
     }
 
-   /* @Override
-    public void onLocationFound(Location location) {
-        if (location != null) {
-            geo.setText("long" + location.getLongitude() + " /Lat " + location.getLatitude());
-            fusedLocationAPI.stopLocationUpdates();
-        }
-    }*/
+    @Override
+    public void fillAgainForm(boolean value) {
+        // Toast.makeText(mContext, "Uploaded Successfully", Toast.LENGTH_SHORT).show();
+    }
 }

@@ -48,10 +48,20 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         mContext = MainActivity.this;
         ButterKnife.bind(this);
-        dialog =new ProgressDialog(mContext);
-        initialiseStatusTable();
+        dialog = new ProgressDialog(mContext);
+        if (appDatabase.getStatusDao().getValueByKey("LastPulledDate") == null)
+            initialiseStatusTable();
+      /*  Log.d("tags", appDatabase.getStatusDao().getStatus().toString());*/
         input_email.setText("prathamdde@dde.com");
         input_password.setText("Admin@1234");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        input_email.setText("");
+        input_password.setText("");
+        input_email.requestFocus();
     }
 
     private void initialiseStatusTable() {
@@ -103,7 +113,7 @@ public class MainActivity extends BaseActivity {
     private void getNewTokenFromServer(String url) {
         //TODO checkNetwork
         if (SyncUtility.isDataConnectionAvailable(this)) {
-            Utility.showDialogInApiCalling(dialog,mContext,"getNewTokenFromServer");
+            Utility.showDialogInApiCalling(dialog, mContext, "getting new token from server");
             AndroidNetworking.post(url).addBodyParameter("username", userName).addBodyParameter("password", password).addBodyParameter("grant_type", "password").setTag("test").setPriority(Priority.MEDIUM).build().getAsJSONObject(new JSONObjectRequestListener() {
                 @Override
                 public void onResponse(JSONObject response) {
@@ -126,7 +136,7 @@ public class MainActivity extends BaseActivity {
         try {
             if (response.length() > 2) {
                 String access_token = response.getString("access_token");
-                Log.d("token",access_token);
+                Log.d("token", access_token);
                 String Name = response.getString("Name");
                 String userName = response.getString("userName");
                 String token_type = response.getString("token_type");
@@ -147,7 +157,7 @@ public class MainActivity extends BaseActivity {
         //TODO checkNetwork
 
         if (SyncUtility.isDataConnectionAvailable(this)) {
-            Utility.showDialogInApiCalling(dialog,mContext,"callAPIForPrograms ");
+            Utility.showDialogInApiCalling(dialog, mContext, "Getting programs");
             AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONArray(new JSONArrayRequestListener() {
                 @Override
                 public void onResponse(JSONArray response) {
@@ -200,7 +210,7 @@ public class MainActivity extends BaseActivity {
             for (i = 0; i < programsJson.length() - 1; i++) {
                 programIds += programsJson.getJSONObject(i).getString("progid") + ",";
             }
-           /* programIds +="1,";*/
+            /* programIds +="1,";*/
             programIds += programsJson.getJSONObject(i).getString("progid");
         } catch (Exception e) {
             e.printStackTrace();

@@ -16,7 +16,8 @@ public class DDE_Forms {
     private String tablename;
     private String formpassword;
     private String PulledDateTime;
-    private String updateddate;
+    /*private String updateddate;*/
+    private String pbreporturl;
 
     @Override
     public String toString() {
@@ -27,7 +28,7 @@ public class DDE_Forms {
                 ", tablename='" + tablename + '\'' +
                 ", formpassword='" + formpassword + '\'' +
                 ", PulledDateTime='" + PulledDateTime + '\'' +
-                ", updateddate='" + updateddate + '\'' +
+              /*  ", updateddate='" + updateddate + '\'' +*/
                 '}';
     }
 
@@ -80,11 +81,19 @@ public class DDE_Forms {
         PulledDateTime = pulledDateTime;
     }
 
-    public String getUpdateddate() {
+  /*  public String getUpdateddate() {
         return updateddate;
     }
 
     public void setUpdateddate(String updateddate) {
         this.updateddate = updateddate;
+    }
+*/
+    public String getPbreporturl() {
+        return pbreporturl;
+    }
+
+    public void setPbreporturl(String pbreporturl) {
+        this.pbreporturl = pbreporturl;
     }
 }

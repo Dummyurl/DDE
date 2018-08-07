@@ -1,7 +1,11 @@
 package pratham.dde.fragments;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -23,6 +27,7 @@ import pratham.dde.customViews.FormPasswordDialog;
 import pratham.dde.customViews.FormattedTextView;
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.DDE_Questions;
+import pratham.dde.services.SyncUtility;
 
 import static pratham.dde.BaseActivity.appDatabase;
 
@@ -93,8 +98,28 @@ public class FillFormsFragment extends Fragment {
                 }
             });
             layout.addView(textView);
-            ImageButton imageButton = new ImageButton(getActivity());
-            imageButton.setBackground(getResources().getDrawable(R.drawable.common_google_signin_btn_icon_dark_focused));
+            final ImageButton imageButton = new ImageButton(getActivity());
+            imageButton.setBackground(getResources().getDrawable(R.drawable.ic_insert_chart_green));
+            if (forms.get(i).getPbreporturl() != null)
+                imageButton.setTag(forms.get(i).getPbreporturl());
+         /*   else
+                imageButton.setTag("");*/
+            imageButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (SyncUtility.isDataConnectionAvailable(getActivity())) {
+                        if (imageButton.getTag() != null) {
+                            Uri uri = Uri.parse(imageButton.getTag().toString());
+                            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(getActivity(), "Uri Not available", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(getActivity(), "Internet not available", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, 50, 1);
             params.setMargins(20, 0, 0, 0);
             imageButton.setLayoutParams(params);
@@ -158,5 +183,10 @@ public class FillFormsFragment extends Fragment {
 
     }
 
+    public static boolean isDataConnectionAvailable(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+    }
 
 }
