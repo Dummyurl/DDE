@@ -1,8 +1,10 @@
 package pratham.dde.activities;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -28,6 +30,7 @@ import pratham.dde.R;
 import pratham.dde.domain.Status;
 import pratham.dde.domain.User;
 import pratham.dde.services.SyncUtility;
+import pratham.dde.utils.PermissionResult;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.utils.Utility.isTokenValid;
@@ -38,7 +41,6 @@ public class MainActivity extends BaseActivity {
     TextView input_email;
     @BindView(R.id.input_password)
     TextView input_password;
-
     Context mContext;
     Dialog dialog;
 
@@ -48,10 +50,13 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         mContext = MainActivity.this;
         ButterKnife.bind(this);
+        startApp();
+    }
+
+    private void startApp() {
         dialog = new ProgressDialog(mContext);
         if (appDatabase.getStatusDao().getValueByKey("LastPulledDate") == null)
             initialiseStatusTable();
-      /*  Log.d("tags", appDatabase.getStatusDao().getStatus().toString());*/
         input_email.setText("prathamdde@dde.com");
         input_password.setText("Admin@1234");
     }
@@ -176,7 +181,7 @@ public class MainActivity extends BaseActivity {
                 }
             });
         } else {
-            Toast.makeText(mContext, "Internate not available", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "Internet not available", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -238,4 +243,19 @@ public class MainActivity extends BaseActivity {
         intent.putExtra("password", password);
         startActivity(intent);
     }
+
+   /* @Override
+    public void permissionGranted() {
+        startApp();
+    }
+
+    @Override
+    public void permissionDenied() {
+        showPermissionWarningDilog();
+    }
+
+    @Override
+    public void permissionForeverDenied() {
+        showPermissionWarningDilog();
+    }*/
 }

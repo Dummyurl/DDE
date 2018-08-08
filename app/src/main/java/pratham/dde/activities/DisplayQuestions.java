@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -64,6 +65,7 @@ import java.util.Set;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import pratham.dde.BaseActivity;
 import pratham.dde.R;
 import pratham.dde.customViews.ChooseImageDialog;
 import pratham.dde.domain.AnswerJSonArrays;
@@ -72,12 +74,13 @@ import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleTable;
 import pratham.dde.interfaces.FillAgainListner;
 import pratham.dde.services.SyncUtility;
+import pratham.dde.utils.PermissionResult;
+import pratham.dde.utils.PermissionUtils;
 import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
 
-import static pratham.dde.BaseActivity.appDatabase;
 
-public class DisplayQuestions extends AppCompatActivity implements FillAgainListner {
+public class DisplayQuestions extends BaseActivity implements FillAgainListner, PermissionResult {
     @BindView(R.id.homeButton)
     ImageView homeButton;
     @BindView(R.id.formNameHeader)
@@ -106,6 +109,20 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_questions);
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+            String[] permissionArray = new String[]{
+                    PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE,
+                    PermissionUtils.Manifest_CAMERA};
+
+            if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
+                askCompactPermissions(permissionArray, this);
+            } else
+                proceedFurther();
+        } else
+            proceedFurther();
+    }
+
+    private void proceedFurther() {
         formId = getIntent().getStringExtra("formId");
         userId = getIntent().getStringExtra("userId");
         entryID = getIntent().getStringExtra("entryId");
@@ -469,7 +486,7 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
                         JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
                         if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
                             ans = ansObject.get("Answers").getAsString();
-                            Bitmap bmp = BitmapFactory.decodeFile(path+"/"+ans);
+                            Bitmap bmp = BitmapFactory.decodeFile(path + "/" + ans);
                             selectedImageTemp.setImageBitmap(bmp);
                             dde_questions.setAnswer(ans);
                         }
@@ -493,7 +510,9 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
                             }
                         });
 
-                        chooseImageDialog.btn_choose_from_gallery.setOnClickListener(new View.OnClickListener() {
+                        chooseImageDialog.btn_choose_from_gallery.setOnClickListener(new View.OnClickListener()
+
+                        {
                             @Override
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
@@ -743,7 +762,9 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
         }
         renderAllQuestionsLayout.addView(layout);
         /*check dependency if depends then hide*/
-        if (depQueID.contains(dde_questions.getQuestionId())) {
+        if (depQueID.contains(dde_questions.getQuestionId()))
+
+        {
             layout.setVisibility(View.GONE);
         }
     }
@@ -1436,12 +1457,28 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
         return "" + Year + "/" + Month + "/" + Day;
     }
 
+    @Override
+    public void permissionGranted() {
+        proceedFurther();
+    }
+
+    @Override
+    public void permissionDenied() {
+        showPermissionWarningDilog();
+    }
+
+    @Override
+    public void permissionForeverDenied() {
+        showPermissionWarningDilog();
+    }
+
 
     class Sortbyroll implements Comparator<DDE_Questions> {
         // Used for sorting in ascending order of
         public int compare(DDE_Questions a, DDE_Questions b) {
             return a.getFieldSeqNo() - b.getFieldSeqNo();
         }
+
     }
 
     @Override
@@ -1511,5 +1548,23 @@ public class DisplayQuestions extends AppCompatActivity implements FillAgainList
         });
         alertDialog.show();
     }
+
+    private void showPermissionWarningDilog() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("Alert");
+        alertDialogBuilder.setMessage("Denying the permissions may cause in application failure." +
+                "\nPermissions can also be given through app settings.");
+
+        alertDialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                /*UPLOAD TO SERVER*/
+                dialog.dismiss();
+                proceedFurther();
+            }
+        });
+        alertDialogBuilder.show();
+    }
+
 
 }
