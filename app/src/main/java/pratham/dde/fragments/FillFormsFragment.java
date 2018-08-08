@@ -3,11 +3,14 @@ package pratham.dde.fragments;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,10 +45,13 @@ public class FillFormsFragment extends Fragment {
     @BindView(R.id.forms)
     LinearLayout linearLayout;
     String formPassword;
+    DisplayMetrics displaymetrics;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        displaymetrics = new DisplayMetrics();
         if (getArguments() != null) {
             userName = getArguments().getString("userName");
             password = getArguments().getString("password");
@@ -82,11 +88,34 @@ public class FillFormsFragment extends Fragment {
 
     /*Display forms names on screen*/
     private void updateUI() {
+        int height = 0;
+        int parentHeight = 0;
 
+        Configuration config = getResources().getConfiguration();
+        if (config.smallestScreenWidthDp < 320) {
+            height = 155;
+            parentHeight = 185;
+        } else if (config.smallestScreenWidthDp > 320 && config.smallestScreenWidthDp < 480) {
+            height =120;
+            parentHeight = 150;
+        } else if (config.smallestScreenWidthDp >= 480 && config.smallestScreenWidthDp < 600) {
+            height = 85;
+            parentHeight = 105;
+        } else if (config.smallestScreenWidthDp >= 600)
+        {
+            height = 50;
+            parentHeight =60;
+        }
+
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, height, 1);
+        params.setMargins(20, 0, 20, 0);
+        LinearLayout.LayoutParams paramsParent = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, parentHeight);
+        paramsParent.setMargins(0, 5, 0, 5);
         for (int i = 0; i < forms.size(); i++) {
             LinearLayout layout = new LinearLayout(getActivity());
-            layout.setPadding(20, 10, 20, 10);
-
+            layout.setPadding(20, 5, 20, 5);
+            layout.setLayoutParams(paramsParent);
             FormattedTextView textView = new FormattedTextView(getActivity());
             textView.setId(forms.get(i).getFormid());
             textView.setText(forms.get(i).getFormname());
@@ -120,8 +149,6 @@ public class FillFormsFragment extends Fragment {
                     }
                 }
             });
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, 50, 1);
-            params.setMargins(20, 0, 0, 0);
             imageButton.setLayoutParams(params);
             layout.addView(imageButton);
             linearLayout.addView(layout);
@@ -189,4 +216,10 @@ public class FillFormsFragment extends Fragment {
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
     }
 
+    public float pxToDp(int pixels) {
+        Resources resource = this.getResources();
+
+        float dp = pixels / (resource.getDisplayMetrics().densityDpi / 160f);
+        return dp;
+    }
 }

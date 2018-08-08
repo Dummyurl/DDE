@@ -59,9 +59,9 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        input_email.setText("");
+       /* input_email.setText("");
         input_password.setText("");
-        input_email.requestFocus();
+        input_email.requestFocus();*/
     }
 
     private void initialiseStatusTable() {
