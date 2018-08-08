@@ -1,6 +1,5 @@
-package pratham.dde;
+package pratham.dde.utils;
 
-import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,34 +9,33 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import pratham.dde.database.AppDatabase;
-import pratham.dde.utils.PermissionResult;
+/**
+ * Created by HP on 31-12-2016.
+ */
 
-public class BaseActivity extends AppCompatActivity {
+@SuppressWarnings({"MissingPermission"})
+public class ActivityManagePermission extends AppCompatActivity {
 
-    public static AppDatabase appDatabase;
+
     private final int KEY_PERMISSION = 200;
     private PermissionResult permissionResult;
     private String permissionsAsk[];
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        appDatabase = Room.databaseBuilder(this,
-                AppDatabase.class, AppDatabase.DB_NAME)
-                .allowMainThreadQueries()
-                .build();
     }
 
-    protected void closeDatabase() {
-        appDatabase.close();
-    }
-
+    /**
+     * @param context    current Context
+     * @param permission String permission to ask
+     * @return boolean true/false
+     */
     public boolean isPermissionGranted(Context context, String permission) {
         boolean granted = ((Build.VERSION.SDK_INT < Build.VERSION_CODES.M) || (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED));
         return granted;
@@ -48,7 +46,7 @@ public class BaseActivity extends AppCompatActivity {
      * @param permissions String[] permission to ask
      * @return boolean true/false
      */
-    public boolean isPermissionsGranted(Context context, String permissions[]) {
+    public static boolean isPermissionsGranted(Context context, String permissions[]) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
             return true;
 
@@ -68,7 +66,7 @@ public class BaseActivity extends AppCompatActivity {
         ArrayList<String> permissionsNotGranted = new ArrayList<>();
 
         for (int i = 0; i < permissionAsk.length; i++) {
-            if (!isPermissionGranted(BaseActivity.this, permissionAsk[i])) {
+            if (!isPermissionGranted(ActivityManagePermission.this, permissionAsk[i])) {
                 permissionsNotGranted.add(permissionAsk[i]);
             }
         }
@@ -83,7 +81,7 @@ public class BaseActivity extends AppCompatActivity {
 
             arrayPermissionNotGranted = new String[permissionsNotGranted.size()];
             arrayPermissionNotGranted = permissionsNotGranted.toArray(arrayPermissionNotGranted);
-            ActivityCompat.requestPermissions(BaseActivity.this, arrayPermissionNotGranted, KEY_PERMISSION);
+            ActivityCompat.requestPermissions(ActivityManagePermission.this, arrayPermissionNotGranted, KEY_PERMISSION);
 
         }
 
@@ -147,6 +145,7 @@ public class BaseActivity extends AppCompatActivity {
         permissionsAsk = permissions;
         this.permissionResult = permissionResult;
         internalRequestPermission(permissionsAsk);
+
     }
 
     public void openSettingsApp(Context context) {
@@ -156,5 +155,8 @@ public class BaseActivity extends AppCompatActivity {
             intent.setData(Uri.parse("package:" + context.getPackageName()));
             startActivity(intent);
         }
+
+
     }
+
 }
