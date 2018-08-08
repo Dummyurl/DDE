@@ -16,7 +16,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -502,11 +501,26 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             @Override
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
-                                imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
-                                dde_questions.setAnswer(imageName);
-                                selectedImage = selectedImageTemp;
-                                Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                startActivityForResult(takePicture, CAPTURE_IMAGE);
+                                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+                                    String[] permissionArray = new String[]{
+                                            PermissionUtils.Manifest_CAMERA};
+
+                                    if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
+                                        Toast.makeText(DisplayQuestions.this, "Give Camera permissions through settings and restart the app.", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
+                                        dde_questions.setAnswer(imageName);
+                                        selectedImage = selectedImageTemp;
+                                        Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                        startActivityForResult(takePicture, CAPTURE_IMAGE);
+                                    }
+                                } else {
+                                    imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
+                                    dde_questions.setAnswer(imageName);
+                                    selectedImage = selectedImageTemp;
+                                    Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                    startActivityForResult(takePicture, CAPTURE_IMAGE);
+                                }
                             }
                         });
 
@@ -516,13 +530,30 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             @Override
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
-                                imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
-                                dde_questions.setAnswer(imageName);
-                                selectedImage = selectedImageTemp;
-                                Intent intent = new Intent();
-                                intent.setType("image/*");
-                                intent.setAction(Intent.ACTION_GET_CONTENT);
-                                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_FROM_GALLERY);
+                                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+                                    String[] permissionArray = new String[]{
+                                            PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE};
+
+                                    if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
+                                        Toast.makeText(DisplayQuestions.this, "Give Storage permissions through settings and restart the app.", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
+                                        dde_questions.setAnswer(imageName);
+                                        selectedImage = selectedImageTemp;
+                                        Intent intent = new Intent();
+                                        intent.setType("image/*");
+                                        intent.setAction(Intent.ACTION_GET_CONTENT);
+                                        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_FROM_GALLERY);
+                                    }
+                                } else {
+                                    imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
+                                    dde_questions.setAnswer(imageName);
+                                    selectedImage = selectedImageTemp;
+                                    Intent intent = new Intent();
+                                    intent.setType("image/*");
+                                    intent.setAction(Intent.ACTION_GET_CONTENT);
+                                    startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_FROM_GALLERY);
+                                }
                             }
                         });
 
