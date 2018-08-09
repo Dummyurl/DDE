@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import pratham.dde.database.AppDatabase;
+import pratham.dde.database.BackupDatabase;
 import pratham.dde.utils.PermissionResult;
 
 public class BaseActivity extends AppCompatActivity {
@@ -32,6 +33,12 @@ public class BaseActivity extends AppCompatActivity {
                 AppDatabase.class, AppDatabase.DB_NAME)
                 .allowMainThreadQueries()
                 .build();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        BackupDatabase.backup(this);
     }
 
     protected void closeDatabase() {

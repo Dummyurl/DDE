@@ -112,7 +112,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             String[] permissionArray = new String[]{
                     PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE,
                     PermissionUtils.Manifest_CAMERA};
-
             if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
                 askCompactPermissions(permissionArray, this);
             } else
@@ -334,6 +333,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             case "number":
                 final EditText number = new EditText(this);
                 number.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                number.setPadding(15, 5, 5, 5);
 
                 for (int i = 1; i < validationArray.size(); i++) {
                     JsonObject jsonObject = validationArray.get(i).getAsJsonObject();

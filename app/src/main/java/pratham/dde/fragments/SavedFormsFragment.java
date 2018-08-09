@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -72,13 +73,13 @@ public class SavedFormsFragment extends android.app.Fragment {
     }
 
     private void showOldSavedForm() {
-        // pass user to veryfy
+        // pass user to verify
         List distinctEntrys = appDatabase.getAnswerDao().getDistinctEntrys(userID, 0);
         if (distinctEntrys != null && distinctEntrys.size() > 0) {
             title.setText("Saved forms");
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             params.setMargins(20, 10, 20, 10);
-            LinearLayout.LayoutParams paramsLeft = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 6);
+            LinearLayout.LayoutParams paramsLeft = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.FILL_PARENT, 6);
             LinearLayout.LayoutParams paramsRight = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 2);
             LinearLayout.LayoutParams textViewParam = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1);
             LinearLayout.LayoutParams imageViewParam = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
@@ -97,7 +98,9 @@ public class SavedFormsFragment extends android.app.Fragment {
                 /*SET FORM NAME*/
                 TextView formName = new TextView(getActivity());
                 formName.setLayoutParams(textViewParam);
-                formName.setTextSize(1, 22);
+                formName.setTextSize(1, 20);
+                formName.setAllCaps(true);
+                formName.setTypeface(null, Typeface.BOLD_ITALIC);
                 formName.setText(appDatabase.getDDE_FormsDao().getFormName(answersSingleForm.getFormId()));
                 /*SET FORM DATE*/
                 TextView formDate = new TextView(getActivity());

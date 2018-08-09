@@ -308,16 +308,18 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
         alertDialogBuilder.setPositiveButton("Reload", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
+            public void onClick(DialogInterface dialogHere, int which) {
+                dialogHere.dismiss();
+                Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
                 getQuestionsAndData(forms[formIndex].getFormid());
             }
         });
 
         alertDialogBuilder.setNegativeButton("Skip", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
+            public void onClick(DialogInterface dialogHere, int which) {
+                dialogHere.dismiss();
+                Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
                 formIndex++;
                 getQuestionsAndData(forms[formIndex].getFormid());
             }
@@ -334,7 +336,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             //fetchQuestionsSourceData();
         }
     }
-
 
     private void saveQuestion(JSONObject response) {
         try {
@@ -365,6 +366,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
                 formId = response.getJSONObject("Formdata").getString("formid");
                 appDatabase.getDDE_FormsDao().updatePulledDate(formId, "" + Utility.getCurrentDateTime());
+            } else {
+                appDatabase.getDDE_FormsDao().updatePulledDate(response.getJSONObject("Formdata").getString("formid"), "" + Utility.getCurrentDateTime());
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -419,8 +422,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         dde_form.setFormpassword(tempObj.getString("formpassword"));
                         dde_form.setProgramid(tempObj.getString("programid"));
                         dde_form.setTablename(tempObj.getString("tablename"));
-                        //dde_form.setUpdateddate(tempObj.getString("updateddate"));
-                        // dde_form.setPulledDateTime(Utility.getCurrentDateTime());
                         String pulledDateString = appDatabase.getDDE_FormsDao().getPulledDateTimeByFormID(tempObj.getString("formid"));
                         if (pulledDateString == null) {
                             unUpdatedForms = unUpdatedForms + tempObj.getString("formname") + "\n";
@@ -435,7 +436,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                             if (pulledDateDate.compareTo(update) < 0) {
                                 unUpdatedForms = unUpdatedForms + tempObj.getString("formname") + "\n";
                             }
-
+                            dde_form.setPulledDateTime(pulledDateString);
                         }
                         dde_forms[i] = dde_form;
                     }
@@ -508,6 +509,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     @Override
     public void fillAgainForm(boolean value) {
-        // Toast.makeText(mContext, "Uploaded Successfully", Toast.LENGTH_SHORT).show();
+        showSavedOldForms();
     }
 }
