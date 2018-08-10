@@ -1,10 +1,8 @@
 package pratham.dde.activities;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -128,11 +126,17 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onError(ANError error) {
                     Utility.dismissDialog(dialog);
-                    Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                    try {
+                        String errorBody = error.getErrorBody();
+                        Toast.makeText(MainActivity.this, "" + new JSONObject(errorBody).getString("error_description"), Toast.LENGTH_LONG).show();
+                    } catch (JSONException e) {
+                        Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
                 }
             });
         } else {
-            Toast.makeText(mContext, "Internet not available", Toast.LENGTH_SHORT);
+            Toast.makeText(this, "Internet not available", Toast.LENGTH_SHORT).show();
         }
     }
 

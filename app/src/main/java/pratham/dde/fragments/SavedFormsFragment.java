@@ -116,7 +116,7 @@ public class SavedFormsFragment extends android.app.Fragment {
                 right.setTag(answersSingleForm.getEntryId());
                 /*SET EDIT FORM OPTION*/
                 final ImageView editForm = new ImageView(getActivity());
-                editForm.setImageResource(R.drawable.edit_black);
+                editForm.setImageResource(R.drawable.edit_green);
                 editForm.setLayoutParams(imageViewParam);
                 editForm.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -198,11 +198,8 @@ public class SavedFormsFragment extends android.app.Fragment {
         }
     }
 
-
     @OnClick(R.id.fab)
     public void edit() {
         fabInterface.fabOnClick();
     }
-
-
 }
