@@ -508,6 +508,31 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     }
 
     @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+
+        final AlertDialog.Builder alertDialog=new AlertDialog.Builder(this);
+        alertDialog.setTitle("Warning..!!");
+        alertDialog.setMessage("Do you really want to logout?");
+        alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                finish();
+            }
+        });
+
+        alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        alertDialog.show();
+    }
+
+    @Override
     public void fillAgainForm(boolean value) {
         showSavedOldForms();
     }
