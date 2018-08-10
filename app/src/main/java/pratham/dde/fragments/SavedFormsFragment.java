@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -75,16 +76,22 @@ public class SavedFormsFragment extends android.app.Fragment {
     private void showOldSavedForm() {
         // pass user to verify
         List distinctEntrys = appDatabase.getAnswerDao().getDistinctEntrys(userID, 0);
+        List temp = appDatabase.getAnswerDao().getDistinctEntrys(userID, 1);
+        if (temp.size() > 0) {
+            distinctEntrys.addAll(temp);
+        }
+
         if (distinctEntrys != null && distinctEntrys.size() > 0) {
             title.setText("Saved forms");
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             params.setMargins(20, 10, 20, 10);
             LinearLayout.LayoutParams paramsLeft = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.FILL_PARENT, 6);
             LinearLayout.LayoutParams paramsRight = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 2);
-            LinearLayout.LayoutParams textViewParam = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1);
+            LinearLayout.LayoutParams textViewParam = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, 0, 1);
             LinearLayout.LayoutParams imageViewParam = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+            AnswersSingleForm answersSingleForm;
             for (int entryID = 0; distinctEntrys.size() > entryID; entryID++) {
-                AnswersSingleForm answersSingleForm = (AnswersSingleForm) distinctEntrys.get(entryID);
+                answersSingleForm = (AnswersSingleForm) distinctEntrys.get(entryID);
                 /*OUTER lINEAR LAYOUT*/
                 final LinearLayout linLayoutSingleEntry = new LinearLayout(getActivity());
                 linLayoutSingleEntry.setOrientation(LinearLayout.HORIZONTAL);
@@ -115,80 +122,90 @@ public class SavedFormsFragment extends android.app.Fragment {
                 right.setLayoutParams(paramsRight);
                 right.setTag(answersSingleForm.getEntryId());
                 /*SET EDIT FORM OPTION*/
-                final ImageView editForm = new ImageView(getActivity());
-                editForm.setImageResource(R.drawable.edit_green);
-                editForm.setLayoutParams(imageViewParam);
-                editForm.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-                        alertDialogBuilder.setTitle("Alert");
-                        alertDialogBuilder.setCancelable(false);
-                        alertDialogBuilder.setMessage("Do You Want To Edit Form ?");
+                if (answersSingleForm.getPushStatus() == 0) {
+                    final ImageView editForm = new ImageView(getActivity());
+                    editForm.setImageResource(R.drawable.edit_green);
+                    editForm.setLayoutParams(imageViewParam);
+                    editForm.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                            alertDialogBuilder.setTitle("Alert");
+                            alertDialogBuilder.setCancelable(false);
+                            alertDialogBuilder.setMessage("Do You Want To Edit Form ?");
 
-                        alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                String tagEntyId = right.getTag().toString();
-                                Intent intent = new Intent(getActivity(), DisplayQuestions.class);
-                                intent.putExtra("formId", appDatabase.getAnswerDao().getFormIDByEntryID(tagEntyId));
-                                intent.putExtra("userId", appDatabase.getAnswerDao().getUserIDByEntryID(tagEntyId));
-                                intent.putExtra("entryId", tagEntyId);
-                                intent.putExtra("formEdit", "true");
-                                startActivity(intent);
+                            alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    String tagEntyId = right.getTag().toString();
+                                    Intent intent = new Intent(getActivity(), DisplayQuestions.class);
+                                    intent.putExtra("formId", appDatabase.getAnswerDao().getFormIDByEntryID(tagEntyId));
+                                    intent.putExtra("userId", appDatabase.getAnswerDao().getUserIDByEntryID(tagEntyId));
+                                    intent.putExtra("entryId", tagEntyId);
+                                    intent.putExtra("formEdit", "true");
+                                    startActivity(intent);
 
-                            }
-                        });
+                                }
+                            });
 
-                        alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                        alertDialogBuilder.show();
-                    }
-                });
-                /*SET DELETE FORM OPTION*/
-                ImageView deleteForm = new ImageView(getActivity());
-                deleteForm.setImageResource(R.drawable.delete_red);
-                deleteForm.setLayoutParams(imageViewParam);
-                deleteForm.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-                        alertDialogBuilder.setTitle("Alert");
-                        alertDialogBuilder.setCancelable(false);
-                        alertDialogBuilder.setMessage("Do You Want To Delete Form ?");
+                            alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            alertDialogBuilder.show();
+                        }
+                    });
+                    /*SET DELETE FORM OPTION*/
+                    ImageView deleteForm = new ImageView(getActivity());
+                    deleteForm.setImageResource(R.drawable.delete_red);
+                    deleteForm.setLayoutParams(imageViewParam);
+                    deleteForm.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                            alertDialogBuilder.setTitle("Alert");
+                            alertDialogBuilder.setCancelable(false);
+                            alertDialogBuilder.setMessage("Do You Want To Delete Form ?");
 
-                        alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                appDatabase.getAnswerDao().deleteAnswerEntryByEntryID(right.getTag().toString());
-                                Animation slide = AnimationUtils.loadAnimation(getActivity(), R.anim.slide);
-                                linLayoutSingleEntry.startAnimation(slide);
-                                Handler handler = new Handler();
-                                handler.postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        linLayoutSingleEntry.setVisibility(View.GONE);
-                                    }
-                                }, 1000);
-                            }
-                        });
+                            alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    appDatabase.getAnswerDao().deleteAnswerEntryByEntryID(right.getTag().toString());
+                                    Animation slide = AnimationUtils.loadAnimation(getActivity(), R.anim.slide);
+                                    linLayoutSingleEntry.startAnimation(slide);
+                                    Handler handler = new Handler();
+                                    handler.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            linLayoutSingleEntry.setVisibility(View.GONE);
+                                        }
+                                    }, 1000);
+                                }
+                            });
 
-                        alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                        alertDialogBuilder.show();
-                    }
-                });
-                right.addView(editForm);
-                right.addView(deleteForm);
-
+                            alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            alertDialogBuilder.show();
+                        }
+                    });
+                    right.addView(editForm);
+                    right.addView(deleteForm);
+                } else {
+                    TextView uploading = new TextView(getActivity());
+                    uploading.setText("In Uploading Queue");
+                    uploading.setLayoutParams(imageViewParam);
+                    uploading.setTextSize(1, 20);
+                    uploading.setTypeface(null, Typeface.ITALIC);
+                    uploading.setTextColor(Color.parseColor("#FF5733"));
+                  //  right.setBackgroundColor(Color.parseColor("#DAF7A6"));
+                    right.addView(uploading);
+                }
                 linLayoutSingleEntry.addView(left);
                 linLayoutSingleEntry.addView(right);
                 linearlayout.addView(linLayoutSingleEntry);
