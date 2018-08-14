@@ -109,15 +109,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_questions);
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-            String[] permissionArray = new String[]{
-                    PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE,
-                    PermissionUtils.Manifest_CAMERA};
+            String[] permissionArray = new String[]{PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE, PermissionUtils.Manifest_CAMERA};
             if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
                 askCompactPermissions(permissionArray, this);
-            } else
-                proceedFurther();
-        } else
-            proceedFurther();
+            } else proceedFurther();
+        } else proceedFurther();
     }
 
     private void proceedFurther() {
@@ -154,6 +150,12 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         }
         for (int i = 0; i < formIdWiseQuestions.size(); i++) {
             displaySingleQue(formIdWiseQuestions.get(i));
+        }
+        if (editFormFlag) {
+            for (int i = 0; i < formIdWiseQuestions.size(); i++) {
+                DDE_Questions dde_que = formIdWiseQuestions.get(i);
+                checkRuleCondition(dde_que.getQuestionId(), dde_que.getAnswer(), dde_que.getQuestionType());
+            }
         }
     }
 
@@ -260,8 +262,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                 if (ans.equalsIgnoreCase(text)) {
                                     radioButton.setChecked(true);
                                     dde_questions.setAnswer(ans);
-                                    String tag = (String) layout.getTag();
-                                    checkRuleCondition(tag, ans, "singlechoice");
+                                    //  String tag = (String) layout.getTag();
+                                    // checkRuleCondition(tag, ans, "singlechoice");
                                 }
                             }
                         }
@@ -359,8 +361,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             String ans = ansObject.get("Answers").getAsString();
                             number.setText(ans);
                             dde_questions.setAnswer(ans);
-                            String tag = (String) layout.getTag();
-                            checkRuleCondition(tag, ans, "number");
+                          /*  String tag = (String) layout.getTag();
+                            checkRuleCondition(tag, ans, "number");*/
                         }
                     }
                 } else {
@@ -502,8 +504,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
                                 if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-                                    String[] permissionArray = new String[]{
-                                            PermissionUtils.Manifest_CAMERA};
+                                    String[] permissionArray = new String[]{PermissionUtils.Manifest_CAMERA};
 
                                     if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
                                         Toast.makeText(DisplayQuestions.this, "Give Camera permissions through settings and restart the app.", Toast.LENGTH_SHORT).show();
@@ -531,8 +532,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
                                 if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-                                    String[] permissionArray = new String[]{
-                                            PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE};
+                                    String[] permissionArray = new String[]{PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE};
 
                                     if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
                                         Toast.makeText(DisplayQuestions.this, "Give Storage permissions through settings and restart the app.", Toast.LENGTH_SHORT).show();
@@ -611,7 +611,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         datePicker.init(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth(), new DatePicker.OnDateChangedListener() {
                             @Override
                             public void onDateChanged(DatePicker datePicker, int i, int i1, int i2) {
-                                Toast.makeText(DisplayQuestions.this, "Date changed", Toast.LENGTH_SHORT).show();
+                                // Toast.makeText(DisplayQuestions.this, "Date changed", Toast.LENGTH_SHORT).show();
                             }
                         });
                         Calendar c = Calendar.getInstance();
@@ -744,17 +744,15 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 spinnerDropdown.setAdapter(spinnerArrayAdapter);
                 spinnerDropdown.setLayoutParams(paramsWrapContaint);
                 if (editFormFlag) {
-                    if (editFormFlag) {
-                        String dest_column = dde_questions.getDestColumname();
-                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                                ans = ansObject.get("Answers").getAsString();
-                                int index = display.indexOf(ans);
-                                if (index != -1) {
-                                    spinnerDropdown.setSelection(index);
-                                    dde_questions.setAnswer(ans);
-                                }
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            ans = ansObject.get("Answers").getAsString();
+                            int index = display.indexOf(ans);
+                            if (index != -1) {
+                                spinnerDropdown.setSelection(index);
+                                dde_questions.setAnswer(ans);
                             }
                         }
                     }
@@ -927,10 +925,26 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     }
                     String showQueTag = allRules.get(i).getShowQuestionIdentifier();
                     LinearLayout layout = renderAllQuestionsLayout.findViewWithTag(showQueTag);
-                    if (conditionMatch(allRules.get(i).getConditionsMatch(), conditionId.size(), ConditionsSatisfied.size())) {
-                        layout.setVisibility(View.VISIBLE);
-                    } else {
-                        layout.setVisibility(View.GONE);
+                    if (layout != null) {
+                        if (conditionMatch(allRules.get(i).getConditionsMatch(), conditionId.size(), ConditionsSatisfied.size())) {
+                            layout.setVisibility(View.VISIBLE);
+                        } else {
+                            for (int queCnt = 0; queCnt < formIdWiseQuestions.size(); queCnt++) {
+                                if (formIdWiseQuestions.get(queCnt).getQuestionId().equals(showQueTag)) {
+                                    formIdWiseQuestions.get(queCnt).setAnswer("");
+                                    break;
+                                }
+                            }
+                            layout.setVisibility(View.GONE);
+                            View view = layout.getChildAt(1);
+                            layout.getTag();
+                            if (view instanceof EditText) {
+                                ((EditText) view).setText("");
+                            } else if (view instanceof LinearLayout) {
+                                ImageView imageView = (ImageView) ((LinearLayout) view).getChildAt(1);
+                                (imageView).setImageResource(android.R.color.transparent);
+                            }
+                        }
                     }
                 }
             }
@@ -960,7 +974,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         int answerMatch = 0;
         String[] splittedAnswer = null;
         if (queType.equalsIgnoreCase("number")) {
-            answer = Integer.parseInt(ans);
+            if (!ans.equals("")) answer = Integer.parseInt(ans);
             answerMatch = Integer.parseInt(answerFromJsonToMatch);
         } else {
             if (answerFromJsonToMatch.startsWith("[")) {
@@ -1215,7 +1229,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     return true;
                 case "MAXCHARACTERSALLOWED":
                 case "MAXLENGTH":
-                    // return answer.length() <= Integer.parseInt(validationValue) ? true : false;
                     if (answer.length() > Integer.parseInt(validationValue)) {
                         Toast.makeText(this, "Maximum Characters Allowed " + Integer.parseInt(validationValue), Toast.LENGTH_LONG).show();
                         return false;
@@ -1223,7 +1236,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     return true;
                 case "MINCHARACTERSALLOWED":
                 case "MINLENGTH":
-                    // return answer.length() >= Integer.parseInt(validationValue) ? true : false;
                     if (answer.length() < Integer.parseInt(validationValue)) {
                         Toast.makeText(this, "Minimum Characters Required " + Integer.parseInt(validationValue), Toast.LENGTH_LONG).show();
                         return false;
@@ -1232,7 +1244,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 case "MINRANGE":
                     switch (questionType) {
                         case "number":
-                            if (Integer.parseInt(answer) < Integer.parseInt(validationValue)) {
+                            if (answer.equals("")) {
+                                return true;
+                            } else if (Integer.parseInt(answer) < Integer.parseInt(validationValue)) {
                                 Toast.makeText(this, "Minimum Value  Required" + Integer.parseInt(validationValue), Toast.LENGTH_LONG).show();
                                 return false;
                             }
@@ -1240,189 +1254,217 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         case "date":
                             int minYear, minMonth, minDay;
                             try {
-                                JSONObject mindateJsonObject = new JSONObject(validationValue);
-                                minYear = mindateJsonObject.getInt("year");
-                                minMonth = mindateJsonObject.getInt("month");
-                                minDay = mindateJsonObject.getInt("day");
-                                String minRange = "" + minYear + "/" + minMonth + "/" + minDay;
+                                if (answer.equals("")) {
+                                    return true;
+                                } else {
+                                    JSONObject mindateJsonObject = new JSONObject(validationValue);
+                                    minYear = mindateJsonObject.getInt("year");
+                                    minMonth = mindateJsonObject.getInt("month");
+                                    minDay = mindateJsonObject.getInt("day");
+                                    String minRange = "" + minYear + "/" + minMonth + "/" + minDay;
 
-                                Date minRangeDate = new SimpleDateFormat("yyyy/mm/dd").parse(minRange);
-                                Date dateAns = new SimpleDateFormat("yyyy/mm/dd").parse(answer);
-                                if (minRangeDate.compareTo(dateAns) > 0) {
-                                    Toast.makeText(this, "Date Must Be After " + minRange, Toast.LENGTH_SHORT).show();
-                                    return false;
+                                    Date minRangeDate = new SimpleDateFormat("yyyy/mm/dd").parse(minRange);
+                                    Date dateAns = new SimpleDateFormat("yyyy/mm/dd").parse(answer);
+                                    if (minRangeDate.compareTo(dateAns) > 0) {
+                                        Toast.makeText(this, "Date Must Be After " + minRange, Toast.LENGTH_SHORT).show();
+                                        return false;
+                                    }
+                                    return true;
                                 }
-                                return true;
                             } catch (Exception e) {
+                                Toast.makeText(this, "Check Minimum date validations", Toast.LENGTH_SHORT).show();
                                 e.printStackTrace();
                                 return false;
-
-                                // return Integer.parseInt(answer) >= Integer.parseInt(validationValue) ? true : false;
                             }
                     }
                 case "MAXRANGE":
                     switch (questionType) {
                         case "number":
-                            // return Integer.parseInt(answer) <= Integer.parseInt(validationValue) ? true : false;
-                            if (Integer.parseInt(answer) > Integer.parseInt(validationValue)) {
+                            if (answer.equals("")) {
+                                return true;
+                            } else if (Integer.parseInt(answer) > Integer.parseInt(validationValue)) {
                                 Toast.makeText(this, "Maximum Value Allowed " + Integer.parseInt(validationValue), Toast.LENGTH_LONG).show();
                                 return false;
                             }
                             return true;
                         case "date":
                             try {
-                                int maxYear, maxMonth, maxDay;
-                                JSONObject maxdateJsonObject = new JSONObject(validationValue);
-                                maxYear = maxdateJsonObject.getInt("year");
-                                maxMonth = maxdateJsonObject.getInt("month");
-                                maxDay = maxdateJsonObject.getInt("day");
+                                if (answer.equals("")) {
+                                    return true;
+                                } else {
+                                    int maxYear, maxMonth, maxDay;
+                                    JSONObject maxdateJsonObject = new JSONObject(validationValue);
+                                    maxYear = maxdateJsonObject.getInt("year");
+                                    maxMonth = maxdateJsonObject.getInt("month");
+                                    maxDay = maxdateJsonObject.getInt("day");
 
-                                String maxRange = "" + maxYear + "/" + maxMonth + "/" + maxDay;
+                                    String maxRange = "" + maxYear + "/" + maxMonth + "/" + maxDay;
 
-                                Date maxRangeDate = new SimpleDateFormat("yyyy/dd/mm").parse(maxRange);
-                                Date dateAns = new SimpleDateFormat("yyyy/dd/mm").parse(answer);
-                                if (maxRangeDate.compareTo(dateAns) < 0) {
-                                    Toast.makeText(this, "Date Must Be Before " + maxRange, Toast.LENGTH_SHORT).show();
-                                    return false;
+                                    Date maxRangeDate = new SimpleDateFormat("yyyy/dd/mm").parse(maxRange);
+                                    Date dateAns = new SimpleDateFormat("yyyy/dd/mm").parse(answer);
+                                    if (maxRangeDate.compareTo(dateAns) < 0) {
+                                        Toast.makeText(this, "Date Must Be Before " + maxRange, Toast.LENGTH_SHORT).show();
+                                        return false;
+                                    }
+                                    return true;
                                 }
-                                return true;
                             } catch (Exception e) {
+                                Toast.makeText(this, "Check Minimum date validations", Toast.LENGTH_SHORT).show();
                                 e.printStackTrace();
                                 return false;
                             }
                     }
-
                 case "DEPENDSON":
                     switch (questionType) {
                         case "number":
-                            EditText dependentQue = renderAllQuestionsLayout.findViewWithTag("ans" + validationValue);
-                            int ans = Integer.parseInt(dependentQue.getText().toString());
-                            switch (validationType) {
-                                case "<":
-                                    if ((Integer.parseInt(answer) >= ans)) {
-                                        Toast.makeText(this, "Must be Smaller Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
-                                        return false;
-                                    }
-                                    return true;
-                                case ">":
-                                    if ((Integer.parseInt(answer) <= ans)) {
-                                        Toast.makeText(this, "Must be Greater Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
-                                        return false;
-                                    }
-                                    return true;
-                                case "=":
-                                    if ((Integer.parseInt(answer) != ans)) {
-                                        Toast.makeText(this, "Must be Equal To " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
-                                        return false;
-                                    }
-                                    return true;
-                                case "<=":
-                                    if ((Integer.parseInt(answer) > ans)) {
-                                        Toast.makeText(this, "Must be Smaller Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
-                                        return false;
-                                    }
-                                    return true;
-                                case ">=":
-                                    if ((Integer.parseInt(answer) < ans)) {
-                                        Toast.makeText(this, "Must be Greater Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
-                                        return false;
-                                    }
-                                    return true;
-                                default:
-                                    return true;
-                            }
-                        case "date":
-                            TextView dependentDate = renderAllQuestionsLayout.findViewWithTag("ans" + validationValue);
-                            try {
-                                Date dependentAns = new SimpleDateFormat("yyyy/MM/DD").parse(dependentDate.getText().toString());
-                                Date dependingAns = new SimpleDateFormat("yyyy/MM/DD").parse(answer);
-
-
+                            EditText ansOfDependentQue = renderAllQuestionsLayout.findViewWithTag("ans" + validationValue);
+                            if (answer.equals("")) {
+                                return true;
+                            } else if (ansOfDependentQue.getText().toString().equals("")) {
+                                Toast.makeText(this, "Answer of " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText() + " is empty", Toast.LENGTH_SHORT).show();
+                                return false;
+                            } else {
+                                int ans = Integer.parseInt(ansOfDependentQue.getText().toString());
                                 switch (validationType) {
                                     case "<":
-                                        if (dependingAns.compareTo(dependentAns) >= 0) {
-                                            Toast.makeText(this, "Must be Before " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        if ((Integer.parseInt(answer) >= ans)) {
+                                            Toast.makeText(this, "Must be Smaller Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                             return false;
                                         }
                                         return true;
                                     case ">":
-                                        if (dependingAns.compareTo(dependentAns) <= 0) {
-                                            Toast.makeText(this, "Must be After " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        if ((Integer.parseInt(answer) <= ans)) {
+                                            Toast.makeText(this, "Must be Greater Than " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                             return false;
                                         }
                                         return true;
                                     case "=":
-                                        if (dependingAns.compareTo(dependentAns) != 0) {
-                                            Toast.makeText(this, "Must be Equal to " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        if ((Integer.parseInt(answer) != ans)) {
+                                            Toast.makeText(this, "Must be Equal To " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                             return false;
                                         }
                                         return true;
                                     case "<=":
-                                        if (dependingAns.compareTo(dependentAns) > 0) {
-                                            Toast.makeText(this, "Must be Before Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        if ((Integer.parseInt(answer) > ans)) {
+                                            Toast.makeText(this, "Must be Smaller Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                             return false;
                                         }
                                         return true;
                                     case ">=":
-                                        if (dependingAns.compareTo(dependentAns) < 0) {
-                                            Toast.makeText(this, "Must be After Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                        if ((Integer.parseInt(answer) < ans)) {
+                                            Toast.makeText(this, "Must be Greater Than Or Equal To" + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText(), Toast.LENGTH_LONG).show();
                                             return false;
                                         }
                                         return true;
                                     default:
                                         return true;
                                 }
+                            }
+                        case "date":
+                            TextView dependentDate = renderAllQuestionsLayout.findViewWithTag("ans" + validationValue);
+                            try {
+                                if (answer.equals("")) {
+                                    return true;
+                                } else if (dependentDate.getText().toString().equals("Select Date")) {
+                                    Toast.makeText(this, "Answer of " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText() + " is empty", Toast.LENGTH_SHORT).show();
+                                    return false;
+                                } else {
+                                    Date dependentAns = new SimpleDateFormat("yyyy/MM/DD").parse(dependentDate.getText().toString());
+                                    Date dependingAns = new SimpleDateFormat("yyyy/MM/DD").parse(answer);
+
+                                    switch (validationType) {
+                                        case "<":
+                                            if (dependingAns.compareTo(dependentAns) >= 0) {
+                                                Toast.makeText(this, "Must be Before " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                                return false;
+                                            }
+                                            return true;
+                                        case ">":
+                                            if (dependingAns.compareTo(dependentAns) <= 0) {
+                                                Toast.makeText(this, "Must be After " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                                return false;
+                                            }
+                                            return true;
+                                        case "=":
+                                            if (dependingAns.compareTo(dependentAns) != 0) {
+                                                Toast.makeText(this, "Must be Equal to " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                                return false;
+                                            }
+                                            return true;
+                                        case "<=":
+                                            if (dependingAns.compareTo(dependentAns) > 0) {
+                                                Toast.makeText(this, "Must be Before Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                                return false;
+                                            }
+                                            return true;
+                                        case ">=":
+                                            if (dependingAns.compareTo(dependentAns) < 0) {
+                                                Toast.makeText(this, "Must be After Or equal TO " + dependentDate.getText().toString(), Toast.LENGTH_LONG).show();
+                                                return false;
+                                            }
+                                            return true;
+                                        default:
+                                            return true;
+                                    }
+                                }
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                                return false;
+                            }
+
+                        case "time":
+                            TextView dependentTime = renderAllQuestionsLayout.findViewWithTag("ans" + validationValue);
+                            try {
+                                if (answer.equals("")) {
+                                    return true;
+                                } else if (dependentTime.getText().toString().equals("Select Time")) {
+                                    Toast.makeText(this, "Answer of " + ((TextView) renderAllQuestionsLayout.findViewWithTag("que" + validationValue)).getText() + " is empty", Toast.LENGTH_SHORT).show();
+                                    return false;
+                                } else {
+                                    Date dependentAns = new SimpleDateFormat("hh:mm aa").parse(dependentTime.getText().toString());
+                                    Date dependingAns = new SimpleDateFormat("hh:mm aa").parse(answer);
+
+
+                                    switch (validationType) {
+                                        case "<":
+                                            if (dependingAns.compareTo(dependentAns) >= 0) {
+                                                Toast.makeText(this, "Time must be before " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
+                                                return false;
+                                            }
+                                            return true;
+                                        case ">":
+                                            if (dependingAns.compareTo(dependentAns) <= 0) {
+                                                Toast.makeText(this, "Time must be after " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
+                                                return false;
+                                            }
+                                            return true;
+                                        case "=":
+                                            if (dependingAns.compareTo(dependentAns) != 0) {
+                                                Toast.makeText(this, "Time must be equal to " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
+                                                return false;
+                                            }
+                                            return true;
+                                        case "<=":
+                                            if (dependingAns.compareTo(dependentAns) > 0) {
+                                                Toast.makeText(this, "Time must be before or equal to " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
+                                                return false;
+                                            }
+                                            return true;
+                                        case ">=":
+                                            if (dependingAns.compareTo(dependentAns) < 0) {
+                                                Toast.makeText(this, "Time must be after or equal to " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
+                                                return false;
+                                            }
+                                            return true;
+                                        default:
+                                            return true;
+                                    }
+                                }
                             } catch (ParseException e) {
                                 e.printStackTrace();
                                 return false;
                             }
                     }
-                case "time":
-                    TextView dependentTime = renderAllQuestionsLayout.findViewWithTag("ans" + validationValue);
-                    try {
-                        Date dependentAns = new SimpleDateFormat("hh:mm aa").parse(dependentTime.getText().toString());
-                        Date dependingAns = new SimpleDateFormat("hh:mm aa").parse(answer);
-
-
-                        switch (validationType) {
-                            case "<":
-                                if (dependingAns.compareTo(dependentAns) >= 0) {
-                                    Toast.makeText(this, "Time must be before " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
-                                    return false;
-                                }
-                                return true;
-                            case ">":
-                                if (dependingAns.compareTo(dependentAns) <= 0) {
-                                    Toast.makeText(this, "Time must be after " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
-                                    return false;
-                                }
-                                return true;
-                            case "=":
-                                if (dependingAns.compareTo(dependentAns) != 0) {
-                                    Toast.makeText(this, "Time must be equal to " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
-                                    return false;
-                                }
-                                return true;
-                            case "<=":
-                                if (dependingAns.compareTo(dependentAns) > 0) {
-                                    Toast.makeText(this, "Time must be before or equal to " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
-                                    return false;
-                                }
-                                return true;
-                            case ">=":
-                                if (dependingAns.compareTo(dependentAns) < 0) {
-                                    Toast.makeText(this, "Time must be after or equal to " + dependentTime.getText().toString(), Toast.LENGTH_SHORT).show();
-                                    return false;
-                                }
-                                return true;
-                            default:
-                                return true;
-                        }
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                        return false;
-                    }
-
                 case "ALLOWDECIMAL":
                     int answerDecimal = Integer.parseInt(answer);
                     if (answerDecimal % 1 != 0) {
@@ -1583,8 +1625,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     private void showPermissionWarningDilog() {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setTitle("Alert");
-        alertDialogBuilder.setMessage("Denying the permissions may cause in application failure." +
-                "\nPermissions can also be given through app settings.");
+        alertDialogBuilder.setMessage("Denying the permissions may cause in application failure." + "\nPermissions can also be given through app settings.");
 
         alertDialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             @Override

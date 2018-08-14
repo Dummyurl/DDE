@@ -98,7 +98,7 @@ public class UploadAnswerAndImageToServer {
             if (questionType.equalsIgnoreCase("image")) {
                 String imgPath = jsonObject.get("Answers").getAsString();
                 File file = new File(Environment.getExternalStorageDirectory().toString() + "/DDEImages/"+imgPath);
-                if (file.exists()) {
+                if (file.exists() && !imgPath.equals("")) {
                     final ProgressDialog dialog = new ProgressDialog(context);
                     Utility.showDialogInApiCalling(dialog, context, "Uploading Image(s)..");
                     String fName = file.getName();
