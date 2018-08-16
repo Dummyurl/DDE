@@ -151,12 +151,12 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         for (int i = 0; i < formIdWiseQuestions.size(); i++) {
             displaySingleQue(formIdWiseQuestions.get(i));
         }
-        if (editFormFlag) {
-            for (int i = 0; i < formIdWiseQuestions.size(); i++) {
-                DDE_Questions dde_que = formIdWiseQuestions.get(i);
-                checkRuleCondition(dde_que.getQuestionId(), dde_que.getAnswer(), dde_que.getQuestionType());
-            }
+        //  if (editFormFlag) {
+        for (int i = 0; i < formIdWiseQuestions.size(); i++) {
+            DDE_Questions dde_que = formIdWiseQuestions.get(i);
+            checkRuleCondition(dde_que.getQuestionId(), dde_que.getAnswer(), dde_que.getQuestionType());
         }
+        //   }
     }
 
     private void setVisibilityToQuestions(String formId) {
@@ -928,21 +928,53 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     if (layout != null) {
                         if (conditionMatch(allRules.get(i).getConditionsMatch(), conditionId.size(), ConditionsSatisfied.size())) {
                             layout.setVisibility(View.VISIBLE);
-                        } else {
+                            DDE_Questions visibleTempQue = null;
                             for (int queCnt = 0; queCnt < formIdWiseQuestions.size(); queCnt++) {
                                 if (formIdWiseQuestions.get(queCnt).getQuestionId().equals(showQueTag)) {
-                                    formIdWiseQuestions.get(queCnt).setAnswer("");
+                                    visibleTempQue = formIdWiseQuestions.get(queCnt);
+                                    switch (visibleTempQue.getQuestionType()) {
+                                        case "singlechoice":
+                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
+                                            RadioGroup tempGroup = (RadioGroup) layout.getChildAt(1);
+                                            for (int radioButtonIndex = 0; radioButtonIndex < tempGroup.getChildCount(); radioButtonIndex++) {
+                                                if (((RadioButton) tempGroup.getChildAt(radioButtonIndex)).getText().equals(visibleTempQue.getDefaultValue())) {
+                                                    ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setSelected(true);
+                                                } else {
+                                                    ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setSelected(false);
+                                                }
+                                            }
+                                            break;
+                                        case "multiple":
+                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue() + ",");
+                                            break;
+                                    }
                                     break;
                                 }
                             }
+                            checkRuleCondition(showQueTag, visibleTempQue.getAnswer(), visibleTempQue.getQuestionType());
+                        } else {
+                            DDE_Questions hiddenTempQue = null;
+                            for (int queCnt = 0; queCnt < formIdWiseQuestions.size(); queCnt++) {
+                                if (formIdWiseQuestions.get(queCnt).getQuestionId().equals(showQueTag)) {
+                                    hiddenTempQue = formIdWiseQuestions.get(queCnt);
+                                    hiddenTempQue.setAnswer("");
+                                    break;
+                                }
+                            }
+
                             layout.setVisibility(View.GONE);
                             View view = layout.getChildAt(1);
                             layout.getTag();
                             if (view instanceof EditText) {
                                 ((EditText) view).setText("");
                             } else if (view instanceof LinearLayout) {
-                                ImageView imageView = (ImageView) ((LinearLayout) view).getChildAt(1);
-                                (imageView).setImageResource(android.R.color.transparent);
+                                View ansView = ((LinearLayout) view).getChildAt(1);
+                                if (ansView instanceof ImageView) {
+                                    ((ImageView) ansView).setImageResource(android.R.color.transparent);
+                                }
+                            }
+                            if (hiddenTempQue != null) {
+                                checkRuleCondition(showQueTag, "", hiddenTempQue.getQuestionType());
                             }
                         }
                     }
@@ -974,7 +1006,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         int answerMatch = 0;
         String[] splittedAnswer = null;
         if (queType.equalsIgnoreCase("number")) {
-            if (!ans.equals("")) answer = Integer.parseInt(ans);
+            if (ans.equals("")) {
+                return false;
+            } else {
+                answer = Integer.parseInt(ans);
+            }
             answerMatch = Integer.parseInt(answerFromJsonToMatch);
         } else {
             if (answerFromJsonToMatch.startsWith("[")) {
@@ -1025,6 +1061,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 break;
             case "match none":
                 flag = true;
+                if (ans.equalsIgnoreCase("")) {
+                    return false;
+                }
                 if (queType.equalsIgnoreCase("multiple")) {
                     /*ENTERED BY USER*/
                     String[] spittedGivenAns = ans.split(",");
