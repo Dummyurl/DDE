@@ -1012,6 +1012,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                         case "dropdown":
                                             Spinner spinner = (Spinner) layout.getChildAt(1);
                                             spinner.setSelection(getIndex(spinner, visibleTempQue.getDefaultValue()));
+                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
                                             break;
                                     }
 
