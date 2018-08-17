@@ -73,6 +73,7 @@ import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleTable;
 import pratham.dde.interfaces.FillAgainListner;
 import pratham.dde.services.SyncUtility;
+import pratham.dde.utils.DisplayValue;
 import pratham.dde.utils.PermissionResult;
 import pratham.dde.utils.PermissionUtils;
 import pratham.dde.utils.UploadAnswerAndImageToServer;
@@ -407,6 +408,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             if (!ans.endsWith(",")) ans += ",";
                         }
                     }
+                } else {
+                    if (!validationValue.endsWith(",")) validationValue += ",";
+                    dde_questions.setAnswer(validationValue);
                 }
                 for (int i = 0; i < optionCheckBox.size(); i++) {
                     final CheckBox checkBox = new CheckBox(this);
@@ -414,6 +418,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         @Override
                         public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
                             String selectedAnswers = dde_questions.getAnswer();
+                            if (selectedAnswers.length() > 0) {
+                                if (!selectedAnswers.endsWith(",")) {
+                                    selectedAnswers += ",";
+                                }
+                            }
                             String tag = compoundButton.getTag().toString();
                             String[] splitted = tag.split(":::");
                             if (isSelected) {
@@ -727,20 +736,20 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 break;
 
             case "dropdown":
-                List display = new ArrayList();
-                List value = new ArrayList();
+                List<DisplayValue> display = new ArrayList();
+                // List value = new ArrayList();
                 Spinner spinnerDropdown = new Spinner(this);
                 spinnerDropdown.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 JsonArray optionDropDown = dde_questions.getQuestionOption();
-                value.add("select option");
-                display.add("select option");
+               /* value.add("select option");
+                display.add("select option");*/
                 for (int i = 0; i < optionDropDown.size(); i++) {
                     JsonElement jsonElement = optionDropDown.get(i);
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
-                    value.add(jsonObject.get("value").getAsString());
-                    display.add(jsonObject.get("display").getAsString());
+                    //   value.add(jsonObject.get("value").getAsString());
+                    display.add(new DisplayValue(jsonObject.get("display").getAsString(), jsonObject.get("value").getAsString()));
                 }
-                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_selectable_list_item, display);
+                ArrayAdapter<DisplayValue> spinnerArrayAdapter = new ArrayAdapter<DisplayValue>(this, android.R.layout.simple_selectable_list_item, display);
                 spinnerDropdown.setAdapter(spinnerArrayAdapter);
                 spinnerDropdown.setLayoutParams(paramsWrapContaint);
                 if (editFormFlag) {
@@ -757,7 +766,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         }
                     }
                 } else {
-                    int index = display.indexOf(validationValue);
+                    int index = getIndex(spinnerDropdown, validationValue);
                     if (index != -1) {
                         spinnerDropdown.setSelection(index);
                         dde_questions.setAnswer(validationValue);
@@ -766,14 +775,17 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 spinnerDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        if (adapterView.getSelectedItem().toString().equals("select option")) {
-                            dde_questions.setAnswer("");
-                        } else {
-                            dde_questions.setAnswer(adapterView.getSelectedItem().toString());
-                        }
                         LinearLayout linearLayout = (LinearLayout) adapterView.getParent();
                         String tag = linearLayout.getTag().toString();
-                        checkRuleCondition(tag, adapterView.getSelectedItem().toString(), "dropdown");
+                        if (adapterView.getSelectedItem().toString().equals("select option")) {
+                            dde_questions.setAnswer("");
+                            checkRuleCondition(tag, "", "dropdown");
+
+                        } else {
+                            dde_questions.setAnswer(adapterView.getSelectedItem().toString());
+                            checkRuleCondition(tag, ((DisplayValue) adapterView.getSelectedItem()).getValue(), "dropdown");
+                        }
+
 
                     }
 
@@ -938,17 +950,71 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                             RadioGroup tempGroup = (RadioGroup) layout.getChildAt(1);
                                             for (int radioButtonIndex = 0; radioButtonIndex < tempGroup.getChildCount(); radioButtonIndex++) {
                                                 if (((RadioButton) tempGroup.getChildAt(radioButtonIndex)).getText().equals(visibleTempQue.getDefaultValue())) {
-                                                    ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setSelected(true);
+                                                    ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setChecked(true);
                                                 } else {
-                                                    ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setSelected(false);
+                                                    ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setChecked(false);
                                                 }
                                             }
                                             break;
                                         case "multiple":
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue() + ",");
+                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
+                                            GridLayout tempGrid = (GridLayout) layout.getChildAt(1);
+                                            String defaultval = visibleTempQue.getDefaultValue();
+                                            if (!defaultval.endsWith(",")) defaultval += ",";
+                                            for (int checkBoxIndex = 0; checkBoxIndex < tempGrid.getChildCount(); checkBoxIndex++) {
+                                                String checkBoxTag = tempGrid.getChildAt(checkBoxIndex).getTag().toString();
+                                                String[] splitted = checkBoxTag.split(":::");
+                                                if (defaultval.contains(splitted[1] + ",")) {
+                                                    ((CheckBox) tempGrid.getChildAt(checkBoxIndex)).setChecked(true);
+                                                } else {
+                                                    ((CheckBox) tempGrid.getChildAt(checkBoxIndex)).setChecked(false);
+                                                }
+                                            }
+                                            break;
+                                        case "text":
+                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
+                                            EditText tempEditText = (EditText) layout.getChildAt(1);
+                                            tempEditText.setText(visibleTempQue.getDefaultValue());
+                                            break;
+                                        case "number":
+                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
+                                            EditText tempEditNumber = (EditText) layout.getChildAt(1);
+                                            tempEditNumber.setText(visibleTempQue.getDefaultValue());
+                                            break;
+                                        case "email":
+                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
+                                            EditText tempEditEmail = (EditText) layout.getChildAt(1);
+                                            tempEditEmail.setText(visibleTempQue.getDefaultValue());
+                                            break;
+
+                                        case "date":
+                                            String defaultDate = visibleTempQue.getDefaultValue();
+                                            if (parseDate(defaultDate) != null) {
+                                                visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
+                                                TextView tempDate = (TextView) layout.getChildAt(1);
+                                                tempDate.setText(parseDate(defaultDate));
+                                            }
+                                            break;
+                                        case "time":
+                                            String defaultTime = visibleTempQue.getDefaultValue();
+                                            try {
+                                                final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
+                                                final Date dateObj;
+                                                dateObj = sdf.parse(defaultTime);
+                                                defaultTime = new SimpleDateFormat("K:mm aa").format(dateObj);
+                                                TextView tempTime = (TextView) layout.getChildAt(1);
+                                                tempTime.setText(defaultTime);
+                                                visibleTempQue.setAnswer(defaultTime);
+                                            } catch (ParseException e) {
+                                                e.printStackTrace();
+                                            }
+                                            break;
+                                        case "dropdown":
+                                            Spinner spinner = (Spinner) layout.getChildAt(1);
+                                            spinner.setSelection(getIndex(spinner, visibleTempQue.getDefaultValue()));
                                             break;
                                     }
-                                    break;
+
                                 }
                             }
                             checkRuleCondition(showQueTag, visibleTempQue.getAnswer(), visibleTempQue.getQuestionType());
@@ -981,6 +1047,17 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 }
             }
         }
+    }
+
+    private int getIndex(Spinner spinner, String string) {
+        int index = 0;
+        for (int i = 0; i < spinner.getCount(); i++) {
+            DisplayValue displayValue = (DisplayValue) spinner.getItemAtPosition(i);
+            if (displayValue.getValue().equals(string)) {
+                index = i;
+            }
+        }
+        return index;
     }
 
     private boolean conditionMatch(String conditionsMatch, int totalConditions, int attemptedQue) {
@@ -1061,9 +1138,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 break;
             case "match none":
                 flag = true;
-                if (ans.equalsIgnoreCase("")) {
-                    return false;
-                }
                 if (queType.equalsIgnoreCase("multiple")) {
                     /*ENTERED BY USER*/
                     String[] spittedGivenAns = ans.split(",");
