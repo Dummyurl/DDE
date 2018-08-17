@@ -103,6 +103,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     String entryID;
     JsonArray answerJsonArray;
     String path;
+    boolean firstRun = true;
 
 
     @Override
@@ -138,7 +139,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         formIdWiseQuestions = appDatabase.getDDE_QuestionsDao().getFormIdWiseQuestions(formId);
         Collections.sort(formIdWiseQuestions, new Sortbyroll());
 
-
         /* SET VISIBILITY TO QUESTIONS */
         setVisibilityToQuestions(formId);
 
@@ -157,6 +157,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             DDE_Questions dde_que = formIdWiseQuestions.get(i);
             checkRuleCondition(dde_que.getQuestionId(), dde_que.getAnswer(), dde_que.getQuestionType());
         }
+        firstRun = false;
         //   }
     }
 
@@ -440,7 +441,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             //String queParent = ((LinearLayout) compoundButton.getParent().getParent()).getTag().toString();
                             String queParent = layout.getTag().toString();
                             checkRuleCondition(queParent, selectedAnswers, "multiple");
-
                         }
                     });
                     JsonElement jsonElement = optionCheckBox.get(i);
@@ -804,7 +804,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         renderAllQuestionsLayout.addView(layout);
         /*check dependency if depends then hide*/
         if (depQueID.contains(dde_questions.getQuestionId()))
-
         {
             layout.setVisibility(View.GONE);
         }
@@ -1041,7 +1040,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                 }
                             }
                             if (hiddenTempQue != null) {
-                                checkRuleCondition(showQueTag, "", hiddenTempQue.getQuestionType());
+                                checkRuleCondition(showQueTag, "$$", hiddenTempQue.getQuestionType());
                             }
                         }
                     }
@@ -1079,88 +1078,111 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     }
 
     private boolean checkConditionType(String conditionType, String ans, String answerFromJsonToMatch, String queType) {
-        boolean flag = false;
-        int answer = 0;
-        int answerMatch = 0;
-        String[] splittedAnswer = null;
-        if (queType.equalsIgnoreCase("number")) {
-            if (ans.equals("")) {
-                return false;
+            boolean flag = false;
+            int answer = 0;
+            int answerMatch = 0;
+            String[] splittedAnswer = null;
+            if (queType.equalsIgnoreCase("number")) {
+                if (ans.equals("") || ans.equals("$$")) {
+                    return false;
+                } else {
+                    answer = Integer.parseInt(ans);
+                }
+                answerMatch = Integer.parseInt(answerFromJsonToMatch);
             } else {
-                answer = Integer.parseInt(ans);
+                if (answerFromJsonToMatch.startsWith("[")) {
+                    answerFromJsonToMatch = answerFromJsonToMatch.replace('[', ' ');
+                }
+                if (answerFromJsonToMatch.endsWith("]")) {
+                    answerFromJsonToMatch = answerFromJsonToMatch.replace(']', ' ');
+                }
+                splittedAnswer = answerFromJsonToMatch.trim().split(",");
             }
-            answerMatch = Integer.parseInt(answerFromJsonToMatch);
-        } else {
-            if (answerFromJsonToMatch.startsWith("[")) {
-                answerFromJsonToMatch = answerFromJsonToMatch.replace('[', ' ');
-            }
-            if (answerFromJsonToMatch.endsWith("]")) {
-                answerFromJsonToMatch = answerFromJsonToMatch.replace(']', ' ');
-            }
-            splittedAnswer = answerFromJsonToMatch.trim().split(",");
-        }
-        switch (conditionType) {
-            case "less than":
-                flag = answer < answerMatch ? true : false;
-                break;
-            case "greater than":
-                flag = answer > answerMatch ? true : false;
-                break;
-            case "equal to":
-                flag = answer == answerMatch ? true : false;
-                break;
-            case "less than equal to":
-                flag = answer <= answerMatch ? true : false;
-                break;
-            case "greater than equal to":
-                flag = answer >= answerMatch ? true : false;
-                break;
-            case "match one":
-                if (queType.equalsIgnoreCase("multiple")) {
-                    /*ENTERED BY USER*/
-                    String[] spittedGivenAns = ans.split(",");
-                    for (int i = 0; i < splittedAnswer.length; i++) {
-                        for (int j = 0; j < spittedGivenAns.length; j++) {
-                            String answerTemp = splittedAnswer[i];
-                            if (spittedGivenAns[j].equalsIgnoreCase(answerTemp)) {
+            switch (conditionType) {
+                case "less than":
+                    flag = answer < answerMatch ? true : false;
+                    break;
+                case "greater than":
+                    flag = answer > answerMatch ? true : false;
+                    break;
+                case "equal to":
+                    flag = answer == answerMatch ? true : false;
+                    break;
+                case "less than equal to":
+                    flag = answer <= answerMatch ? true : false;
+                    break;
+                case "greater than equal to":
+                    flag = answer >= answerMatch ? true : false;
+                    break;
+                case "match one":
+                    if (queType.equalsIgnoreCase("multiple")) {
+                        /*ENTERED BY USER*/
+                        String[] spittedGivenAns = ans.split(",");
+                        for (int i = 0; i < splittedAnswer.length; i++) {
+                            for (int j = 0; j < spittedGivenAns.length; j++) {
+                                String answerTemp = splittedAnswer[i];
+                                if (spittedGivenAns[j].equalsIgnoreCase(answerTemp)) {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                            if (flag) break;
+                        }
+                    } else {
+                        for (int i = 0; i < splittedAnswer.length; i++) {
+                            if (ans.equalsIgnoreCase(splittedAnswer[i])) {
                                 flag = true;
-                                break;
                             }
                         }
-                        if (flag) break;
                     }
-                } else {
-                    for (int i = 0; i < splittedAnswer.length; i++) {
-                        if (ans.equalsIgnoreCase(splittedAnswer[i])) {
-                            flag = true;
+                    break;
+                case "match none":
+                    flag = true;
+
+                    /*if (!firstRun && ans.equalsIgnoreCase("") && queType.equalsIgnoreCase("multiple"))
+                        return false;
+                    *//*if (ans.equalsIgnoreCase("") && !queType.equalsIgnoreCase("multiple")) {
+                        return false;
+                    }*/
+
+                   /* if (ans.equalsIgnoreCase("") && queType.equalsIgnoreCase("multiple")) {
+                        return true;
+                    }*/
+
+                    if (queType.equalsIgnoreCase("multiple")) {
+                        /*ENTERED BY USER*/
+                        if (firstRun)
+                            return false;
+
+                        if (!firstRun && ans.equals("$$"))
+                            return false;
+
+                        if (!firstRun && ans.equals(""))
+                            return true;
+
+                        String[] spittedGivenAns = ans.split(",");
+                        for (int i = 0; i < splittedAnswer.length; i++) {
+                            for (int j = 0; j < spittedGivenAns.length; j++) {
+                                if (spittedGivenAns[j].equalsIgnoreCase(splittedAnswer[i])) {
+                                    flag = false;
+                                    break;
+                                }
+                            }
+                            if (!flag) break;
                         }
-                    }
-                }
-                break;
-            case "match none":
-                flag = true;
-                if (queType.equalsIgnoreCase("multiple")) {
-                    /*ENTERED BY USER*/
-                    String[] spittedGivenAns = ans.split(",");
-                    for (int i = 0; i < splittedAnswer.length; i++) {
-                        for (int j = 0; j < spittedGivenAns.length; j++) {
-                            if (spittedGivenAns[j].equalsIgnoreCase(splittedAnswer[i])) {
+                    } else {
+                        if (ans.equalsIgnoreCase("") || ans.equalsIgnoreCase("$$"))
+                            return false;
+
+                        for (int i = 0; i < splittedAnswer.length; i++) {
+                            if (ans.equalsIgnoreCase(splittedAnswer[i])) {
                                 flag = false;
-                                break;
                             }
                         }
-                        if (!flag) break;
                     }
-                } else {
-                    for (int i = 0; i < splittedAnswer.length; i++) {
-                        if (ans.equalsIgnoreCase(splittedAnswer[i])) {
-                            flag = false;
-                        }
-                    }
-                }
-                break;
-        }
-        return flag;
+                    break;
+            }
+            return flag;
     }
 
 
