@@ -745,6 +745,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 JsonArray optionDropDown = dde_questions.getQuestionOption();
                /* value.add("select option");
                 display.add("select option");*/
+                display.add(new DisplayValue("select option","select option"));
                 for (int i = 0; i < optionDropDown.size(); i++) {
                     JsonElement jsonElement = optionDropDown.get(i);
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
