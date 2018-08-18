@@ -39,6 +39,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activities.DisplayQuestions"
+            android:windowSoftInputMode="stateHidden|adjustResize"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
     </application>

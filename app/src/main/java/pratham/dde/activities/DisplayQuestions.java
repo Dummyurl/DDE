@@ -739,7 +739,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 List<DisplayValue> display = new ArrayList();
                 // List value = new ArrayList();
                 Spinner spinnerDropdown = new Spinner(this);
-                spinnerDropdown.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                spinnerDropdown.setPopupBackgroundResource(R.drawable.spinnerbg);
+//                spinnerDropdown.setPopupBackgroundResource(R.color.colorAccent);
+                //spinnerDropdown.setBackground(ContextCompat.getDrawable(this, R.drawable.spinnerbg));
                 JsonArray optionDropDown = dde_questions.getQuestionOption();
                /* value.add("select option");
                 display.add("select option");*/
