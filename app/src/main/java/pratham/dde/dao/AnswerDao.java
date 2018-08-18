@@ -55,5 +55,8 @@ public interface AnswerDao {
     @Query("UPDATE AnswersSingleForm SET pushStatus=:statusCode where EntryId=:EntryId")
     public void setPushedStatus(String EntryId, int statusCode);
 
+    @Query("UPDATE AnswersSingleForm SET pushStatus=:statusCode where formId=:formId")
+    public void setPushedStatusByFormId(String formId, int statusCode);
+
 
 }

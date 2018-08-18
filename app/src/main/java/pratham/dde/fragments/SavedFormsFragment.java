@@ -76,9 +76,9 @@ public class SavedFormsFragment extends android.app.Fragment {
     private void showOldSavedForm() {
         // pass user to verify
         List distinctEntrys = appDatabase.getAnswerDao().getDistinctEntrys(userID, 0);
-        List temp = appDatabase.getAnswerDao().getDistinctEntrys(userID, 1);
-        if (temp.size() > 0) {
-            distinctEntrys.addAll(temp);
+        List partiallyPushed = appDatabase.getAnswerDao().getDistinctEntrys(userID, 1);
+        if (partiallyPushed.size() > 0) {
+            distinctEntrys.addAll(partiallyPushed);
         }
 
         if (distinctEntrys != null && distinctEntrys.size() > 0) {
@@ -108,7 +108,12 @@ public class SavedFormsFragment extends android.app.Fragment {
                 formName.setTextSize(1, 20);
                 formName.setAllCaps(true);
                 formName.setTypeface(null, Typeface.BOLD_ITALIC);
-                formName.setText(appDatabase.getDDE_FormsDao().getFormName(answersSingleForm.getFormId()));
+                String formNameText = appDatabase.getDDE_FormsDao().getFormName(answersSingleForm.getFormId());
+                if (formNameText == null) {
+                    formName.setText("From delete from server");
+                }
+                else
+                    formName.setText(formNameText);                 
                 /*SET FORM DATE*/
                 TextView formDate = new TextView(getActivity());
                 formDate.setLayoutParams(textViewParam);
