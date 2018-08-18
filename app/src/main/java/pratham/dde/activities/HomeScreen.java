@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -102,7 +101,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         View hView = navigationView.getHeaderView(0);
         TextView nav_user = (TextView) hView.findViewById(R.id.userName);
         nav_user.setText(userName);
-        showSavedOldForms();
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
@@ -151,9 +149,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 return true;
             }
         });
-        updateFormEntries();
-       /* fusedLocationAPI = new FusedLocationAPI(this);
-        fusedLocationAPI.startLocationButtonClick();*/
+        if (SyncUtility.isDataConnectionAvailable(HomeScreen.this))
+            updateFormEntries();
+        else
+            showSavedOldForms();
     }
 
     private void uploadOldFormsAsync(List<AnswersSingleForm> allAnswersSingleForms) {
@@ -458,9 +457,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                             }
                         }
                     }
-                    for (int formCounter = 0; formCounter < dbFormIds.size(); formCounter++){
+                    for (int formCounter = 0; formCounter < dbFormIds.size(); formCounter++) {
                         appDatabase.getDDE_QuestionsDao().deleteQuestionsByFormID(dbFormIds.get(formCounter));
-                        appDatabase.getAnswerDao().setPushedStatusByFormId(dbFormIds.get(formCounter),1);
+                        appDatabase.getAnswerDao().setPushedStatusByFormId(dbFormIds.get(formCounter), 1);
                         appDatabase.getDDE_FormsDao().deleteFormById(dbFormIds.get(formCounter));
                     }
 
@@ -483,6 +482,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                                 builder.setCancelable(true);
                                 builder.show();
                             }
+                            showSavedOldForms();
                         }
 
                         @Override

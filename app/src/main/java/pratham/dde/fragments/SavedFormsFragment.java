@@ -105,15 +105,15 @@ public class SavedFormsFragment extends android.app.Fragment {
                 /*SET FORM NAME*/
                 TextView formName = new TextView(getActivity());
                 formName.setLayoutParams(textViewParam);
-                formName.setTextSize(1, 20);
+                formName.setTextSize(1, 15);
                 formName.setAllCaps(true);
                 formName.setTypeface(null, Typeface.BOLD_ITALIC);
                 String formNameText = appDatabase.getDDE_FormsDao().getFormName(answersSingleForm.getFormId());
                 if (formNameText == null) {
-                    formName.setText("From delete from server");
+                    formName.setText("Form deleted from server");
                 }
                 else
-                    formName.setText(formNameText);                 
+                    formName.setText(formNameText);
                 /*SET FORM DATE*/
                 TextView formDate = new TextView(getActivity());
                 formDate.setLayoutParams(textViewParam);
