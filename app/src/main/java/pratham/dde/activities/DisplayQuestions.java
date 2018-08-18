@@ -235,9 +235,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
                     public void afterTextChanged(Editable c) {
                         dde_questions.setAnswer(c.toString());
-                        /*LinearLayout layout = (LinearLayout) editText.getParent();
-                        String tag = (String) layout.getTag();
-                        //checkRuleCondition(tag, c.toString());*/
                     }
                 });
                 break;
@@ -264,8 +261,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                 if (ans.equalsIgnoreCase(text)) {
                                     radioButton.setChecked(true);
                                     dde_questions.setAnswer(ans);
-                                    //  String tag = (String) layout.getTag();
-                                    // checkRuleCondition(tag, ans, "singlechoice");
                                 }
                             }
                         }
@@ -739,17 +734,12 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 List<DisplayValue> display = new ArrayList();
                 // List value = new ArrayList();
                 Spinner spinnerDropdown = new Spinner(this);
-                //spinnerDropdown.setPopupBackgroundResource(R.drawable.spinnerbg);
-                //spinnerDropdown.setPopupBackgroundResource(R.color.colorAccent);
                 spinnerDropdown.setBackground(ContextCompat.getDrawable(this, R.drawable.spinnerbg));
                 JsonArray optionDropDown = dde_questions.getQuestionOption();
-               /* value.add("select option");
-                display.add("select option");*/
                 display.add(new DisplayValue("select option","select option"));
                 for (int i = 0; i < optionDropDown.size(); i++) {
                     JsonElement jsonElement = optionDropDown.get(i);
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
-                    //   value.add(jsonObject.get("value").getAsString());
                     display.add(new DisplayValue(jsonObject.get("display").getAsString(), jsonObject.get("value").getAsString()));
                 }
                 ArrayAdapter<DisplayValue> spinnerArrayAdapter = new ArrayAdapter<DisplayValue>(this, android.R.layout.simple_selectable_list_item, display);
@@ -783,13 +773,10 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         if (adapterView.getSelectedItem().toString().equals("select option")) {
                             dde_questions.setAnswer("");
                             checkRuleCondition(tag, "", "dropdown");
-
                         } else {
                             dde_questions.setAnswer(adapterView.getSelectedItem().toString());
                             checkRuleCondition(tag, ((DisplayValue) adapterView.getSelectedItem()).getValue(), "dropdown");
                         }
-
-
                     }
 
                     @Override
@@ -814,8 +801,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
     private void showDataSource(final LinearLayout layout, final DDE_Questions dde_questions, String answer, String destColumnParent) {
 
-        LinearLayout.LayoutParams paramsWrapContaint = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
-        paramsWrapContaint.setMargins(10, 0, 0, 0);
+        LinearLayout.LayoutParams paramsWrapContent = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
+        paramsWrapContent.setMargins(10, 0, 0, 0);
         LinearLayout layoutObj = renderAllQuestionsLayout.findViewWithTag(dde_questions.getQuestionId());
         Spinner spinnerDataSource = null;
         if (layoutObj != null) {
@@ -864,7 +851,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         answerList.addAll(tempList);
         ArrayAdapter<String> spinnerArrayAdapterDS = new ArrayAdapter<String>(this, android.R.layout.simple_selectable_list_item, answerList);
         spinnerDataSource.setAdapter(spinnerArrayAdapterDS);
-        spinnerDataSource.setLayoutParams(paramsWrapContaint);
+        spinnerDataSource.setLayoutParams(paramsWrapContent);
         spinnerDataSource.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -903,7 +890,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         }
 
     }
-
 
     private void checkRuleCondition(String tag, String ans, String queType) {
         for (int i = 0; i < allRules.size(); i++) {
@@ -1189,7 +1175,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             }
             return flag;
     }
-
 
     @Override
     public void onBackPressed() {

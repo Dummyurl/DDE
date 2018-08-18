@@ -78,10 +78,11 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     String token, QuestionUrl;
     DDE_Forms[] forms;
     int formIndex = 0;
-    List<DDE_Questions> dataSourceQuestionsList;
     int dataSourceIndex = 0;
     int PageNumber = 1;
     String unUpdatedForms = "";
+    List<JSONObject> dataSourceForFormOnline;
+    static int rowsPerPage = 5000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,6 +118,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
                             Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
                             QuestionUrl = Utility.getProperty("getQuestionsAndData", mContext);
+                            dataSourceForFormOnline = new ArrayList<>();
                             getQuestionsAndData(forms[formIndex].getFormid());
                         } else {
                             Toast.makeText(mContext, "Check your internet connection.", Toast.LENGTH_SHORT).show();
@@ -190,26 +192,24 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     /* load Question SourceDta */
     private void fetchQuestionsSourceData() {
-        List<DDE_Questions> questions = appDatabase.getDDE_QuestionsDao().getAllQuestion();
-        dataSourceQuestionsList = new ArrayList<>();
+        // Remove table FormwisedatasourceID
+        Utility.setMessage(dialog,"Getting Data. Please wait it'll take time");
         dataSourceIndex = 0;
         PageNumber = 1;
-        for (int i = 0; i < questions.size(); i++) {
-            if (questions.get(i).getDataSource() != null) {
-                dataSourceQuestionsList.add(questions.get(i));
-            }
-        }
         loadSourceData();
     }
 
     private void loadSourceData() {
-        if (dataSourceQuestionsList.size() > dataSourceIndex) {
-            String formId = dataSourceQuestionsList.get(dataSourceIndex).getFormId();
-            JSONObject jsonObject = new JSONObject();
+        if (dataSourceForFormOnline.size() > dataSourceIndex) {
             try {
+                JSONObject tempJsonObject = dataSourceForFormOnline.get(dataSourceIndex);
+                String dsFormId = tempJsonObject.getString("dsformid");
+                JSONObject jsonObject = new JSONObject();
+
                 jsonObject.put("FilterList", "null");
-                jsonObject.put("FormId", formId);
+                jsonObject.put("FormId", dsFormId);
                 jsonObject.put("PageNumber", PageNumber);
+                jsonObject.put("PageSize", rowsPerPage);
 
                 AndroidNetworking.post(dataSourceUrl).addJSONObjectBody(jsonObject) // posting json
                         .build().
@@ -240,13 +240,19 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 JSONArray tableArray = jsonObjectData.getJSONArray("Table");
                 for (int tableIndex = 0; tableIndex < tableArray.length(); tableIndex++) {
                     JSONObject tableObj = tableArray.getJSONObject(tableIndex);
+                    String entryId = tableObj.getString("EntryId");
                     Iterator iterator = tableObj.keys();
                     DataSourceEntries dataSourceEntries = new DataSourceEntries();
                     while (iterator.hasNext()) {
-                        if ((!iterator.next().equals("ROWNUMBER")) && (!iterator.next().equals("EntryId")) && (!iterator.next().equals("EntryId")) && (!iterator.next().equals("CreatedBy")) && (!iterator.next().equals("UpdatedBy")) && (!iterator.next().equals("Createdon")) && (!iterator.next().equals("Updatedon"))) {
-                            String formId = dataSourceQuestionsList.get(dataSourceIndex).getFormId();
-                            String ans = appDatabase.getDataSourceEntriesDao().getAnswer(formId, iterator.next().toString());
-                            Log.d("ansre", ans);
+                        String key = iterator.next().toString();
+                        if ((!key.equals("ROWNUMBER")) && (!key.equals("EntryId")) && (!key.equals("CreatedBy")) && (!key.equals("UpdatedBy")) && (!key.equals("Createdon")) && (!key.equals("Updatedon"))) {
+                            String formId = dataSourceForFormOnline.get(dataSourceIndex).getString("formid");
+                            String allAnswers = appDatabase.getDataSourceEntriesDao().getAnswer(formId,key);
+                            String tempAnswer = tableObj.getString(key);
+                            if(!allAnswers.contains(tempAnswer+"^~")) {
+                                allAnswers += tempAnswer + "^~";
+                            }
+                            // Enter data for answers
                         }
                     }
 
@@ -332,14 +338,28 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             getQuestionsAndData(forms[formIndex].getFormid());
         } else {
             Utility.dismissDialog(dialog);
-            //fetchQuestionsSourceData();
+            fetchQuestionsSourceData();
         }
     }
 
     private void saveQuestion(JSONObject response) {
         try {
+            boolean containFlag;
             JSONObject data = response.getJSONObject("Data");
             String questions = data.getString("Questions");
+            JSONArray datasourceList = response.getJSONArray("DatasourceList");
+            if (datasourceList.length() > 0) {
+                // For unique datasources
+                for (int dsIndex = 0; dsIndex < datasourceList.length(); dsIndex++) {
+                    containFlag = false;
+                    for (int dsOnlineIndex = 0; dsOnlineIndex < dataSourceForFormOnline.size(); dsOnlineIndex++) {
+                        if (datasourceList.getJSONObject(dsIndex).getString("dsformid").equalsIgnoreCase(dataSourceForFormOnline.get(dsOnlineIndex).getString("dsformid")))
+                            containFlag = true;
+                    }
+                    if (!containFlag)
+                        dataSourceForFormOnline.add(datasourceList.getJSONObject(dsIndex));
+                }
+            }
             String formId;
             Gson gson = new Gson();
             Type listType = new TypeToken<ArrayList<DDE_Questions>>() {
