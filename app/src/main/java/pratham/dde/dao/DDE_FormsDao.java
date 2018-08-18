@@ -18,6 +18,9 @@ public interface DDE_FormsDao {
     @Query("SELECT * FROM DDE_Forms")
     DDE_Forms[] getAllForms();
 
+    @Query("DELETE FROM DDE_Forms where formid=:formId")
+    void deleteFormById(String formId);
+
     @Query("SELECT * FROM DDE_Forms where programid=:programId")
     List<DDE_Forms> getFormProgramIdWise(String programId);
 

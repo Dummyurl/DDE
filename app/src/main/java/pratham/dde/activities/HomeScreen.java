@@ -6,7 +6,6 @@ import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -38,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -143,7 +143,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         }
                         break;
 
-                        case R.id.nav_logout:
+                    case R.id.nav_logout:
                         finish();
                         break;
                 }
@@ -440,6 +440,28 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         }
                         dde_forms[i] = dde_form;
                     }
+                    DDE_Forms[] db_dde_forms;
+                    List<String> dbFormIds = new ArrayList<>();
+                    boolean flag;
+                    db_dde_forms = appDatabase.getDDE_FormsDao().getAllForms();
+                    if (db_dde_forms != null && db_dde_forms.length > 0) {
+                        for (int dbFormNo = 0; dbFormNo < db_dde_forms.length; dbFormNo++) {
+                            flag = false;
+                            for (int formNo = 0; formNo < dde_forms.length; formNo++) {
+                                if (db_dde_forms[dbFormNo].getFormid() == dde_forms[formNo].getFormid()) {
+                                    flag = true;
+                                }
+                            }
+                            if (!flag) {
+                                if (!dbFormIds.contains(String.valueOf(db_dde_forms[dbFormNo].getFormid())))
+                                    dbFormIds.add(String.valueOf(db_dde_forms[dbFormNo].getFormid()));
+                            }
+                        }
+                    }
+                    for (int formCounter = 0; formCounter < dbFormIds.size(); formCounter++){
+                        appDatabase.getDDE_QuestionsDao().deleteQuestionsByFormID(dbFormIds.get(formCounter));
+                        appDatabase.getDDE_FormsDao().deleteFormById(dbFormIds.get(formCounter));
+                    }
 
                     new AsyncTask<Void, Void, String>() {
                         @Override
@@ -511,7 +533,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     public void onBackPressed() {
         //super.onBackPressed();
 
-        final AlertDialog.Builder alertDialog=new AlertDialog.Builder(this);
+        final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle("Warning..!!");
         alertDialog.setMessage("Do you really want to logout?");
         alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {

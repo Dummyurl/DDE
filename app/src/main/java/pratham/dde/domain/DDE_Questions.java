@@ -30,7 +30,6 @@ public class DDE_Questions {
     @SerializedName("QuestionValidation")
     private JsonArray Validations;
 
-
     @SerializedName("QuestionKeyword")
     private String DestColumname;
 

@@ -173,7 +173,6 @@ public class MainActivity extends BaseActivity {
                     programsJson = response;
                     Utility.dismissDialog(dialog);
                     setUserEntries(access_token, expiryDate, Name, userName);
-
                 }
 
                 @Override
@@ -246,19 +245,4 @@ public class MainActivity extends BaseActivity {
         intent.putExtra("password", password);
         startActivity(intent);
     }
-
-   /* @Override
-    public void permissionGranted() {
-        startApp();
-    }
-
-    @Override
-    public void permissionDenied() {
-        showPermissionWarningDilog();
-    }
-
-    @Override
-    public void permissionForeverDenied() {
-        showPermissionWarningDilog();
-    }*/
 }
