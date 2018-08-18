@@ -823,7 +823,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         } else {
             spinnerDataSource = new Spinner(this);
         }
-        spinnerDataSource.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+        //spinnerDataSource.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+        spinnerDataSource.setBackground(ContextCompat.getDrawable(this, R.drawable.spinnerbg));
+
         List answerList = new ArrayList();
         answerList.add("select options");
         String dataSourceQuestionIdentifier = dde_questions.getDataSourceQuestionIdentifier();
