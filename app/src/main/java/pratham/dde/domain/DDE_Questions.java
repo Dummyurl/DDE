@@ -10,7 +10,7 @@ import android.support.annotation.NonNull;
 import com.google.gson.JsonArray;
 import com.google.gson.annotations.SerializedName;
 
-@Entity(foreignKeys = @ForeignKey(entity = DDE_Forms.class, parentColumns = "formid", childColumns = "FormId"))
+@Entity/*(foreignKeys = @ForeignKey(entity = DDE_Forms.class, parentColumns = "formid", childColumns = "FormId"))*/
 public class DDE_Questions {
     @PrimaryKey
     @NonNull

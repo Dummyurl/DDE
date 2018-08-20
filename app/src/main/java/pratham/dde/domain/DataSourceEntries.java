@@ -6,22 +6,11 @@ import android.support.annotation.NonNull;
 
 @Entity
 public class DataSourceEntries {
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey()
     @NonNull
-    String indexData;
     String entryId;
     String formId;
-    String columnName;
     String answers;
-
-    @NonNull
-    public String getIndexData() {
-        return indexData;
-    }
-
-    public void setIndexData(@NonNull String indexData) {
-        this.indexData = indexData;
-    }
 
     public String getEntryId() {
         return entryId;
@@ -37,14 +26,6 @@ public class DataSourceEntries {
 
     public void setFormId(String formId) {
         this.formId = formId;
-    }
-
-    public String getColumnName() {
-        return columnName;
-    }
-
-    public void setColumnName(String columnName) {
-        this.columnName = columnName;
     }
 
     public String getAnswers() {

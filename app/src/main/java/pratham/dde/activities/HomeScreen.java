@@ -82,7 +82,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     int PageNumber = 1;
     String unUpdatedForms = "";
     List<JSONObject> dataSourceForFormOnline;
-    static int rowsPerPage = 5000;
+    static int rowsPerPage = 10000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -193,7 +193,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     /* load Question SourceDta */
     private void fetchQuestionsSourceData() {
         // Remove table FormwisedatasourceID
-        Utility.setMessage(dialog,"Getting Data. Please wait it'll take time");
+        Utility.setMessage(dialog, "Getting Data. Please wait it'll take time");
+        dataSourceUrl = Utility.getProperty("getDataSource", mContext);
         dataSourceIndex = 0;
         PageNumber = 1;
         loadSourceData();
@@ -206,27 +207,37 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 String dsFormId = tempJsonObject.getString("dsformid");
                 JSONObject jsonObject = new JSONObject();
 
-                jsonObject.put("FilterList", "null");
+                jsonObject.put("FilterList", null);
                 jsonObject.put("FormId", dsFormId);
                 jsonObject.put("PageNumber", PageNumber);
                 jsonObject.put("PageSize", rowsPerPage);
 
-                AndroidNetworking.post(dataSourceUrl).addJSONObjectBody(jsonObject) // posting json
+                AndroidNetworking.post(dataSourceUrl)
+                        .addHeaders("Content-Type", "application/json")
+                        .addHeaders("Authorization", token)
+                        .addJSONObjectBody(jsonObject) // posting json
                         .build().
                         getAsJSONObject(new JSONObjectRequestListener() {
                             @Override
                             public void onResponse(JSONObject response) {
+                                Log.d("responsePKSERVER", "responsePKSERVER: "+dataSourceIndex);
                                 saveSourceData(response);
                             }
 
                             @Override
                             public void onError(ANError anError) {
-
+                                if (dataSourceForFormOnline.size() > dataSourceIndex) {
+                                    PageNumber = 1;
+                                    dataSourceIndex++;
+                                    loadSourceData();
+                                } else {
+                                    Utility.dismissDialog(dialog);
+                                }
                             }
                         });
-                PageNumber++;
             } catch (Exception e) {
                 e.printStackTrace();
+                Utility.dismissDialog(dialog);
             }
         } else {
             Utility.dismissDialog(dialog);
@@ -234,39 +245,57 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     }
 
     private void saveSourceData(JSONObject response) {
-        if (response.length() > 1) {
-            try {
+        try {
+            if (response.length() > 1 && response.getJSONObject("Data").getJSONArray("Table").length() > 0) {
                 JSONObject jsonObjectData = response.getJSONObject("Data");
                 JSONArray tableArray = jsonObjectData.getJSONArray("Table");
+                List<DataSourceEntries> dataSourceEntries = new ArrayList<>();
+                DataSourceEntries dataSourceEntryObj;
                 for (int tableIndex = 0; tableIndex < tableArray.length(); tableIndex++) {
                     JSONObject tableObj = tableArray.getJSONObject(tableIndex);
                     String entryId = tableObj.getString("EntryId");
-                    Iterator iterator = tableObj.keys();
-                    DataSourceEntries dataSourceEntries = new DataSourceEntries();
-                    while (iterator.hasNext()) {
+                    String formId = dataSourceForFormOnline.get(dataSourceIndex).getString("formid");
+                    String answers = tableObj.toString();
+//                    Iterator iterator = tableObj.keys();
+                    dataSourceEntryObj = new DataSourceEntries();
+                    dataSourceEntryObj.setFormId(formId);
+                    dataSourceEntryObj.setEntryId(entryId);
+                    dataSourceEntryObj.setAnswers(answers);
+                    //appDatabase.getDataSourceEntriesDao().insertEntry(dataSourceEntry);
+                    dataSourceEntries.add(dataSourceEntryObj);
+                    /*while (iterator.hasNext()) {
                         String key = iterator.next().toString();
                         if ((!key.equals("ROWNUMBER")) && (!key.equals("EntryId")) && (!key.equals("CreatedBy")) && (!key.equals("UpdatedBy")) && (!key.equals("Createdon")) && (!key.equals("Updatedon"))) {
                             String formId = dataSourceForFormOnline.get(dataSourceIndex).getString("formid");
-                            String allAnswers = appDatabase.getDataSourceEntriesDao().getAnswer(formId,key);
+                            String allAnswers = appDatabase.getDataSourceEntriesDao().getAnswer(formId, key);
                             String tempAnswer = tableObj.getString(key);
-                            if(!allAnswers.contains(tempAnswer+"^~")) {
-                                allAnswers += tempAnswer + "^~";
+                            if (allAnswers != null && !allAnswers.contains(tempAnswer + "~")) {
+                                allAnswers += tempAnswer + "~";
+                                appDatabase.getDataSourceEntriesDao().updateAnswer(formId, key, allAnswers);
+                            } else {
+                                if (allAnswers == null)
+                                    allAnswers = tempAnswer + "~";
+                                dataSourceEntry = new DataSourceEntries();
+                                dataSourceEntry.setAnswers(allAnswers);
+                                dataSourceEntry.setColumnName(key);
+                                dataSourceEntry.setEntryId(entryId);
+                                dataSourceEntry.setFormId(formId);
+                                appDatabase.getDataSourceEntriesDao().insertEntry(dataSourceEntry);
                             }
-                            // Enter data for answers
                         }
-                    }
-
-
+                    }*/
                 }
-                jsonObjectData.length();
-            } catch (JSONException e) {
-                e.printStackTrace();
+                appDatabase.getDataSourceEntriesDao().insertEntry(dataSourceEntries);
+                PageNumber++;
+                Log.d("PagenoPKsaveSourceData", "PagenoPKsaveSourceData: "+PageNumber);
+            } else {
+                PageNumber = 1;
+                dataSourceIndex++;
             }
-        } else {
-            PageNumber = 1;
-            dataSourceIndex++;
+            loadSourceData();
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-        loadSourceData();
     }
 
     @Override
@@ -299,7 +328,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             public void onError(ANError anError) {
                 showErrorDialog(formId);
                 Utility.dismissDialog(dialog);
-                /*Log.d("responceError123", anError.toString());*/
             }
         });
     }
@@ -337,7 +365,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         if (formIndex < forms.length) {
             getQuestionsAndData(forms[formIndex].getFormid());
         } else {
-            Utility.dismissDialog(dialog);
             fetchQuestionsSourceData();
         }
     }

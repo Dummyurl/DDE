@@ -53,6 +53,7 @@ import java.io.FileOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -810,13 +811,20 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         } else {
             spinnerDataSource = new Spinner(this);
         }
-        //spinnerDataSource.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
         spinnerDataSource.setBackground(ContextCompat.getDrawable(this, R.drawable.spinnerbg));
 
         List answerList = new ArrayList();
         answerList.add("select options");
+        // Adding Data to dropdown list which is taken fron server
+        /*String dataSourceAnswers = appDatabase.getDataSourceEntriesDao().getAnswer(dde_questions.getFormId(), dde_questions.getDestColumname());*/
+
+        /*if (dataSourceAnswers != null) {
+            dataSourceAnswers = dataSourceAnswers.substring(0, dataSourceAnswers.length() - 1);
+            String splittedAnswers[] = dataSourceAnswers.split("~");
+            answerList.addAll(Arrays.asList(splittedAnswers));
+        }*/
+        // Adding Data to dropdown list which is filled locally
         String dataSourceQuestionIdentifier = dde_questions.getDataSourceQuestionIdentifier();
-        //final String dependentQuestionIdentifier = dde_questions.getDependentQuestionIdentifier();
         /* FORMID,destination, of which cointains dataSourceQuestionIdentifier question */
         String formId = appDatabase.getDDE_QuestionsDao().getFormIdByQuestionID(dataSourceQuestionIdentifier);
         final String destCol = appDatabase.getDDE_QuestionsDao().getDestColumnByQid(dataSourceQuestionIdentifier);
@@ -842,7 +850,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         }
                     }
                 }
-
             }
         }
         List tempList = new ArrayList();
