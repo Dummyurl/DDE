@@ -72,6 +72,7 @@ import pratham.dde.domain.AnswerJSonArrays;
 import pratham.dde.domain.AnswersSingleForm;
 import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleTable;
+import pratham.dde.domain.DataSourceEntries;
 import pratham.dde.interfaces.FillAgainListner;
 import pratham.dde.services.SyncUtility;
 import pratham.dde.utils.DisplayValue;
@@ -737,7 +738,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 Spinner spinnerDropdown = new Spinner(this);
                 spinnerDropdown.setBackground(ContextCompat.getDrawable(this, R.drawable.spinnerbg));
                 JsonArray optionDropDown = dde_questions.getQuestionOption();
-                display.add(new DisplayValue("select option","select option"));
+                display.add(new DisplayValue("select option", "select option"));
                 for (int i = 0; i < optionDropDown.size(); i++) {
                     JsonElement jsonElement = optionDropDown.get(i);
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
@@ -794,8 +795,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         }
         renderAllQuestionsLayout.addView(layout);
         /*check dependency if depends then hide*/
-        if (depQueID.contains(dde_questions.getQuestionId()))
-        {
+        if (depQueID.contains(dde_questions.getQuestionId())) {
             layout.setVisibility(View.GONE);
         }
     }
@@ -816,6 +816,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         List answerList = new ArrayList();
         answerList.add("select options");
         // Adding Data to dropdown list which is taken fron server
+
         /*String dataSourceAnswers = appDatabase.getDataSourceEntriesDao().getAnswer(dde_questions.getFormId(), dde_questions.getDestColumname());*/
 
         /*if (dataSourceAnswers != null) {
@@ -829,6 +830,36 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         String formId = appDatabase.getDDE_QuestionsDao().getFormIdByQuestionID(dataSourceQuestionIdentifier);
         final String destCol = appDatabase.getDDE_QuestionsDao().getDestColumnByQid(dataSourceQuestionIdentifier);
         /* getting all forms from answer table */
+
+        List<DataSourceEntries> dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(formId);
+        DataSourceEntries dataSourceEntries;
+
+        try {
+            for (int dsIndex = 0; dsIndex < dataSourceEntriesOnline.size(); dsIndex++) {
+                dataSourceEntries = dataSourceEntriesOnline.get(dsIndex);
+                JSONObject answerObjectOnline = new JSONObject(dataSourceEntries.getAnswers());
+                if (!answer.equals("") && (!answer.equals("select options"))) {
+                    String destColmnOnline = answerObjectOnline.getString(destColumnParent);
+                    if (destColmnOnline != null && destColmnOnline.equals(answer)) {
+                        String destOnline = answerObjectOnline.getString(destCol);
+                        if (destOnline != null) {
+                            answerList.add(destOnline);
+                        }
+                    }
+                } else {
+                    if (answer.equals("")) {
+                        String destOnline = answerObjectOnline.getString(destCol);
+                        if (destOnline != null) {
+                            answerList.add(destOnline);
+                        }
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
         List<AnswersSingleForm> forms = appDatabase.getAnswerDao().getAllAnswersByFormId(formId);
         for (int formIndex = 0; formIndex < forms.size(); formIndex++) {
             JsonArray jsonArray = forms.get(formIndex).getAnswerArrayOfSingleForm();
@@ -1076,66 +1107,66 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     }
 
     private boolean checkConditionType(String conditionType, String ans, String answerFromJsonToMatch, String queType) {
-            boolean flag = false;
-            int answer = 0;
-            int answerMatch = 0;
-            String[] splittedAnswer = null;
-            if (queType.equalsIgnoreCase("number")) {
-                if (ans.equals("") || ans.equals("$$")) {
-                    return false;
-                } else {
-                    answer = Integer.parseInt(ans);
-                }
-                answerMatch = Integer.parseInt(answerFromJsonToMatch);
+        boolean flag = false;
+        int answer = 0;
+        int answerMatch = 0;
+        String[] splittedAnswer = null;
+        if (queType.equalsIgnoreCase("number")) {
+            if (ans.equals("") || ans.equals("$$")) {
+                return false;
             } else {
-                if (answerFromJsonToMatch.startsWith("[")) {
-                    answerFromJsonToMatch = answerFromJsonToMatch.replace('[', ' ');
-                }
-                if (answerFromJsonToMatch.endsWith("]")) {
-                    answerFromJsonToMatch = answerFromJsonToMatch.replace(']', ' ');
-                }
-                splittedAnswer = answerFromJsonToMatch.trim().split(",");
+                answer = Integer.parseInt(ans);
             }
-            switch (conditionType) {
-                case "less than":
-                    flag = answer < answerMatch ? true : false;
-                    break;
-                case "greater than":
-                    flag = answer > answerMatch ? true : false;
-                    break;
-                case "equal to":
-                    flag = answer == answerMatch ? true : false;
-                    break;
-                case "less than equal to":
-                    flag = answer <= answerMatch ? true : false;
-                    break;
-                case "greater than equal to":
-                    flag = answer >= answerMatch ? true : false;
-                    break;
-                case "match one":
-                    if (queType.equalsIgnoreCase("multiple")) {
-                        /*ENTERED BY USER*/
-                        String[] spittedGivenAns = ans.split(",");
-                        for (int i = 0; i < splittedAnswer.length; i++) {
-                            for (int j = 0; j < spittedGivenAns.length; j++) {
-                                String answerTemp = splittedAnswer[i];
-                                if (spittedGivenAns[j].equalsIgnoreCase(answerTemp)) {
-                                    flag = true;
-                                    break;
-                                }
-                            }
-                            if (flag) break;
-                        }
-                    } else {
-                        for (int i = 0; i < splittedAnswer.length; i++) {
-                            if (ans.equalsIgnoreCase(splittedAnswer[i])) {
+            answerMatch = Integer.parseInt(answerFromJsonToMatch);
+        } else {
+            if (answerFromJsonToMatch.startsWith("[")) {
+                answerFromJsonToMatch = answerFromJsonToMatch.replace('[', ' ');
+            }
+            if (answerFromJsonToMatch.endsWith("]")) {
+                answerFromJsonToMatch = answerFromJsonToMatch.replace(']', ' ');
+            }
+            splittedAnswer = answerFromJsonToMatch.trim().split(",");
+        }
+        switch (conditionType) {
+            case "less than":
+                flag = answer < answerMatch ? true : false;
+                break;
+            case "greater than":
+                flag = answer > answerMatch ? true : false;
+                break;
+            case "equal to":
+                flag = answer == answerMatch ? true : false;
+                break;
+            case "less than equal to":
+                flag = answer <= answerMatch ? true : false;
+                break;
+            case "greater than equal to":
+                flag = answer >= answerMatch ? true : false;
+                break;
+            case "match one":
+                if (queType.equalsIgnoreCase("multiple")) {
+                    /*ENTERED BY USER*/
+                    String[] spittedGivenAns = ans.split(",");
+                    for (int i = 0; i < splittedAnswer.length; i++) {
+                        for (int j = 0; j < spittedGivenAns.length; j++) {
+                            String answerTemp = splittedAnswer[i];
+                            if (spittedGivenAns[j].equalsIgnoreCase(answerTemp)) {
                                 flag = true;
+                                break;
                             }
+                        }
+                        if (flag) break;
+                    }
+                } else {
+                    for (int i = 0; i < splittedAnswer.length; i++) {
+                        if (ans.equalsIgnoreCase(splittedAnswer[i])) {
+                            flag = true;
                         }
                     }
-                    break;
-                case "match none":
-                    flag = true;
+                }
+                break;
+            case "match none":
+                flag = true;
 
                     /*if (!firstRun && ans.equalsIgnoreCase("") && queType.equalsIgnoreCase("multiple"))
                         return false;
@@ -1147,40 +1178,40 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         return true;
                     }*/
 
-                    if (queType.equalsIgnoreCase("multiple")) {
-                        /*ENTERED BY USER*/
-                        if (firstRun)
-                            return false;
+                if (queType.equalsIgnoreCase("multiple")) {
+                    /*ENTERED BY USER*/
+                    if (firstRun)
+                        return false;
 
-                        if (!firstRun && ans.equals("$$"))
-                            return false;
+                    if (!firstRun && ans.equals("$$"))
+                        return false;
 
-                        if (!firstRun && ans.equals(""))
-                            return true;
+                    if (!firstRun && ans.equals(""))
+                        return true;
 
-                        String[] spittedGivenAns = ans.split(",");
-                        for (int i = 0; i < splittedAnswer.length; i++) {
-                            for (int j = 0; j < spittedGivenAns.length; j++) {
-                                if (spittedGivenAns[j].equalsIgnoreCase(splittedAnswer[i])) {
-                                    flag = false;
-                                    break;
-                                }
-                            }
-                            if (!flag) break;
-                        }
-                    } else {
-                        if (ans.equalsIgnoreCase("") || ans.equalsIgnoreCase("$$"))
-                            return false;
-
-                        for (int i = 0; i < splittedAnswer.length; i++) {
-                            if (ans.equalsIgnoreCase(splittedAnswer[i])) {
+                    String[] spittedGivenAns = ans.split(",");
+                    for (int i = 0; i < splittedAnswer.length; i++) {
+                        for (int j = 0; j < spittedGivenAns.length; j++) {
+                            if (spittedGivenAns[j].equalsIgnoreCase(splittedAnswer[i])) {
                                 flag = false;
+                                break;
                             }
+                        }
+                        if (!flag) break;
+                    }
+                } else {
+                    if (ans.equalsIgnoreCase("") || ans.equalsIgnoreCase("$$"))
+                        return false;
+
+                    for (int i = 0; i < splittedAnswer.length; i++) {
+                        if (ans.equalsIgnoreCase(splittedAnswer[i])) {
+                            flag = false;
                         }
                     }
-                    break;
-            }
-            return flag;
+                }
+                break;
+        }
+        return flag;
     }
 
     @Override

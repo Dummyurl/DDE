@@ -15,9 +15,10 @@ public interface DataSourceEntriesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertEntry(List<DataSourceEntries> dataSourceEntries);
 
-    /*@Query("Select answers from DataSourceEntries where formId=:formid and columnName=:clmnName")
-    public String getAnswer(String formid, String clmnName);
-*/
+
+    @Query("Select * from DataSourceEntries where formId=:formid")
+    public List<DataSourceEntries> getDatasourceOnline(String formid);
+/*
    /* @Query("update DataSourceEntries set answers=:answers  where formId=:formid and columnName=:clmnName")
     public void updateAnswer(String formid, String clmnName, String answers);*/
 }
