@@ -815,19 +815,10 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
         List answerList = new ArrayList();
         answerList.add("select options");
-        // Adding Data to dropdown list which is taken fron server
-
-        /*String dataSourceAnswers = appDatabase.getDataSourceEntriesDao().getAnswer(dde_questions.getFormId(), dde_questions.getDestColumname());*/
-
-        /*if (dataSourceAnswers != null) {
-            dataSourceAnswers = dataSourceAnswers.substring(0, dataSourceAnswers.length() - 1);
-            String splittedAnswers[] = dataSourceAnswers.split("~");
-            answerList.addAll(Arrays.asList(splittedAnswers));
-        }*/
         // Adding Data to dropdown list which is filled locally
         String dataSourceQuestionIdentifier = dde_questions.getDataSourceQuestionIdentifier();
         /* FORMID,destination, of which cointains dataSourceQuestionIdentifier question */
-        String formId = appDatabase.getDDE_QuestionsDao().getFormIdByQuestionID(dataSourceQuestionIdentifier);
+        String formId = dde_questions.getFormId();
         final String destCol = appDatabase.getDDE_QuestionsDao().getDestColumnByQid(dataSourceQuestionIdentifier);
         /* getting all forms from answer table */
 
