@@ -830,7 +830,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         DataSourceEntries dataSourceEntries;
 
         Map<String, Map<String, String>> mainMap = new HashMap<>();
-        try {
+        try { int i=0;
             for (DataSourceEntries dataSourceEntries1 : dataSourceEntriesOnline) {
                 /*dataSourceEntries = dataSourceEntriesOnline.get(dsIndex);
                 JSONObject answerObjectOnline = new JSONObject(dataSourceEntries.getAnswers());
@@ -851,13 +851,13 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     }
                 }*/
 //                dataSourceEntries = dataSourceEntriesOnline.get(dsIndex);
-                Gson gson = new Gson();
+               /* Gson gson = new Gson();
                 Type mapType = new TypeToken<Map<String, String>>() {
                 }.getType();
                 Map<String, String> map = gson.fromJson(dataSourceEntries1.getAnswers(), mapType);
-                mainMap.put(dataSourceEntries1.getEntryId(), map);
+                mainMap.put(dataSourceEntries1.getEntryId(), map);*/
+                Log.d("MapSize", ""+i++ +"  //  "  + dataSourceEntries1.getEntryId());
             }
-            Log.d("MapSize", "showDataSource: "+mainMap.size());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -901,7 +901,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     dde_questions.setAnswer("");
                     for (int depQueIndex = 0; depQueIndex < formIdWiseQuestions.size(); depQueIndex++) {
                         if (dde_questions.getQuestionId().equals(formIdWiseQuestions.get(depQueIndex).getDependentQuestionIdentifier())) {
-                            showDataSource(layout, formIdWiseQuestions.get(depQueIndex), selectedOption, "");
+                           // showDataSource(layout, formIdWiseQuestions.get(depQueIndex), selectedOption, "");
                         }
                     }
                 } else {
