@@ -44,12 +44,14 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,8 +60,10 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import butterknife.BindView;
@@ -112,6 +116,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_questions);
+        ButterKnife.bind(this);
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             String[] permissionArray = new String[]{PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE, PermissionUtils.Manifest_CAMERA};
             if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
@@ -131,7 +136,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         } else {
             editFormFlag = false;
         }
-        ButterKnife.bind(this);
         checkBoxList = new ArrayList();
         String formName = appDatabase.getDDE_FormsDao().getFormName(formId);
         if (formName != null) {
@@ -825,9 +829,10 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         List<DataSourceEntries> dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(formId);
         DataSourceEntries dataSourceEntries;
 
+        Map<String, Map<String, String>> mainMap = new HashMap<>();
         try {
-            for (int dsIndex = 0; dsIndex < dataSourceEntriesOnline.size(); dsIndex++) {
-                dataSourceEntries = dataSourceEntriesOnline.get(dsIndex);
+            for (DataSourceEntries dataSourceEntries1 : dataSourceEntriesOnline) {
+                /*dataSourceEntries = dataSourceEntriesOnline.get(dsIndex);
                 JSONObject answerObjectOnline = new JSONObject(dataSourceEntries.getAnswers());
                 if (!answer.equals("") && (!answer.equals("select options"))) {
                     String destColmnOnline = answerObjectOnline.getString(destColumnParent);
@@ -844,9 +849,16 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             answerList.add(destOnline);
                         }
                     }
-                }
+                }*/
+//                dataSourceEntries = dataSourceEntriesOnline.get(dsIndex);
+                Gson gson = new Gson();
+                Type mapType = new TypeToken<Map<String, String>>() {
+                }.getType();
+                Map<String, String> map = gson.fromJson(dataSourceEntries1.getAnswers(), mapType);
+                mainMap.put(dataSourceEntries1.getEntryId(), map);
             }
-        } catch (JSONException e) {
+            Log.d("MapSize", "showDataSource: "+mainMap.size());
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -904,7 +916,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 LinearLayout linearLayout = (LinearLayout) adapterView.getParent();
                 String tag = linearLayout.getTag().toString();
                 checkRuleCondition(tag, adapterView.getSelectedItem().toString(), "dropdown");
-
             }
 
             @Override
