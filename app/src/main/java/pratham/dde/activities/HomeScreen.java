@@ -35,7 +35,6 @@ import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import butterknife.BindView;
@@ -83,6 +82,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     String unUpdatedForms = "";
     List<JSONObject> dataSourceForFormOnline;
     static int rowsPerPage = 10000;
+    ProgressDialog progressDialog;
+    int maxProgressCnt = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,10 +152,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 return true;
             }
         });
-        if (SyncUtility.isDataConnectionAvailable(HomeScreen.this))
-            updateFormEntries();
-        else
-            showSavedOldForms();
+        if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) updateFormEntries();
+        else showSavedOldForms();
     }
 
     private void uploadOldFormsAsync(List<AnswersSingleForm> allAnswersSingleForms) {
@@ -193,7 +192,15 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     /* load Question SourceDta */
     private void fetchQuestionsSourceData() {
         // Remove table FormwisedatasourceID
-        Utility.setMessage(dialog, "Getting Data. Please wait it'll take time");
+        Utility.dismissDialog(dialog);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Downloading Data Be patient");
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setProgress(0);
+        progressDialog.setMax(100);
+        progressDialog.setCancelable(false);
+        maxProgressCnt = 0;
+        progressDialog.show();
         dataSourceUrl = Utility.getProperty("getDataSource", mContext);
         dataSourceIndex = 0;
         PageNumber = 1;
@@ -212,15 +219,12 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 jsonObject.put("PageNumber", PageNumber);
                 jsonObject.put("PageSize", rowsPerPage);
 
-                AndroidNetworking.post(dataSourceUrl)
-                        .addHeaders("Content-Type", "application/json")
-                        .addHeaders("Authorization", token)
-                        .addJSONObjectBody(jsonObject) // posting json
+                AndroidNetworking.post(dataSourceUrl).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).addJSONObjectBody(jsonObject) // posting json
                         .build().
                         getAsJSONObject(new JSONObjectRequestListener() {
                             @Override
                             public void onResponse(JSONObject response) {
-                                Log.d("responsePKSERVER", "responsePKSERVER: "+dataSourceIndex);
+                                Log.d("responsePKSERVER", "responsePKSERVER: " + dataSourceIndex);
                                 saveSourceData(response);
                             }
 
@@ -231,16 +235,16 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                                     dataSourceIndex++;
                                     loadSourceData();
                                 } else {
-                                    Utility.dismissDialog(dialog);
+                                    progressDialog.dismiss();
                                 }
                             }
                         });
             } catch (Exception e) {
                 e.printStackTrace();
-                Utility.dismissDialog(dialog);
+                progressDialog.dismiss();
             }
         } else {
-            Utility.dismissDialog(dialog);
+            progressDialog.dismiss();
         }
     }
 
@@ -287,11 +291,26 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 }
                 appDatabase.getDataSourceEntriesDao().insertEntry(dataSourceEntries);
                 PageNumber++;
-                Log.d("PagenoPKsaveSourceData", "PagenoPKsaveSourceData: "+PageNumber);
+                Log.d("PagenoPKsaveSourceData", "PagenoPKsaveSourceData: " + PageNumber);
             } else {
                 PageNumber = 1;
+                progressDialog.setProgress(0);
                 dataSourceIndex++;
             }
+            maxProgressCnt = response.getInt("Count");
+            int pstatus;
+            if (maxProgressCnt < rowsPerPage) {
+                pstatus = 100;
+                PageNumber = 1;
+                dataSourceIndex++;
+            } else {
+                pstatus = ((rowsPerPage * (PageNumber - 1)) * 100) / maxProgressCnt;
+                if (pstatus > 100) {
+                    PageNumber = 1;
+                    dataSourceIndex++;
+                }
+            }
+            progressDialog.setProgress(pstatus);
             loadSourceData();
         } catch (JSONException e) {
             e.printStackTrace();
