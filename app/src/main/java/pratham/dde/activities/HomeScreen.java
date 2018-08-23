@@ -194,7 +194,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         // Remove table FormwisedatasourceID
         Utility.dismissDialog(dialog);
         progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Downloading Data Be patient");
+        progressDialog.setMessage("Downloading data please wait..");
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setProgress(0);
         progressDialog.setMax(100);
@@ -568,7 +568,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             e.printStackTrace();
         }
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

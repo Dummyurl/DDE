@@ -109,7 +109,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     JsonArray answerJsonArray;
     String path;
     boolean firstRun = true;
-    Dialog dialog;
+    Dialog dialog,dilogForSpinner;
     List<DataSourceEntries> dataSourceEntriesOnline;
     Context mContext;
 
@@ -129,6 +129,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     private void proceedFurther() {
         mContext = DisplayQuestions.this;
         dialog = new ProgressDialog(mContext);
+        dilogForSpinner = new ProgressDialog(mContext);
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected void onPreExecute() {
@@ -881,6 +882,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 answerList = getDependentValues(answerList, destCol, null, null);
             else if (!answer.isEmpty() && !answer.equalsIgnoreCase("select options")){
                 answerList = getDependentValues(answerList, destCol, destColumnParent, answer);
+                Utility.dismissDialog(dilogForSpinner);
             }
 
             Log.d("pkpkpk", "Size: " + answerList.size());
@@ -935,6 +937,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     dde_questions.setAnswer(selectedOption);
                     for (int depQueIndex = 0; depQueIndex < formIdWiseQuestions.size(); depQueIndex++) {
                         if (dde_questions.getQuestionId().equals(formIdWiseQuestions.get(depQueIndex).getDependentQuestionIdentifier())) {
+                            Utility.showDialogInApiCalling(dilogForSpinner,DisplayQuestions.this,"Loading dependent data, Please wait..");
+//                            Utility.showDialogInApiCalling(dialog,DisplayQuestions.this,"Loading dependent data, Please wait..");
                             showDataSource(layout, formIdWiseQuestions.get(depQueIndex), selectedOption, destCol);
                         }
                     }
