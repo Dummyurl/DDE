@@ -4,8 +4,10 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+import java.io.Serializable;
+
 @Entity
-public class DataSourceEntries {
+public class DataSourceEntries implements Serializable {
     @PrimaryKey()
     @NonNull
     String entryId;

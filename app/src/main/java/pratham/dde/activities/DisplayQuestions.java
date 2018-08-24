@@ -18,6 +18,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.text.Editable;
@@ -54,6 +55,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -109,7 +111,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     JsonArray answerJsonArray;
     String path;
     boolean firstRun = true;
-    Dialog dialog,dilogForSpinner;
+    Dialog dialog;
     List<DataSourceEntries> dataSourceEntriesOnline;
     Context mContext;
 
@@ -128,13 +130,17 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
     private void proceedFurther() {
         mContext = DisplayQuestions.this;
-        dialog = new ProgressDialog(mContext);
-        dilogForSpinner = new ProgressDialog(mContext);
+        /*dialog = new ProgressDialog(mContext);*/
+
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
-                Utility.showDialogInApiCalling(dialog, mContext, "Getting form ready to edit");
+                //Utility.showDialogInApiCalling(dialog, mContext, "Getting form ready to edit");
+                dialog = new ProgressDialog(DisplayQuestions.this);
+                dialog.setTitle("Getting form ready to edit");
+                dialog.setCancelable(false);
+                dialog.show();
             }
 
             @Override
@@ -142,14 +148,20 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 formId = getIntent().getStringExtra("formId");
                 userId = getIntent().getStringExtra("userId");
                 entryID = getIntent().getStringExtra("entryId");
+                Bundle args = getIntent().getBundleExtra("BUNDLE");
+                if (args != null)
+                    dataSourceEntriesOnline = (ArrayList<DataSourceEntries>) args.getSerializable("dataSourceEntriesOnline");
                 path = Environment.getExternalStorageDirectory().toString() + "/DDEImages";
-                dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(formId);
+                if (dataSourceEntriesOnline == null)
+                    dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(formId);
                 return null;
             }
 
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
+                // Utility.dismissDialog(dialog);
+                dialog.dismiss();
                 Log.d("pkpkpk", "doInBackground: " + dataSourceEntriesOnline.size());
                 final String formEdit = getIntent().getStringExtra("formEdit");
                 if (formEdit.equals("true")) {
@@ -185,7 +197,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     checkRuleCondition(dde_que.getQuestionId(), dde_que.getAnswer(), dde_que.getQuestionType());
                 }
                 firstRun = false;
-                Utility.dismissDialog(dialog);
             }
         }.execute();
     }
@@ -818,9 +829,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
             case "datasourcelist":
                 if (dde_questions.getDependentQuestionIdentifier() == null)
-                    showDataSource(layout, dde_questions, "", "");
+                    new ShowDataSources(DisplayQuestions.this, layout, dde_questions, "", "").execute();
+//                    showDataSource(layout, dde_questions, "", "");
                 else
-                    showDataSource(layout, dde_questions, "", "firstInitializaion");
+                    new ShowDataSources(DisplayQuestions.this, layout, dde_questions, "", "firstInitializaion").execute();
+//                    showDataSource(layout, dde_questions, "", "firstInitializaion");
                 break;
         }
         renderAllQuestionsLayout.addView(layout);
@@ -831,6 +844,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     }
 
     private ArrayList<String> getDependentValues(ArrayList<String> answerList, String destColName, String conditionColName, String conditionColValue) {
+
         for (DataSourceEntries dataSourceEntries : dataSourceEntriesOnline) {
             try {
                 JSONObject jObject = new JSONObject(dataSourceEntries.getAnswers());
@@ -859,8 +873,165 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         return answerList;
     }
 
-    private void showDataSource(final LinearLayout layout, final DDE_Questions dde_questions, String answer, String destColumnParent) {
+    private class ShowDataSources extends AsyncTask<Void, Void, Void> {
+        Context context;
+        LinearLayout layout;
+        DDE_Questions dde_questions;
+        String answer;
+        String destColumnParent;
+        ArrayList<String> answerList;
+        Spinner spinnerDataSource = null;
+        LinearLayout.LayoutParams paramsWrapContent;
+        LinearLayout layoutObj;
+        String destCol;
+        String selectedOption;
+        private int index;
+        ProgressDialog dialogForSpinners;
 
+        public ShowDataSources(Context context, LinearLayout layout, DDE_Questions dde_questions, String answer, String destColumnParent) {
+            this.context = context;
+            this.layout = layout;
+            this.dde_questions = dde_questions;
+            this.answer = answer;
+            this.destColumnParent = destColumnParent;
+            dialogForSpinners = new ProgressDialog(context);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (!dialog.isShowing() && !dialogForSpinners.isShowing()) {
+                dialogForSpinners = new ProgressDialog(DisplayQuestions.this);
+                dialogForSpinners.setTitle("Loading Data Spinner");
+                dialog.getWindow().setDimAmount(0.9f);
+                dialogForSpinners.setCancelable(false);
+                dialogForSpinners.show();
+            }
+            paramsWrapContent = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
+            paramsWrapContent.setMargins(10, 0, 0, 0);
+            layoutObj = renderAllQuestionsLayout.findViewWithTag(dde_questions.getQuestionId());
+            if (layoutObj != null) {
+                spinnerDataSource = (Spinner) layoutObj.getChildAt(1);
+            } else {
+                spinnerDataSource = new Spinner(context);
+                spinnerDataSource.setBackground(ContextCompat.getDrawable(context, R.drawable.spinnerbg));
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            String dataSourceQuestionIdentifier = dde_questions.getDataSourceQuestionIdentifier();
+            destCol = appDatabase.getDDE_QuestionsDao().getDestColumnByQid(dataSourceQuestionIdentifier);
+            answerList = new ArrayList<>();
+            try {
+                answerList.add("select options");
+                if (destColumnParent.isEmpty()) {
+                    answerList = getDependentValues(answerList, destCol, null, null);
+                } else if (!answer.isEmpty() && !answer.equalsIgnoreCase("select options")) {
+                    answerList = getDependentValues(answerList, destCol, destColumnParent, answer);
+                }
+
+                Log.d("pkpkpk", "Size: " + answerList.size());
+
+                String tempformId = appDatabase.getDDE_QuestionsDao().getFormIdByQuestionID(dataSourceQuestionIdentifier);
+                List<AnswersSingleForm> forms = appDatabase.getAnswerDao().getAllAnswersByFormId(tempformId);
+                for (int formIndex = 0; formIndex < forms.size(); formIndex++) {
+                    JsonArray jsonArray = forms.get(formIndex).getAnswerArrayOfSingleForm();
+                    for (int jsonArrayIndex = 0; jsonArrayIndex < jsonArray.size(); jsonArrayIndex++) {
+                        JsonObject jsonObject = jsonArray.get(jsonArrayIndex).getAsJsonObject();
+                        if (!answer.equals("") && (!answer.equals("select options"))) {
+                            if (jsonObject.get("DestColumnName").getAsString().equals(destColumnParent) && jsonObject.get("Answers").getAsString().equals(answer)) {
+                                for (int dep = 0; dep < jsonArray.size(); dep++) {
+                                    JsonObject depJsonObj = jsonArray.get(dep).getAsJsonObject();
+                                    if (depJsonObj.get("DestColumnName").getAsString().equals(destCol)) {
+                                        answerList.add(depJsonObj.get("Answers").getAsString());
+                                    }
+                                }
+                            }
+                        } else {
+                            if (answer.equals("")) {
+                                if (jsonObject.get("DestColumnName").getAsString().equals(destCol)) {
+                                    answerList.add(jsonObject.get("Answers").getAsString());
+                                }
+                            }
+                        }
+                    }
+                }
+                if (dialogForSpinners.isShowing())
+                    dialogForSpinners.dismiss();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            List tempList = new ArrayList();
+            tempList.addAll(new LinkedHashSet(answerList));
+            answerList.clear();
+            answerList.addAll(tempList);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            ArrayAdapter<String> spinnerArrayAdapterDS = new ArrayAdapter<String>(context, android.R.layout.simple_selectable_list_item, answerList);
+            spinnerDataSource.setAdapter(spinnerArrayAdapterDS);
+            spinnerDataSource.setLayoutParams(paramsWrapContent);
+            spinnerDataSource.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                    selectedOption = adapterView.getSelectedItem().toString();
+                    if (selectedOption.equals("select options")) {
+                        dde_questions.setAnswer("");
+                        for (int depQueIndex = 0; depQueIndex < formIdWiseQuestions.size(); depQueIndex++) {
+                            if (dde_questions.getQuestionId().equals(formIdWiseQuestions.get(depQueIndex).getDependentQuestionIdentifier())) {
+                                index = depQueIndex;
+                                mHandler.sendEmptyMessage(0);
+                            }
+                        }
+                    } else {
+                        dde_questions.setAnswer(selectedOption);
+                        for (int depQueIndex = 0; depQueIndex < formIdWiseQuestions.size(); depQueIndex++) {
+                            if (dde_questions.getQuestionId().equals(formIdWiseQuestions.get(depQueIndex).getDependentQuestionIdentifier())) {
+                                index = depQueIndex;
+                                mHandler.sendEmptyMessage(1);
+                            }
+                        }
+                    }
+                    LinearLayout linearLayout = (LinearLayout) adapterView.getParent();
+                    String tag = linearLayout.getTag().toString();
+                    checkRuleCondition(tag, adapterView.getSelectedItem().toString(), "dropdown");
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+            if (layoutObj != null) {
+                /* spinnerDataSource = (Spinner) layoutObj.getChildAt(1);*/
+            } else {
+                layout.addView(spinnerDataSource);
+            }
+        }
+
+        Handler mHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                switch (msg.what) {
+                    case 0:
+                        new ShowDataSources(DisplayQuestions.this, layout, formIdWiseQuestions.get(index), selectedOption, "onClick").execute();
+                        break;
+                    case 1:
+                        new ShowDataSources(DisplayQuestions.this, layout, formIdWiseQuestions.get(index), selectedOption, destCol).execute();
+                        break;
+                }
+                return false;
+            }
+        });
+    }
+
+
+/*
+    private void showDataSource(final LinearLayout layout, final DDE_Questions dde_questions, String answer, String destColumnParent) {
         LinearLayout.LayoutParams paramsWrapContent = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
         paramsWrapContent.setMargins(10, 0, 0, 0);
         LinearLayout layoutObj = renderAllQuestionsLayout.findViewWithTag(dde_questions.getQuestionId());
@@ -878,15 +1049,13 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         ArrayList<String> answerList = new ArrayList<>();
         try {
             answerList.add("select options");
-            if (destColumnParent.isEmpty())
+            if (destColumnParent.isEmpty()) {
                 answerList = getDependentValues(answerList, destCol, null, null);
-            else if (!answer.isEmpty() && !answer.equalsIgnoreCase("select options")){
+            } else if (!answer.isEmpty() && !answer.equalsIgnoreCase("select options")) {
                 answerList = getDependentValues(answerList, destCol, destColumnParent, answer);
-                Utility.dismissDialog(dilogForSpinner);
             }
 
             Log.d("pkpkpk", "Size: " + answerList.size());
-
 
             formId = appDatabase.getDDE_QuestionsDao().getFormIdByQuestionID(dataSourceQuestionIdentifier);
             List<AnswersSingleForm> forms = appDatabase.getAnswerDao().getAllAnswersByFormId(formId);
@@ -937,8 +1106,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     dde_questions.setAnswer(selectedOption);
                     for (int depQueIndex = 0; depQueIndex < formIdWiseQuestions.size(); depQueIndex++) {
                         if (dde_questions.getQuestionId().equals(formIdWiseQuestions.get(depQueIndex).getDependentQuestionIdentifier())) {
-                            Utility.showDialogInApiCalling(dilogForSpinner,DisplayQuestions.this,"Loading dependent data, Please wait..");
-//                            Utility.showDialogInApiCalling(dialog,DisplayQuestions.this,"Loading dependent data, Please wait..");
                             showDataSource(layout, formIdWiseQuestions.get(depQueIndex), selectedOption, destCol);
                         }
                     }
@@ -954,12 +1121,15 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             }
         });
         if (layoutObj != null) {
-            /* spinnerDataSource = (Spinner) layoutObj.getChildAt(1);*/
+            */
+    /* spinnerDataSource = (Spinner) layoutObj.getChildAt(1);*//*
+
         } else {
             layout.addView(spinnerDataSource);
         }
 
     }
+*/
 
     private void checkRuleCondition(String tag, String ans, String queType) {
         for (int i = 0; i < allRules.size(); i++) {
@@ -1415,7 +1585,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
     private boolean checkValue(String questionId, String questionType, String validationName, String validationType, String validationValue, String answer) {
         try {
-            if (renderAllQuestionsLayout.findViewWithTag(questionId).getVisibility()== View.VISIBLE) {
+            if (renderAllQuestionsLayout.findViewWithTag(questionId).getVisibility() == View.VISIBLE) {
                 switch (validationName) {
                     case "REQUIRED":
                         // return answer != "" ? true : false;
@@ -1708,7 +1878,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 }
             } else
                 return true;
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -1804,6 +1974,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             public void onClick(DialogInterface dialogInterface, int i) {
                 dialogInterface.dismiss();
                 Intent questionIntent = new Intent(DisplayQuestions.this, DisplayQuestions.class);
+                Bundle args = new Bundle();
+                args.putSerializable("dataSourceEntriesOnline", (Serializable) dataSourceEntriesOnline);
+                questionIntent.putExtra("BUNDLE", args);
                 questionIntent.putExtra("formId", formId);
                 questionIntent.putExtra("userId", String.valueOf(userId));
                 questionIntent.putExtra("formEdit", "false");
