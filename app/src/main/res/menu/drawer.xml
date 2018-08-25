@@ -8,7 +8,7 @@
         <item
             android:id="@+id/nav_get_new_forms"
             android:icon="@drawable/ic_cloud_download_black_24dp"
-            android:title="Get New Forms" />
+            android:title="Get Questions" />
         <item
             android:id="@+id/nav_fill_forms"
             android:icon="@drawable/edit"

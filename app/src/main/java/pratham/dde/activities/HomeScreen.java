@@ -42,6 +42,7 @@ import butterknife.ButterKnife;
 import pratham.dde.R;
 import pratham.dde.database.BackupDatabase;
 import pratham.dde.domain.AnswersSingleForm;
+import pratham.dde.domain.DDE_FormWiseDataSource;
 import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleTable;
@@ -145,7 +146,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         break;
 
                     case R.id.nav_logout:
-                        finish();
+                        onBackPressed();
+                        //finish();
                         break;
                 }
                 drawer_layout.closeDrawer(GravityCompat.START);
@@ -191,10 +193,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     /* load Question SourceDta */
     private void fetchQuestionsSourceData() {
-        // Remove table FormwisedatasourceID
         Utility.dismissDialog(dialog);
         progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Downloading data please wait..");
+        progressDialog.setMessage("Progress : "+ (dataSourceIndex+1)+"/"+dataSourceForFormOnline.size());
+        progressDialog.setTitle("Downloading data please wait..");
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setProgress(0);
         progressDialog.setMax(100);
@@ -209,6 +211,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     private void loadSourceData() {
         if (dataSourceForFormOnline.size() > dataSourceIndex) {
+            progressDialog.setMessage("Progress : "+ (dataSourceIndex+1)+"/"+dataSourceForFormOnline.size());
             try {
                 JSONObject tempJsonObject = dataSourceForFormOnline.get(dataSourceIndex);
                 String dsFormId = tempJsonObject.getString("dsformid");
@@ -245,6 +248,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             }
         } else {
             progressDialog.dismiss();
+            Toast.makeText(mContext, "Downloaded successfully.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -258,9 +262,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 for (int tableIndex = 0; tableIndex < tableArray.length(); tableIndex++) {
                     JSONObject tableObj = tableArray.getJSONObject(tableIndex);
                     String entryId = tableObj.getString("EntryId");
-                    String formId = dataSourceForFormOnline.get(dataSourceIndex).getString("formid");
+                    String formId = dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid");
                     String answers = tableObj.toString();
-//                    Iterator iterator = tableObj.keys();
                     dataSourceEntryObj = new DataSourceEntries();
                     dataSourceEntryObj.setFormId(formId);
                     dataSourceEntryObj.setEntryId(entryId);
@@ -396,14 +399,21 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             JSONArray datasourceList = response.getJSONArray("DatasourceList");
             if (datasourceList.length() > 0) {
                 // For unique datasources
+                JSONObject dsJsonObject;
+                DDE_FormWiseDataSource dde_formWiseDataSourceObj = new DDE_FormWiseDataSource();
                 for (int dsIndex = 0; dsIndex < datasourceList.length(); dsIndex++) {
+                    dsJsonObject = datasourceList.getJSONObject(dsIndex);
+                    dde_formWiseDataSourceObj.setFormwisedsid(dsJsonObject.getString("formwisedsid"));
+                    dde_formWiseDataSourceObj.setDsformid(dsJsonObject.getString("dsformid"));
+                    dde_formWiseDataSourceObj.setFormid(dsJsonObject.getString("formid"));
+                    appDatabase.getDDE_FormWiseDataSourceDao().insertEntry(dde_formWiseDataSourceObj);
                     containFlag = false;
                     for (int dsOnlineIndex = 0; dsOnlineIndex < dataSourceForFormOnline.size(); dsOnlineIndex++) {
-                        if (datasourceList.getJSONObject(dsIndex).getString("dsformid").equalsIgnoreCase(dataSourceForFormOnline.get(dsOnlineIndex).getString("dsformid")))
+                        if (dsJsonObject.getString("dsformid").equalsIgnoreCase(dataSourceForFormOnline.get(dsOnlineIndex).getString("dsformid")))
                             containFlag = true;
                     }
                     if (!containFlag)
-                        dataSourceForFormOnline.add(datasourceList.getJSONObject(dsIndex));
+                        dataSourceForFormOnline.add(dsJsonObject);
                 }
             }
             String formId;

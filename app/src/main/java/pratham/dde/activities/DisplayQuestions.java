@@ -55,7 +55,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -71,6 +70,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import pratham.dde.BaseActivity;
+import pratham.dde.DDE_Application;
 import pratham.dde.R;
 import pratham.dde.customViews.ChooseImageDialog;
 import pratham.dde.domain.AnswerJSonArrays;
@@ -110,7 +110,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     String entryID;
     JsonArray answerJsonArray;
     String path;
-    boolean firstRun = true;
+    boolean firstRun = true, deletedToastShown = false;
     Dialog dialog;
     List<DataSourceEntries> dataSourceEntriesOnline;
     Context mContext;
@@ -130,7 +130,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
     private void proceedFurther() {
         mContext = DisplayQuestions.this;
-        /*dialog = new ProgressDialog(mContext);*/
 
         new AsyncTask<Void, Void, Void>() {
             @Override
@@ -148,12 +147,15 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 formId = getIntent().getStringExtra("formId");
                 userId = getIntent().getStringExtra("userId");
                 entryID = getIntent().getStringExtra("entryId");
-                Bundle args = getIntent().getBundleExtra("BUNDLE");
-                if (args != null)
-                    dataSourceEntriesOnline = (ArrayList<DataSourceEntries>) args.getSerializable("dataSourceEntriesOnline");
                 path = Environment.getExternalStorageDirectory().toString() + "/DDEImages";
-                if (dataSourceEntriesOnline == null)
-                    dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(formId);
+                if (!getIntent().getExtras().getBoolean("fillAgainFlag", false)) {
+                    DDE_Application.setCashedDataSourceEntriesOnline(new ArrayList<DataSourceEntries>());
+                    dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId));
+                } else {
+                    dataSourceEntriesOnline = DDE_Application.getCashedDataSourceEntriesOnline();
+                    if (dataSourceEntriesOnline == null)
+                        dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId));
+                }
                 return null;
             }
 
@@ -188,6 +190,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 } else {
                     entryID = Utility.getUniqueID().toString();
                 }
+
+                // flag for reinitialisation for the forms which has been deleted and still using
+                deletedToastShown = false;
 
                 for (int i = 0; i < formIdWiseQuestions.size(); i++) {
                     displaySingleQue(formIdWiseQuestions.get(i));
@@ -796,6 +801,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                 spinnerDropdown.setSelection(index);
                                 dde_questions.setAnswer(ans);
                             }
+                            break;
                         }
                     }
                 } else {
@@ -830,10 +836,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             case "datasourcelist":
                 if (dde_questions.getDependentQuestionIdentifier() == null)
                     new ShowDataSources(DisplayQuestions.this, layout, dde_questions, "", "").execute();
-//                    showDataSource(layout, dde_questions, "", "");
                 else
                     new ShowDataSources(DisplayQuestions.this, layout, dde_questions, "", "firstInitializaion").execute();
-//                    showDataSource(layout, dde_questions, "", "firstInitializaion");
                 break;
         }
         renderAllQuestionsLayout.addView(layout);
@@ -903,7 +907,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             if (!dialog.isShowing() && !dialogForSpinners.isShowing()) {
                 dialogForSpinners = new ProgressDialog(DisplayQuestions.this);
                 dialogForSpinners.setTitle("Loading Data Spinner");
-                dialog.getWindow().setDimAmount(0.9f);
+                dialogForSpinners.getWindow().setDimAmount(1f);
                 dialogForSpinners.setCancelable(false);
                 dialogForSpinners.show();
             }
@@ -923,44 +927,52 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             String dataSourceQuestionIdentifier = dde_questions.getDataSourceQuestionIdentifier();
             destCol = appDatabase.getDDE_QuestionsDao().getDestColumnByQid(dataSourceQuestionIdentifier);
             answerList = new ArrayList<>();
-            try {
-                answerList.add("select options");
-                if (destColumnParent.isEmpty()) {
-                    answerList = getDependentValues(answerList, destCol, null, null);
-                } else if (!answer.isEmpty() && !answer.equalsIgnoreCase("select options")) {
-                    answerList = getDependentValues(answerList, destCol, destColumnParent, answer);
+            if (destCol == null) {
+                if (dialogForSpinners.isShowing()) {
+                    dialogForSpinners.dismiss();
                 }
+                Log.d("ErrordestCol", "destCol: Linked form or question might be deleted. Spinner will not load. Contact administrator.");
+                return null;
+            } else {
+                try {
+                    answerList.add("select options");
+                    if (destColumnParent.isEmpty()) {
+                        answerList = getDependentValues(answerList, destCol, null, null);
+                    } else if (!answer.isEmpty() && !answer.equalsIgnoreCase("select options")) {
+                        answerList = getDependentValues(answerList, destCol, destColumnParent, answer);
+                    }
 
-                Log.d("pkpkpk", "Size: " + answerList.size());
+                    Log.d("pkpkpk", "Size: " + answerList.size());
 
-                String tempformId = appDatabase.getDDE_QuestionsDao().getFormIdByQuestionID(dataSourceQuestionIdentifier);
-                List<AnswersSingleForm> forms = appDatabase.getAnswerDao().getAllAnswersByFormId(tempformId);
-                for (int formIndex = 0; formIndex < forms.size(); formIndex++) {
-                    JsonArray jsonArray = forms.get(formIndex).getAnswerArrayOfSingleForm();
-                    for (int jsonArrayIndex = 0; jsonArrayIndex < jsonArray.size(); jsonArrayIndex++) {
-                        JsonObject jsonObject = jsonArray.get(jsonArrayIndex).getAsJsonObject();
-                        if (!answer.equals("") && (!answer.equals("select options"))) {
-                            if (jsonObject.get("DestColumnName").getAsString().equals(destColumnParent) && jsonObject.get("Answers").getAsString().equals(answer)) {
-                                for (int dep = 0; dep < jsonArray.size(); dep++) {
-                                    JsonObject depJsonObj = jsonArray.get(dep).getAsJsonObject();
-                                    if (depJsonObj.get("DestColumnName").getAsString().equals(destCol)) {
-                                        answerList.add(depJsonObj.get("Answers").getAsString());
+                    String tempformId = appDatabase.getDDE_QuestionsDao().getFormIdByQuestionID(dataSourceQuestionIdentifier);
+                    List<AnswersSingleForm> forms = appDatabase.getAnswerDao().getAllAnswersByFormId(tempformId);
+                    for (int formIndex = 0; formIndex < forms.size(); formIndex++) {
+                        JsonArray jsonArray = forms.get(formIndex).getAnswerArrayOfSingleForm();
+                        for (int jsonArrayIndex = 0; jsonArrayIndex < jsonArray.size(); jsonArrayIndex++) {
+                            JsonObject jsonObject = jsonArray.get(jsonArrayIndex).getAsJsonObject();
+                            if (!answer.equals("") && (!answer.equals("select options"))) {
+                                if (jsonObject.get("DestColumnName").getAsString().equals(destColumnParent) && jsonObject.get("Answers").getAsString().equals(answer)) {
+                                    for (int dep = 0; dep < jsonArray.size(); dep++) {
+                                        JsonObject depJsonObj = jsonArray.get(dep).getAsJsonObject();
+                                        if (depJsonObj.get("DestColumnName").getAsString().equals(destCol)) {
+                                            answerList.add(depJsonObj.get("Answers").getAsString());
+                                        }
                                     }
                                 }
-                            }
-                        } else {
-                            if (answer.equals("")) {
-                                if (jsonObject.get("DestColumnName").getAsString().equals(destCol)) {
-                                    answerList.add(jsonObject.get("Answers").getAsString());
+                            } else {
+                                if (answer.equals("")) {
+                                    if (jsonObject.get("DestColumnName").getAsString().equals(destCol)) {
+                                        answerList.add(jsonObject.get("Answers").getAsString());
+                                    }
                                 }
                             }
                         }
                     }
+                    if (dialogForSpinners.isShowing())
+                        dialogForSpinners.dismiss();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                if (dialogForSpinners.isShowing())
-                    dialogForSpinners.dismiss();
-            } catch (Exception e) {
-                e.printStackTrace();
             }
             List tempList = new ArrayList();
             tempList.addAll(new LinkedHashSet(answerList));
@@ -972,9 +984,31 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            if (answerList.size()==0) {
+                if (!deletedToastShown) {
+                    Toast.makeText(context, "Linked form or question might be deleted. Spinner will not load. Contact administrator.", Toast.LENGTH_LONG).show();
+                    deletedToastShown = true;
+                }
+                answerList.add("select options");
+            }
             ArrayAdapter<String> spinnerArrayAdapterDS = new ArrayAdapter<String>(context, android.R.layout.simple_selectable_list_item, answerList);
             spinnerDataSource.setAdapter(spinnerArrayAdapterDS);
             spinnerDataSource.setLayoutParams(paramsWrapContent);
+            if (editFormFlag) {
+                String dest_column = dde_questions.getDestColumname();
+                for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                    JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                    if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                        String ans = ansObject.get("Answers").getAsString();
+                        int index = answerList.indexOf(ans);
+                        if (index != -1) {
+                            spinnerDataSource.setSelection(index);
+                            dde_questions.setAnswer(ans);
+                        }
+                        break;
+                    }
+                }
+            }
             spinnerDataSource.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -1974,9 +2008,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             public void onClick(DialogInterface dialogInterface, int i) {
                 dialogInterface.dismiss();
                 Intent questionIntent = new Intent(DisplayQuestions.this, DisplayQuestions.class);
-                Bundle args = new Bundle();
-                args.putSerializable("dataSourceEntriesOnline", (Serializable) dataSourceEntriesOnline);
-                questionIntent.putExtra("BUNDLE", args);
+                DDE_Application.setCashedDataSourceEntriesOnline(dataSourceEntriesOnline);
+                questionIntent.putExtra("fillAgainFlag", true);
                 questionIntent.putExtra("formId", formId);
                 questionIntent.putExtra("userId", String.valueOf(userId));
                 questionIntent.putExtra("formEdit", "false");

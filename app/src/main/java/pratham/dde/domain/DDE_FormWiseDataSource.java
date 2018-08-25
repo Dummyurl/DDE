@@ -9,41 +9,32 @@ public class DDE_FormWiseDataSource {
 
     @PrimaryKey
     @NonNull
-    private int formwisedsid;
-    private int formid;
-    private int dsformid;
-
-    @Override
-    public String toString() {
-        return "DDE_FormWiseDataSource{" +
-                "formwisedsid=" + formwisedsid +
-                ", formid=" + formid +
-                ", dsformid=" + dsformid +
-                '}';
-    }
+    private String formwisedsid;
+    private String formid;
+    private String dsformid;
 
     @NonNull
-    public int getFormwisedsid() {
+    public String getFormwisedsid() {
         return formwisedsid;
     }
 
-    public void setFormwisedsid(@NonNull int formwisedsid) {
+    public void setFormwisedsid(@NonNull String formwisedsid) {
         this.formwisedsid = formwisedsid;
     }
 
-    public int getFormid() {
+    public String getFormid() {
         return formid;
     }
 
-    public void setFormid(int formid) {
+    public void setFormid(String formid) {
         this.formid = formid;
     }
 
-    public int getDsformid() {
+    public String getDsformid() {
         return dsformid;
     }
 
-    public void setDsformid(int dsformid) {
+    public void setDsformid(String dsformid) {
         this.dsformid = dsformid;
     }
 }
