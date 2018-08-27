@@ -82,6 +82,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     int PageNumber = 1;
     String unUpdatedForms = "";
     List<JSONObject> dataSourceForFormOnline;
+    List<DDE_Forms> updatedFormsToPull;
     static int rowsPerPage = 10000;
     ProgressDialog progressDialog;
     int maxProgressCnt = 0;
@@ -97,6 +98,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
         mContext = this;
         dialog = new ProgressDialog(mContext);
+        updatedFormsToPull = new ArrayList<>();
         userName = this.getIntent().getStringExtra("userName");
         password = this.getIntent().getStringExtra("password");
         userId = String.valueOf(appDatabase.getUserDao().getUserId(userName, password));
@@ -116,14 +118,19 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                     case R.id.nav_get_new_forms:
                         navigationView.getMenu().getItem(1).setChecked(false);
                         formIndex = 0;
-                        forms = appDatabase.getDDE_FormsDao().getAllForms();
-                        if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
-                            Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
-                            QuestionUrl = Utility.getProperty("getQuestionsAndData", mContext);
-                            dataSourceForFormOnline = new ArrayList<>();
-                            getQuestionsAndData(forms[formIndex].getFormid());
+//                        forms = appDatabase.getDDE_FormsDao().getAllForms();
+                        if (updatedFormsToPull.size()>0){
+                            forms = updatedFormsToPull.toArray(new DDE_Forms[updatedFormsToPull.size()]);
+                            if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
+                                Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
+                                QuestionUrl = Utility.getProperty("getQuestionsAndData", mContext);
+                                dataSourceForFormOnline = new ArrayList<>();
+                                getQuestionsAndData(forms[formIndex].getFormid());
+                            } else {
+                                Toast.makeText(mContext, "Check your internet connection.", Toast.LENGTH_SHORT).show();
+                            }
                         } else {
-                            Toast.makeText(mContext, "Check your internet connection.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mContext, "Forms and questions are up to date.", Toast.LENGTH_SHORT).show();
                         }
                         break;
 
@@ -195,7 +202,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     private void fetchQuestionsSourceData() {
         Utility.dismissDialog(dialog);
         progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Progress : "+ (dataSourceIndex+1)+"/"+dataSourceForFormOnline.size());
+        progressDialog.setMessage("Progress : " + (dataSourceIndex + 1) + "/" + dataSourceForFormOnline.size());
         progressDialog.setTitle("Downloading data please wait..");
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setProgress(0);
@@ -211,7 +218,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     private void loadSourceData() {
         if (dataSourceForFormOnline.size() > dataSourceIndex) {
-            progressDialog.setMessage("Progress : "+ (dataSourceIndex+1)+"/"+dataSourceForFormOnline.size());
+            progressDialog.setMessage("Progress : " + (dataSourceIndex + 1) + "/" + dataSourceForFormOnline.size());
             try {
                 JSONObject tempJsonObject = dataSourceForFormOnline.get(dataSourceIndex);
                 String dsFormId = tempJsonObject.getString("dsformid");
@@ -387,6 +394,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         if (formIndex < forms.length) {
             getQuestionsAndData(forms[formIndex].getFormid());
         } else {
+            updatedFormsToPull.clear();
             fetchQuestionsSourceData();
         }
     }
@@ -452,6 +460,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     private void updateFormEntries() {
         unUpdatedForms = "";
+        updatedFormsToPull.clear();
         User user = appDatabase.getUserDao().getUserDetails(userName, password);
         if (user != null)
             getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
@@ -499,6 +508,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         dde_form.setTablename(tempObj.getString("tablename"));
                         String pulledDateString = appDatabase.getDDE_FormsDao().getPulledDateTimeByFormID(tempObj.getString("formid"));
                         if (pulledDateString == null) {
+                            if (!updatedFormsToPull.contains(dde_form))
+                                updatedFormsToPull.add(dde_form);
                             unUpdatedForms = unUpdatedForms + tempObj.getString("formname") + "\n";
                         } else {
                             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
@@ -509,6 +520,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                             }
                             Date update = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(updateddate);
                             if (pulledDateDate.compareTo(update) < 0) {
+                                if (!updatedFormsToPull.contains(dde_form))
+                                    updatedFormsToPull.add(dde_form);
                                 unUpdatedForms = unUpdatedForms + tempObj.getString("formname") + "\n";
                             }
                             dde_form.setPulledDateTime(pulledDateString);
