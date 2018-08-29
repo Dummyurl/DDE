@@ -455,7 +455,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
     }
 
     private void updateFormEntries() {

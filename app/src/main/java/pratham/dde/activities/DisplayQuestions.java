@@ -178,7 +178,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 }
                 allRules = appDatabase.getDDE_RulesDao().getAllRules(formId);
                 formIdWiseQuestions = appDatabase.getDDE_QuestionsDao().getFormIdWiseQuestions(formId);
-                Collections.sort(formIdWiseQuestions, new Sortbyroll());
+                Collections.sort(formIdWiseQuestions, new SortQuestions());
 
                 /* SET VISIBILITY TO QUESTIONS */
                 setVisibilityToQuestions(formId);
@@ -991,6 +991,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 }
                 answerList.add("select options");
             }
+            Collections.sort(answerList);
             ArrayAdapter<String> spinnerArrayAdapterDS = new ArrayAdapter<String>(context, android.R.layout.simple_selectable_list_item, answerList);
             spinnerDataSource.setAdapter(spinnerArrayAdapterDS);
             spinnerDataSource.setLayoutParams(paramsWrapContent);
@@ -1948,13 +1949,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         showPermissionWarningDilog();
     }
 
-
-    class Sortbyroll implements Comparator<DDE_Questions> {
+    class SortQuestions implements Comparator<DDE_Questions> {
         // Used for sorting in ascending order of
         public int compare(DDE_Questions a, DDE_Questions b) {
             return a.getFieldSeqNo() - b.getFieldSeqNo();
         }
-
     }
 
     @Override
