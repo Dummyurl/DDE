@@ -40,6 +40,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pratham.dde.R;
+import pratham.dde.customViews.SelectQuestionDialog;
 import pratham.dde.database.BackupDatabase;
 import pratham.dde.domain.AnswersSingleForm;
 import pratham.dde.domain.DDE_FormWiseDataSource;
@@ -52,13 +53,14 @@ import pratham.dde.fragments.FillFormsFragment;
 import pratham.dde.fragments.SavedFormsFragment;
 import pratham.dde.interfaces.FabInterface;
 import pratham.dde.interfaces.FillAgainListner;
+import pratham.dde.interfaces.QuestionListLisner;
 import pratham.dde.services.SyncUtility;
 import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.BaseActivity.appDatabase;
 
-public class HomeScreen extends AppCompatActivity implements FabInterface, FillAgainListner/* implements LocationLisner */ {
+public class HomeScreen extends AppCompatActivity implements FabInterface, FillAgainListner, QuestionListLisner/* implements LocationLisner */ {
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -72,15 +74,15 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     //    FusedLocationAPI fusedLocationAPI;
     String userName, password;
     String userId;
+    boolean formLoaded = false;
     String dataSourceUrl;
     String tableName;
     Context mContext;
     String token, QuestionUrl;
-    DDE_Forms[] forms;
+    List forms;
     int formIndex = 0;
     int dataSourceIndex = 0;
     int PageNumber = 1;
-    String unUpdatedForms = "";
     List<JSONObject> dataSourceForFormOnline;
     List<DDE_Forms> updatedFormsToPull;
     static int rowsPerPage = 10000;
@@ -98,6 +100,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
         mContext = this;
         dialog = new ProgressDialog(mContext);
+        formLoaded = false;
         updatedFormsToPull = new ArrayList<>();
         userName = this.getIntent().getStringExtra("userName");
         password = this.getIntent().getStringExtra("password");
@@ -119,18 +122,15 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         navigationView.getMenu().getItem(1).setChecked(false);
                         formIndex = 0;
 //                        forms = appDatabase.getDDE_FormsDao().getAllForms();
-                        if (updatedFormsToPull.size()>0){
-                            forms = updatedFormsToPull.toArray(new DDE_Forms[updatedFormsToPull.size()]);
+                        if (!formLoaded) {
                             if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
-                                Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
-                                QuestionUrl = Utility.getProperty("getQuestionsAndData", mContext);
-                                dataSourceForFormOnline = new ArrayList<>();
-                                getQuestionsAndData(forms[formIndex].getFormid());
+                                formLoaded = true;
+                                updateFormEntries();
                             } else {
                                 Toast.makeText(mContext, "Check your internet connection.", Toast.LENGTH_SHORT).show();
                             }
                         } else {
-                            Toast.makeText(mContext, "Forms and questions are up to date.", Toast.LENGTH_SHORT).show();
+                            getQuestions();
                         }
                         break;
 
@@ -163,6 +163,21 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         });
         if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) updateFormEntries();
         else showSavedOldForms();
+    }
+
+    private void getQuestions() {
+        if (updatedFormsToPull.size() > 0) {
+            if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
+                QuestionUrl = Utility.getProperty("getQuestionsAndData", mContext);
+                dataSourceForFormOnline = new ArrayList<>();
+                SelectQuestionDialog selectVillageDialog = new SelectQuestionDialog(HomeScreen.this, updatedFormsToPull);
+                selectVillageDialog.show();
+            } else {
+                Toast.makeText(mContext, "Check your internet connection.", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(mContext, "Forms and questions are up to date.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void uploadOldFormsAsync(List<AnswersSingleForm> allAnswersSingleForms) {
@@ -218,7 +233,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     private void loadSourceData() {
         if (dataSourceForFormOnline.size() > dataSourceIndex) {
-            progressDialog.setMessage("Progress : " + (dataSourceIndex + 1) + "/" + dataSourceForFormOnline.size());
             try {
                 JSONObject tempJsonObject = dataSourceForFormOnline.get(dataSourceIndex);
                 String dsFormId = tempJsonObject.getString("dsformid");
@@ -228,6 +242,11 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 jsonObject.put("FormId", dsFormId);
                 jsonObject.put("PageNumber", PageNumber);
                 jsonObject.put("PageSize", rowsPerPage);
+                String formNameDownloading = appDatabase.getDDE_FormsDao().getFormName(dsFormId);
+                if (formNameDownloading == null) {
+                    formNameDownloading = " ";
+                }
+                progressDialog.setMessage("Progress : " + (dataSourceIndex + 1) + "/" + dataSourceForFormOnline.size() + "  Downloading " + formNameDownloading);
 
                 AndroidNetworking.post(dataSourceUrl).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).addJSONObjectBody(jsonObject) // posting json
                         .build().
@@ -351,6 +370,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             public void onResponse(JSONObject response) {
                 formIndex++;
                 saveData(response);
+
             }
 
             @Override
@@ -373,7 +393,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             public void onClick(DialogInterface dialogHere, int which) {
                 dialogHere.dismiss();
                 Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
-                getQuestionsAndData(forms[formIndex].getFormid());
+                getQuestionsAndData((int) forms.get(formIndex));
             }
         });
 
@@ -383,7 +403,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 dialogHere.dismiss();
                 Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
                 formIndex++;
-                getQuestionsAndData(forms[formIndex].getFormid());
+                getQuestionsAndData((int) forms.get(formIndex));
             }
         });
         alertDialogBuilder.show();
@@ -391,10 +411,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     private void saveData(JSONObject response) {
         saveQuestion(response);
-        if (formIndex < forms.length) {
-            getQuestionsAndData(forms[formIndex].getFormid());
+        if (formIndex < forms.size()) {
+            getQuestionsAndData((int) forms.get(formIndex));
         } else {
-            updatedFormsToPull.clear();
+//            updatedFormsToPull.clear();
             fetchQuestionsSourceData();
         }
     }
@@ -452,13 +472,18 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             } else {
                 appDatabase.getDDE_FormsDao().updatePulledDate(response.getJSONObject("Formdata").getString("formid"), "" + Utility.getCurrentDateTime());
             }
+            for (int formIndex = 0; formIndex < updatedFormsToPull.size(); formIndex++) {
+                if (updatedFormsToPull.get(formIndex).getFormid() == response.getJSONObject("Formdata").getInt("formid")) {
+                    updatedFormsToPull.remove(formIndex);
+                    break;
+                }
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
     private void updateFormEntries() {
-        unUpdatedForms = "";
         updatedFormsToPull.clear();
         User user = appDatabase.getUserDao().getUserDetails(userName, password);
         if (user != null)
@@ -493,9 +518,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             DDE_Forms dde_form;
             final DDE_Forms[] dde_forms;
             if (response.length() > 1) {
-                JSONObject result = response.getJSONObject("Result");
-                if (result.getString("success").equals("true")) {
-                    formData = result.getJSONArray("Data");
+                //JSONObject result = response.getJSONObject("Result");
+                if (response.getString("success").equals("true")) {
+                    formData = response.getJSONArray("Data");
                     dde_forms = new DDE_Forms[formData.length()];
                     for (int i = 0; i < formData.length(); i++) {
                         dde_form = new DDE_Forms();
@@ -509,7 +534,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         if (pulledDateString == null) {
                             if (!updatedFormsToPull.contains(dde_form))
                                 updatedFormsToPull.add(dde_form);
-                            unUpdatedForms = unUpdatedForms + tempObj.getString("formname") + "\n";
                         } else {
                             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
                             Date pulledDateDate = simpleDateFormat.parse(pulledDateString);
@@ -521,7 +545,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                             if (pulledDateDate.compareTo(update) < 0) {
                                 if (!updatedFormsToPull.contains(dde_form))
                                     updatedFormsToPull.add(dde_form);
-                                unUpdatedForms = unUpdatedForms + tempObj.getString("formname") + "\n";
                             }
                             dde_form.setPulledDateTime(pulledDateString);
                         }
@@ -563,13 +586,17 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                             appDatabase.getStatusDao().updateValue("LastPulledDate", Utility.getCurrentDateTime());
                             BackupDatabase.backup(mContext);
                             Utility.dismissDialog(dialog);
-                            if (!unUpdatedForms.equals("")) {
-                                AlertDialog.Builder builder = new AlertDialog.Builder(HomeScreen.this);
+                          /*  if (!unUpdatedForms.equals("")) {
+                               AlertDialog.Builder builder = new AlertDialog.Builder(HomeScreen.this);
                                 builder.setTitle("Questions under below form has been updated");
                                 builder.setMessage(unUpdatedForms + "\n\n\n Please pull the form(s) again.");
                                 builder.setCancelable(true);
                                 builder.show();
-                            }
+                            }*/
+                            //Todo  show EditForms
+
+                            getQuestions();
+                            formLoaded = true;
                             showSavedOldForms();
                         }
 
@@ -646,4 +673,25 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     public void fillAgainForm(boolean value) {
         showSavedOldForms();
     }
+
+    @Override
+    public void getSelectedForms(ArrayList list) {
+        //Todo
+        if (!list.isEmpty()) {
+            forms = list;
+            Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
+            getQuestionsAndData((int) forms.get(formIndex));
+        } else {
+            Toast.makeText(HomeScreen.this, "Nothing Selected", Toast.LENGTH_SHORT);
+        }
+    }
+
+   /* public int stringToInt(String s) {
+        try{
+            return Integer.parseInt(s);
+        }catch (Exception e){
+            return 0;
+        }
+    }*/
+
 }

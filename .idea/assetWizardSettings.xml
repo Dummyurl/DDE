@@ -18,7 +18,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/D:/AndroidStudio/plugins/android/lib/android.jar!/images/material_design_icons/editor/ic_insert_chart_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/E:/AndroidStudio/plugins/android/lib/android.jar!/images/material_design_icons/navigation/ic_close_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -28,8 +28,8 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="6ac259" />
-                            <entry key="outputName" value="ic_insert_chart_green" />
+                            <entry key="color" value="c23b3b" />
+                            <entry key="outputName" value="ic_close" />
                             <entry key="sourceFile" value="C:\Users\PEF" />
                           </map>
                         </option>
