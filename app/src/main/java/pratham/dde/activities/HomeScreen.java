@@ -76,7 +76,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     String userId;
     boolean formLoaded = false;
     String dataSourceUrl;
-    String tableName;
     Context mContext;
     String token, QuestionUrl;
     List forms;
