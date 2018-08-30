@@ -274,7 +274,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             }
         } else {
             progressDialog.dismiss();
-            Toast.makeText(mContext, "Downloaded successfully.", Toast.LENGTH_SHORT).show();
+            if (dataSourceForFormOnline.size() == dataSourceIndex)
+                Toast.makeText(mContext, "Downloaded successfully.", Toast.LENGTH_SHORT).show();
         }
     }
 
