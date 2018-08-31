@@ -65,6 +65,7 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -975,7 +976,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 }
             }
             List tempList = new ArrayList();
-            tempList.addAll(new LinkedHashSet(answerList));
+            tempList.addAll(new TreeSet(answerList));
             answerList.clear();
             answerList.addAll(tempList);
             return null;
@@ -991,7 +992,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 }
                 answerList.add("select options");
             }
-            Collections.sort(answerList);
+            //Collections.sort(answerList);
+            //answerList.add(0,"select options");
             ArrayAdapter<String> spinnerArrayAdapterDS = new ArrayAdapter<String>(context, android.R.layout.simple_selectable_list_item, answerList);
             spinnerDataSource.setAdapter(spinnerArrayAdapterDS);
             spinnerDataSource.setLayoutParams(paramsWrapContent);
