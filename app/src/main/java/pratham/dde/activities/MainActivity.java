@@ -104,7 +104,7 @@ public class MainActivity extends BaseActivity {
         user = appDatabase.getUserDao().getUserDetails(userName, password);
         if (user != null) {
             if (!isTokenValid(user.getExpiryDate())) {
-                Utility.showDialogue(this, "Token for this user has expired. Get new token by registering again.");
+                Toast.makeText(mContext, "Token for this user has expired. Getting new token.", Toast.LENGTH_SHORT).show();
                 return false;
             }
             return true;
