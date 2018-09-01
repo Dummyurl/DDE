@@ -95,6 +95,5 @@ public class SelectQuestionDialog extends Dialog {
          questionListLisner.getSelectedForms(formIdList);
         dismiss();
     }
-
 }
 

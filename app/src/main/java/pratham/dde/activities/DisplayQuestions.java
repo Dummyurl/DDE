@@ -74,12 +74,14 @@ import pratham.dde.BaseActivity;
 import pratham.dde.DDE_Application;
 import pratham.dde.R;
 import pratham.dde.customViews.ChooseImageDialog;
+import pratham.dde.customViews.previewFormDialog;
 import pratham.dde.domain.AnswerJSonArrays;
 import pratham.dde.domain.AnswersSingleForm;
 import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleTable;
 import pratham.dde.domain.DataSourceEntries;
 import pratham.dde.interfaces.FillAgainListner;
+import pratham.dde.interfaces.PreviewFormListener;
 import pratham.dde.services.SyncUtility;
 import pratham.dde.utils.DisplayValue;
 import pratham.dde.utils.PermissionResult;
@@ -88,7 +90,7 @@ import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
 
 
-public class DisplayQuestions extends BaseActivity implements FillAgainListner, PermissionResult {
+public class DisplayQuestions extends BaseActivity implements FillAgainListner, PermissionResult, PreviewFormListener {
     @BindView(R.id.homeButton)
     ImageView homeButton;
     @BindView(R.id.formNameHeader)
@@ -115,6 +117,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     Dialog dialog;
     List<DataSourceEntries> dataSourceEntriesOnline;
     Context mContext;
+    previewFormDialog preview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -856,19 +859,15 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 if (conditionColName == null || conditionColName.isEmpty()) {
                     if (jObject.has(destColName)) {
                         String value = jObject.getString(destColName);
-                        if (!answerList.contains(value))
-                            answerList.add(value);
+                        if (!answerList.contains(value)) answerList.add(value);
                     }
                 } else {
                     String value1 = null;
                     String value2 = null;
-                    if (jObject.has(destColName))
-                        value1 = jObject.getString(destColName);
-                    if (jObject.has(conditionColName))
-                        value2 = jObject.getString(conditionColName);
+                    if (jObject.has(destColName)) value1 = jObject.getString(destColName);
+                    if (jObject.has(conditionColName)) value2 = jObject.getString(conditionColName);
                     if (value2.equalsIgnoreCase(conditionColValue))
-                        if (!answerList.contains(value1))
-                            answerList.add(value1);
+                        if (!answerList.contains(value1)) answerList.add(value1);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -876,6 +875,40 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             }
         }
         return answerList;
+    }
+
+    @Override
+    public void proceed(final AnswersSingleForm answersSingleForm) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("Alert");
+        alertDialogBuilder.setMessage("Do you want to upload form to server?");
+
+        alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                /*UPLOAD TO SERVER*/
+                dialog.dismiss();
+                preview.dismiss();
+                appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
+                if (SyncUtility.isDataConnectionAvailable(DisplayQuestions.this)) {
+                    upload();
+                } else {
+                    Toast.makeText(DisplayQuestions.this, "CHECK INTERNET CONNECTION", Toast.LENGTH_LONG).show();
+                }
+
+            }
+        });
+
+        alertDialogBuilder.setNegativeButton("Save Locally", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                preview.dismiss();
+                appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
+                fillAgain();
+            }
+        });
+        alertDialogBuilder.show();
     }
 
     private class ShowDataSources extends AsyncTask<Void, Void, Void> {
@@ -969,8 +1002,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             }
                         }
                     }
-                    if (dialogForSpinners.isShowing())
-                        dialogForSpinners.dismiss();
+                    if (dialogForSpinners.isShowing()) dialogForSpinners.dismiss();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -985,7 +1017,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            if (answerList.size()==0) {
+            if (answerList.size() == 0) {
                 if (!deletedToastShown) {
                     Toast.makeText(context, "Linked form or question might be deleted. Spinner will not load. Contact administrator.", Toast.LENGTH_LONG).show();
                     deletedToastShown = true;
@@ -1419,14 +1451,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
                 if (queType.equalsIgnoreCase("multiple")) {
                     /*ENTERED BY USER*/
-                    if (firstRun)
-                        return false;
+                    if (firstRun) return false;
 
-                    if (!firstRun && ans.equals("$$"))
-                        return false;
+                    if (!firstRun && ans.equals("$$")) return false;
 
-                    if (!firstRun && ans.equals(""))
-                        return true;
+                    if (!firstRun && ans.equals("")) return true;
 
                     String[] spittedGivenAns = ans.split(",");
                     for (int i = 0; i < splittedAnswer.length; i++) {
@@ -1439,8 +1468,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         if (!flag) break;
                     }
                 } else {
-                    if (ans.equalsIgnoreCase("") || ans.equalsIgnoreCase("$$"))
-                        return false;
+                    if (ans.equalsIgnoreCase("") || ans.equalsIgnoreCase("$$")) return false;
 
                     for (int i = 0; i < splittedAnswer.length; i++) {
                         if (ans.equalsIgnoreCase(splittedAnswer[i])) {
@@ -1519,34 +1547,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 JsonArray jsonArray = gson.fromJson(gson.toJson(answersList), JsonArray.class);
                 answersSingleForm.setAnswerArrayOfSingleForm(jsonArray);
 
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-                alertDialogBuilder.setTitle("Alert");
-                alertDialogBuilder.setMessage("Do you want to upload form to server?");
+                preview = new previewFormDialog(this, formIdWiseQuestions, answersSingleForm);
+                preview.show();
 
-                alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        /*UPLOAD TO SERVER*/
-                        dialog.dismiss();
-                        appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
-                        if (SyncUtility.isDataConnectionAvailable(DisplayQuestions.this)) {
-                            upload();
-                        } else {
-                            Toast.makeText(DisplayQuestions.this, "CHECK INTERNET CONNECTION", Toast.LENGTH_LONG).show();
-                        }
-
-                    }
-                });
-
-                alertDialogBuilder.setNegativeButton("Save Locally", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
-                        fillAgain();
-                    }
-                });
-                alertDialogBuilder.show();
             }
         } else {
             Toast.makeText(this, "Attempt at least one question", Toast.LENGTH_SHORT).show();
@@ -1913,8 +1916,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     default:
                         return true;
                 }
-            } else
-                return true;
+            } else return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -2004,6 +2006,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     public void fillAgain() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle("Do you want to fill this form again?");
+        alertDialog.setCancelable(false);
         alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {

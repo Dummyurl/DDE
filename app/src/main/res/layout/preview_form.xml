@@ -9,12 +9,13 @@
 
 
     <TextView
-        android:id="@+id/txt_message_village"
-        android:layout_width="match_parent"
+        android:id="@+id/tittle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
         android:padding="5dp"
-        android:text="Select forms to pull"
+        android:text="Preview "
         android:textColor="#8c0818"
         android:textSize="20dp"
         android:textStyle="bold" />
@@ -35,7 +36,7 @@
         android:id="@+id/view"
         android:layout_width="match_parent"
         android:layout_height="2dp"
-        android:layout_below="@+id/txt_message_village"
+        android:layout_below="@id/tittle"
         android:layout_marginTop="5dp"
         android:background="#FFB4111F" />
 
@@ -58,14 +59,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@id/bottomControls_village"
-        android:layout_below="@id/view">
-
-        <GridLayout
-            android:id="@+id/flowLayout"
+        android:layout_below="@id/view"
+     >
+        <LinearLayout
+            android:id="@+id/showQueAns"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:columnCount="1"
-            grid:alignmentMode="alignBounds" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+           >
+        </LinearLayout>
 
     </ScrollView>
 
@@ -85,7 +87,7 @@
             android:background="@drawable/btn_style"
             android:gravity="center"
             android:padding="5dp"
-            android:text="Clear"
+            android:text="Edit "
             android:textColor="#ffffff"
             android:textSize="20sp" />
 
@@ -99,7 +101,7 @@
             android:background="@drawable/btn_style"
             android:gravity="center"
             android:padding="5dp"
-            android:text="Ok"
+            android:text="Proceed"
             android:textSize="20sp" />
     </LinearLayout>
 </RelativeLayout>
