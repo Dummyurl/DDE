@@ -294,31 +294,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                     dataSourceEntryObj.setFormId(formId);
                     dataSourceEntryObj.setEntryId(entryId);
                     dataSourceEntryObj.setAnswers(answers);
-                    //appDatabase.getDataSourceEntriesDao().insertEntry(dataSourceEntry);
                     dataSourceEntries.add(dataSourceEntryObj);
-                    /*while (iterator.hasNext()) {
-                        String key = iterator.next().toString();
-                        if ((!key.equals("ROWNUMBER")) && (!key.equals("EntryId")) && (!key.equals("CreatedBy")) && (!key.equals("UpdatedBy")) && (!key.equals("Createdon")) && (!key.equals("Updatedon"))) {
-                            String formId = dataSourceForFormOnline.get(dataSourceIndex).getString("formid");
-                            String allAnswers = appDatabase.getDataSourceEntriesDao().getAnswer(formId, key);
-                            String tempAnswer = tableObj.getString(key);
-                            if (allAnswers != null && !allAnswers.contains(tempAnswer + "~")) {
-                                allAnswers += tempAnswer + "~";
-                                appDatabase.getDataSourceEntriesDao().updateAnswer(formId, key, allAnswers);
-                            } else {
-                                if (allAnswers == null)
-                                    allAnswers = tempAnswer + "~";
-                                dataSourceEntry = new DataSourceEntries();
-                                dataSourceEntry.setAnswers(allAnswers);
-                                dataSourceEntry.setColumnName(key);
-                                dataSourceEntry.setEntryId(entryId);
-                                dataSourceEntry.setFormId(formId);
-                                appDatabase.getDataSourceEntriesDao().insertEntry(dataSourceEntry);
-                            }
-                        }
-                    }*/
                 }
                 appDatabase.getDataSourceEntriesDao().insertEntry(dataSourceEntries);
+                appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"),Utility.getCurrentDateTime())
                 PageNumber++;
                 Log.d("PagenoPKsaveSourceData", "PagenoPKsaveSourceData: " + PageNumber);
             } else {

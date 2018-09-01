@@ -16,4 +16,7 @@ public interface DDE_FormWiseDataSourceDao {
     @Query("SELECT dsformid FROM DDE_FormWiseDataSource where formid=:formId")
     String getDSFormId(String formId);
 
+    @Query("update DDE_FormWiseDataSource set updatedDate=:updateDate where dsformid=:dsFormId")
+    String setUpdateDate(String dsFormId, String updateDate);
+
 }
