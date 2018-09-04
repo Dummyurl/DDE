@@ -81,7 +81,11 @@ public class FillFormsFragment extends Fragment {
         for (int i = 0; i < programIdArray.length; i++) {
             List<DDE_Forms> dde_forms = appDatabase.getDDE_FormsDao().getFormProgramIdWise(programIdArray[i]);
             if (dde_forms != null) {
-                forms.addAll(dde_forms);
+                for (int formIndex = 0; formIndex < dde_forms.size(); formIndex++) {
+                    List<DDE_Questions> questions = appDatabase.getDDE_QuestionsDao().getFormIdWiseQuestions(String.valueOf(dde_forms.get(formIndex).getFormid()));
+                    if (questions.size() > 0)
+                        forms.add(dde_forms.get(formIndex));
+                }
             }
         }
     }

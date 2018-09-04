@@ -1008,9 +1008,12 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 }
             }
             List tempList = new ArrayList();
+            answerList.remove("select options");
             tempList.addAll(new TreeSet(answerList));
             answerList.clear();
             answerList.addAll(tempList);
+            answerList.add(0,"select options");
+
             return null;
         }
 
@@ -1019,7 +1022,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             super.onPostExecute(aVoid);
             if (answerList.size() == 0) {
                 if (!deletedToastShown) {
-                    Toast.makeText(context, "Linked form or question might be deleted. Spinner will not load. Contact administrator.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Linked form or question might be deleted or not present. Download linked form again.", Toast.LENGTH_LONG).show();
                     deletedToastShown = true;
                 }
                 answerList.add("select options");

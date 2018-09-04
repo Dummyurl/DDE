@@ -161,7 +161,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             }
         });
         if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) updateFormEntries();
-        else showSavedOldForms();
+        else callFillforms();
+        //else showSavedOldForms();
     }
 
     private void getQuestions() {
@@ -242,11 +243,13 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                     if (dataObj != null) {
                         String DSUpdateDate = appDatabase.getDDE_FormsDao().getDataupdatedDateByFormID(dataObj.getFormid());
                         String localUpdateDate = dataObj.getUpdatedDate();
-                        Date localUpdateDateDT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(localUpdateDate);
-                        Date DSUpdateDateDT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(DSUpdateDate);
-                        if (localUpdateDateDT.compareTo(DSUpdateDateDT) >= 0) {
-                            //remove from dataSourceForFormOnline
-                            dataSourceForFormOnline.remove(dsEntryIndex);
+                        if (localUpdateDate != null) {
+                            Date localUpdateDateDT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(localUpdateDate);
+                            Date DSUpdateDateDT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(DSUpdateDate);
+                            if (localUpdateDateDT.compareTo(DSUpdateDateDT) >= 0) {
+                                //remove from dataSourceForFormOnline
+                                dataSourceForFormOnline.remove(dsEntryIndex);
+                            }
                         }
                     }
                 }
@@ -254,22 +257,48 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 // add logic ------> datasource updated but not forms
                 DDE_FormWiseDataSource dde_formWiseDataSourceObj;
                 JSONObject dsJsonObject;
+                boolean containFlag;
                 for (int entryIndex = 0; entryIndex < listOfDSEntries.size(); entryIndex++) {
+                    containFlag = false;
                     dde_formWiseDataSourceObj = listOfDSEntries.get(entryIndex);
                     String DSUpdateDate = appDatabase.getDDE_FormsDao().getDataupdatedDateByFormID(dde_formWiseDataSourceObj.getFormid());
                     String localUpdateDate = dde_formWiseDataSourceObj.getUpdatedDate();
-                    Date localUpdateDateDT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(localUpdateDate);
-                    Date DSUpdateDateDT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(DSUpdateDate);
-                    if (localUpdateDateDT.compareTo(DSUpdateDateDT) < 0) {
+                    if (localUpdateDate == null) {
                         //add in dataSourceForFormOnline
                         dsJsonObject = new JSONObject();
                         dsJsonObject.put("formwisedsid", dde_formWiseDataSourceObj.getFormwisedsid());
-                        dsJsonObject.put("dsformid", dde_formWiseDataSourceObj.getDsformid());
                         dsJsonObject.put("formid", dde_formWiseDataSourceObj.getFormid());
-                        if (!dataSourceForFormOnline.contains(dsJsonObject))
+                        dsJsonObject.put("dsformid", dde_formWiseDataSourceObj.getDsformid());
+                        for (int index = 0; index < dataSourceForFormOnline.size(); index++){
+                            if (dataSourceForFormOnline.get(index).getString("dsformid").equalsIgnoreCase(dsJsonObject.getString("dsformid"))) {
+                                containFlag = true;
+                                break;
+                            }
+                        }
+                        if (!containFlag) {
                             dataSourceForFormOnline.add(dsJsonObject);
+                        }
                     } else {
-                        //remove from dataSourceForFormOnline
+                        Date localUpdateDateDT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(localUpdateDate);
+                        Date DSUpdateDateDT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(DSUpdateDate);
+                        if (localUpdateDateDT.compareTo(DSUpdateDateDT) < 0) {
+                            //add in dataSourceForFormOnline
+                            dsJsonObject = new JSONObject();
+                            dsJsonObject.put("formwisedsid", dde_formWiseDataSourceObj.getFormwisedsid());
+                            dsJsonObject.put("dsformid", dde_formWiseDataSourceObj.getDsformid());
+                            dsJsonObject.put("formid", dde_formWiseDataSourceObj.getFormid());
+                            for (int index = 0; index < dataSourceForFormOnline.size(); index++){
+                                if (dataSourceForFormOnline.get(index).getString("dsformid").equalsIgnoreCase(dsJsonObject.getString("dsformid"))) {
+                                    containFlag = true;
+                                    break;
+                                }
+                            }
+                            if (!containFlag) {
+                                dataSourceForFormOnline.add(dsJsonObject);
+                            }
+                        } else {
+                            //remove from dataSourceForFormOnline
+                        }
                     }
                 }
             } else {
@@ -285,10 +314,12 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             try {
                 JSONObject tempJsonObject = dataSourceForFormOnline.get(dataSourceIndex);
                 String dsFormId = tempJsonObject.getString("dsformid");
+                String lastPulledDate =appDatabase.getDDE_FormWiseDataSourceDao().getLastUpdateDateOfDSFormId(dsFormId);
+                String lastPulledDate2 = "2018-08-15 17:56:37.000";
                 JSONObject jsonObject = new JSONObject();
-                JSONObject 
-                {"FilterList":[{"FilterKey": "convert(datetime,updateddate,121)","FilterOperator": ">=","FilterValue": "2018-08-23 17:56:37.000"}],"FormId":"256","PageNumber":1, "PageSize":500}
-                jsonObject.put("FilterList", null);
+                String filterListString = "[{\"FilterKey\": \"convert(datetime,updateddate,121)\",\"FilterOperator\": \">=\",\"FilterValue\": "+lastPulledDate+"}]";
+                JSONArray filterList = new JSONArray(filterListString);
+                jsonObject.put("FilterList", filterList);
                 jsonObject.put("FormId", dsFormId);
                 jsonObject.put("PageNumber", PageNumber);
                 jsonObject.put("PageSize", rowsPerPage);
@@ -324,6 +355,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             }
         } else {
             progressDialog.dismiss();
+            callFillforms();
             if (dataSourceForFormOnline.size() == dataSourceIndex)
                 Toast.makeText(mContext, "Downloaded successfully.", Toast.LENGTH_SHORT).show();
         }
@@ -379,7 +411,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     @Override
     protected void onResume() {
         super.onResume();
-        showSavedOldForms();
+        callFillforms();
+        //showSavedOldForms();
     }
 
     private void showSavedOldForms() {
@@ -400,7 +433,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             public void onResponse(JSONObject response) {
                 formIndex++;
                 saveData(response);
-
             }
 
             @Override
@@ -628,7 +660,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
                             getQuestions();
                             formLoaded = true;
-                            showSavedOldForms();
+                            callFillforms();
+                            //showSavedOldForms();
                         }
 
                         @Override

@@ -92,8 +92,8 @@ public class SelectQuestionDialog extends Dialog {
                 formIdList.add(Integer.parseInt(checkBoxes.get(i).getTag().toString()));
             }
         }
-         questionListLisner.getSelectedForms(formIdList);
         dismiss();
+        questionListLisner.getSelectedForms(formIdList);
     }
 }
 
