@@ -18,6 +18,9 @@ public interface DDE_FormWiseDataSourceDao {
     @Query("SELECT dsformid FROM DDE_FormWiseDataSource where formid=:formId")
     String getDSFormId(String formId);
 
+    @Query("SELECT distinct dsformid FROM DDE_FormWiseDataSource where formid=:formId")
+    List<String> getDistinctAllDSFormId(String formId);
+
     @Query("SELECT updatedDate FROM DDE_FormWiseDataSource where dsformid=:dsformid")
     String getLastUpdateDateOfDSFormId(String dsformid);
 

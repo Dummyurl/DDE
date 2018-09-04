@@ -85,7 +85,7 @@
             android:background="@drawable/btn_style"
             android:gravity="center"
             android:padding="5dp"
-            android:text="Clear"
+            android:text="Clear All"
             android:textColor="#ffffff"
             android:textSize="20sp" />
 
@@ -99,7 +99,7 @@
             android:background="@drawable/btn_style"
             android:gravity="center"
             android:padding="5dp"
-            android:text="Ok"
+            android:text="Update "
             android:textSize="20sp" />
     </LinearLayout>
 </RelativeLayout>

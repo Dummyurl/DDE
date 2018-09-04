@@ -241,9 +241,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 for (int dsEntryIndex = 0; dsEntryIndex < dataSourceForFormOnline.size(); dsEntryIndex++) {
                     DDE_FormWiseDataSource dataObj = appDatabase.getDDE_FormWiseDataSourceDao().getDataBYDSId(dataSourceForFormOnline.get(dsEntryIndex).getString("dsformid"));
                     if (dataObj != null) {
-                        String DSUpdateDate = appDatabase.getDDE_FormsDao().getDataupdatedDateByFormID(dataObj.getFormid());
+                        String DSUpdateDate = appDatabase.getDDE_FormsDao().getDataupdatedDateByFormID(dataObj.getDsformid());
                         String localUpdateDate = dataObj.getUpdatedDate();
-                        if (localUpdateDate != null) {
+                        if (localUpdateDate != null && DSUpdateDate != null) {
                             Date localUpdateDateDT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(localUpdateDate);
                             Date DSUpdateDateDT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(DSUpdateDate);
                             if (localUpdateDateDT.compareTo(DSUpdateDateDT) >= 0) {
@@ -261,33 +261,16 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 for (int entryIndex = 0; entryIndex < listOfDSEntries.size(); entryIndex++) {
                     containFlag = false;
                     dde_formWiseDataSourceObj = listOfDSEntries.get(entryIndex);
-                    String DSUpdateDate = appDatabase.getDDE_FormsDao().getDataupdatedDateByFormID(dde_formWiseDataSourceObj.getFormid());
+                    String DSUpdateDate = appDatabase.getDDE_FormsDao().getDataupdatedDateByFormID(dde_formWiseDataSourceObj.getDsformid());
                     String localUpdateDate = dde_formWiseDataSourceObj.getUpdatedDate();
-                    if (localUpdateDate == null) {
-                        //add in dataSourceForFormOnline
-                        dsJsonObject = new JSONObject();
-                        dsJsonObject.put("formwisedsid", dde_formWiseDataSourceObj.getFormwisedsid());
-                        dsJsonObject.put("formid", dde_formWiseDataSourceObj.getFormid());
-                        dsJsonObject.put("dsformid", dde_formWiseDataSourceObj.getDsformid());
-                        for (int index = 0; index < dataSourceForFormOnline.size(); index++){
-                            if (dataSourceForFormOnline.get(index).getString("dsformid").equalsIgnoreCase(dsJsonObject.getString("dsformid"))) {
-                                containFlag = true;
-                                break;
-                            }
-                        }
-                        if (!containFlag) {
-                            dataSourceForFormOnline.add(dsJsonObject);
-                        }
-                    } else {
-                        Date localUpdateDateDT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(localUpdateDate);
-                        Date DSUpdateDateDT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(DSUpdateDate);
-                        if (localUpdateDateDT.compareTo(DSUpdateDateDT) < 0) {
+                    if (DSUpdateDate != null && (!DSUpdateDate.equals("null"))) {
+                        if (localUpdateDate == null) {
                             //add in dataSourceForFormOnline
                             dsJsonObject = new JSONObject();
                             dsJsonObject.put("formwisedsid", dde_formWiseDataSourceObj.getFormwisedsid());
-                            dsJsonObject.put("dsformid", dde_formWiseDataSourceObj.getDsformid());
                             dsJsonObject.put("formid", dde_formWiseDataSourceObj.getFormid());
-                            for (int index = 0; index < dataSourceForFormOnline.size(); index++){
+                            dsJsonObject.put("dsformid", dde_formWiseDataSourceObj.getDsformid());
+                            for (int index = 0; index < dataSourceForFormOnline.size(); index++) {
                                 if (dataSourceForFormOnline.get(index).getString("dsformid").equalsIgnoreCase(dsJsonObject.getString("dsformid"))) {
                                     containFlag = true;
                                     break;
@@ -297,7 +280,24 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                                 dataSourceForFormOnline.add(dsJsonObject);
                             }
                         } else {
-                            //remove from dataSourceForFormOnline
+                            Date localUpdateDateDT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(localUpdateDate);
+                            Date DSUpdateDateDT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(DSUpdateDate);
+                            if (localUpdateDateDT.compareTo(DSUpdateDateDT) < 0) {
+                                //add in dataSourceForFormOnline
+                                dsJsonObject = new JSONObject();
+                                dsJsonObject.put("formwisedsid", dde_formWiseDataSourceObj.getFormwisedsid());
+                                dsJsonObject.put("dsformid", dde_formWiseDataSourceObj.getDsformid());
+                                dsJsonObject.put("formid", dde_formWiseDataSourceObj.getFormid());
+                                for (int index = 0; index < dataSourceForFormOnline.size(); index++) {
+                                    if (dataSourceForFormOnline.get(index).getString("dsformid").equalsIgnoreCase(dsJsonObject.getString("dsformid"))) {
+                                        containFlag = true;
+                                        break;
+                                    }
+                                }
+                                if (!containFlag) {
+                                    dataSourceForFormOnline.add(dsJsonObject);
+                                }
+                            }
                         }
                     }
                 }
@@ -314,10 +314,15 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             try {
                 JSONObject tempJsonObject = dataSourceForFormOnline.get(dataSourceIndex);
                 String dsFormId = tempJsonObject.getString("dsformid");
-                String lastPulledDate =appDatabase.getDDE_FormWiseDataSourceDao().getLastUpdateDateOfDSFormId(dsFormId);
+                String lastPulledDate = appDatabase.getDDE_FormWiseDataSourceDao().getLastUpdateDateOfDSFormId(dsFormId);
                 String lastPulledDate2 = "2018-08-15 17:56:37.000";
                 JSONObject jsonObject = new JSONObject();
-                String filterListString = "[{\"FilterKey\": \"convert(datetime,updateddate,121)\",\"FilterOperator\": \">=\",\"FilterValue\": "+lastPulledDate+"}]";
+                if (lastPulledDate != null) {
+                    Date localUpdateDateDT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(lastPulledDate);
+                    lastPulledDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(localUpdateDateDT);
+                    lastPulledDate = "\"" + lastPulledDate + "\"";
+                }
+                String filterListString = "[{\"FilterKey\": \"convert(datetime,updateddate,106)\",\"FilterOperator\": \">=\",\"FilterValue\":" + lastPulledDate + "}]";
                 JSONArray filterList = new JSONArray(filterListString);
                 jsonObject.put("FilterList", filterList);
                 jsonObject.put("FormId", dsFormId);
@@ -363,6 +368,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     private void saveSourceData(JSONObject response) {
         try {
+            maxProgressCnt = response.getInt("Count");
+            int pstatus=0;
             if (response.length() > 1 && response.getJSONObject("Data").getJSONArray("Table").length() > 0) {
                 JSONObject jsonObjectData = response.getJSONObject("Data");
                 JSONArray tableArray = jsonObjectData.getJSONArray("Table");
@@ -380,27 +387,29 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                     dataSourceEntries.add(dataSourceEntryObj);
                 }
                 appDatabase.getDataSourceEntriesDao().insertEntry(dataSourceEntries);
-                appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime());
                 PageNumber++;
+                if (maxProgressCnt < rowsPerPage) {
+                    appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime());
+                    pstatus = 100;
+                    PageNumber = 1;
+                    dataSourceIndex++;
+                } else {
+                    pstatus = ((rowsPerPage * (PageNumber - 1)) * 100) / maxProgressCnt;
+                    if (pstatus > 100) {
+                        appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime());
+                        PageNumber = 1;
+                        dataSourceIndex++;
+                    }
+                }
                 Log.d("PagenoPKsaveSourceData", "PagenoPKsaveSourceData: " + PageNumber);
             } else {
                 PageNumber = 1;
                 progressDialog.setProgress(0);
+                appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime());
                 dataSourceIndex++;
             }
-            maxProgressCnt = response.getInt("Count");
-            int pstatus;
-            if (maxProgressCnt < rowsPerPage) {
-                pstatus = 100;
-                PageNumber = 1;
-                dataSourceIndex++;
-            } else {
-                pstatus = ((rowsPerPage * (PageNumber - 1)) * 100) / maxProgressCnt;
-                if (pstatus > 100) {
-                    PageNumber = 1;
-                    dataSourceIndex++;
-                }
-            }
+
+
             progressDialog.setProgress(pstatus);
             loadSourceData();
         } catch (JSONException e) {
@@ -502,8 +511,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         if (dsJsonObject.getString("dsformid").equalsIgnoreCase(dataSourceForFormOnline.get(dsOnlineIndex).getString("dsformid")))
                             containFlag = true;
                     }
-                    if (!containFlag)
-                        dataSourceForFormOnline.add(dsJsonObject);
+                    if (!containFlag) dataSourceForFormOnline.add(dsJsonObject);
                 }
             }
             String formId;
@@ -592,7 +600,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         dde_form.setFormpassword(tempObj.getString("formpassword"));
                         dde_form.setProgramid(tempObj.getString("programid"));
                         dde_form.setTablename(tempObj.getString("tablename"));
-                        dde_form.setDataupdateddate(tempObj.getString("dataupdateddate"));
+                        if (!tempObj.getString("dataupdateddate").equalsIgnoreCase("null"))
+                            dde_form.setDataupdateddate(tempObj.getString("dataupdateddate"));
                         String pulledDateString = appDatabase.getDDE_FormsDao().getPulledDateTimeByFormID(tempObj.getString("formid"));
                         if (pulledDateString == null) {
                             if (!updatedFormsToPull.contains(dde_form))
@@ -746,6 +755,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
             getQuestionsAndData((int) forms.get(formIndex));
         } else {
+            fetchQuestionsSourceData();
             Toast.makeText(HomeScreen.this, "Nothing Selected", Toast.LENGTH_SHORT);
         }
     }
