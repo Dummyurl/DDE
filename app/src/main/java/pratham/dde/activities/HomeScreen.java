@@ -589,7 +589,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             final DDE_Forms[] dde_forms;
             if (response.length() > 1) {
                 //JSONObject result = response.getJSONObject("Result");
-                if (response.getString("success").equals("true")) {
+                if (response.getString("success").equalsIgnoreCase("true")) {
                     formData = response.getJSONArray("Data");
                     dde_forms = new DDE_Forms[formData.length()];
                     for (int i = 0; i < formData.length(); i++) {
@@ -679,9 +679,11 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         }
                     }.execute();
                 } else {
+                    Utility.dismissDialog(dialog);
                     Toast.makeText(mContext, "Problem with server", Toast.LENGTH_SHORT).show();
                 }
             } else {
+                Utility.dismissDialog(dialog);
                 Toast.makeText(mContext, "Empty Response", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
