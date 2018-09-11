@@ -50,6 +50,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -303,6 +304,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     String text = jsonObject.get("display").getAsString();
                     radioButton.setText(text);
                     if (editFormFlag) {
+                        //todo
                         String dest_column = dde_questions.getDestColumname();
                         for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
                             JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
@@ -443,7 +445,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 GridLayout gridLayout = new GridLayout(this);
                 gridLayout.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 gridLayout.setColumnCount(3);
-                if (!validationValue.endsWith(",")) validationValue += ",";
+                if (!validationValue.isEmpty() && !validationValue.endsWith(",")) validationValue += ",";
 
                 if (editFormFlag) {
                     String dest_column = dde_questions.getDestColumname();
@@ -455,7 +457,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         }
                     }
                 } else {
-                    if (!validationValue.endsWith(",")) validationValue += ",";
                     dde_questions.setAnswer(validationValue);
                 }
                 for (int i = 0; i < optionCheckBox.size(); i++) {
@@ -896,7 +897,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 } else {
                     Toast.makeText(DisplayQuestions.this, "CHECK INTERNET CONNECTION", Toast.LENGTH_LONG).show();
                 }
-
             }
         });
 
@@ -1063,7 +1063,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         for (int depQueIndex = 0; depQueIndex < formIdWiseQuestions.size(); depQueIndex++) {
                             if (dde_questions.getQuestionId().equals(formIdWiseQuestions.get(depQueIndex).getDependentQuestionIdentifier())) {
                                 index = depQueIndex;
-                                mHandler.sendEmptyMessage(0);
+                                new ShowDataSources(DisplayQuestions.this, layout, formIdWiseQuestions.get(index), selectedOption, "onClick").execute();
+                                //mHandler.sendEmptyMessage(0);
                             }
                         }
                     } else {
@@ -1071,7 +1072,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         for (int depQueIndex = 0; depQueIndex < formIdWiseQuestions.size(); depQueIndex++) {
                             if (dde_questions.getQuestionId().equals(formIdWiseQuestions.get(depQueIndex).getDependentQuestionIdentifier())) {
                                 index = depQueIndex;
-                                mHandler.sendEmptyMessage(1);
+                                new ShowDataSources(DisplayQuestions.this, layout, formIdWiseQuestions.get(index), selectedOption, destCol).execute();
+                                //mHandler.sendEmptyMessage(1);
                             }
                         }
                     }
@@ -1269,7 +1271,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                             visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
                                             GridLayout tempGrid = (GridLayout) layout.getChildAt(1);
                                             String defaultval = visibleTempQue.getDefaultValue();
-                                            if (!defaultval.endsWith(",")) defaultval += ",";
+                                            if (defaultval!= null && !defaultval.isEmpty() && !defaultval.equalsIgnoreCase("null") && !defaultval.endsWith(",")) defaultval += ",";
                                             for (int checkBoxIndex = 0; checkBoxIndex < tempGrid.getChildCount(); checkBoxIndex++) {
                                                 String checkBoxTag = tempGrid.getChildAt(checkBoxIndex).getTag().toString();
                                                 String[] splitted = checkBoxTag.split(":::");
@@ -1547,6 +1549,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     String ans = formIdWiseQuestions.get(ansIndex).getAnswer();
                     if (formIdWiseQuestions.get(ansIndex).getQuestionType().equalsIgnoreCase("multiple")) {
                         if (ans.endsWith(",")) ans = ans.substring(0, ans.length() - 1);
+                        formIdWiseQuestions.get(ansIndex).setAnswer(ans);
                     }
                     answerJSonArrays.setAnswers(ans);
                     answerJSonArrays.setTableName(appDatabase.getDDE_FormsDao().getTableName(formId));
