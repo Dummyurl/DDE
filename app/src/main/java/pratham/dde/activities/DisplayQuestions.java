@@ -300,7 +300,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     RadioButton radioButton = new RadioButton(this);
                     radioButton.setId(i);
                     radioButton.setLayoutParams(paramsWrapContaint);
-                    radioButton.setTag(jsonObject.get("value").getAsString());
+                    String tag=jsonObject.get("value").getAsString();
+                    radioButton.setTag(tag);
                     String text = jsonObject.get("display").getAsString();
                     radioButton.setText(text);
                     if (editFormFlag) {
@@ -310,14 +311,14 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
                             if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
                                 String ans = ansObject.get("Answers").getAsString();
-                                if (ans.equalsIgnoreCase(text)) {
+                                if (ans.equalsIgnoreCase(tag)) {
                                     radioButton.setChecked(true);
                                     dde_questions.setAnswer(ans);
                                 }
                             }
                         }
                     } else {
-                        if (validationValue.equalsIgnoreCase(text)) {
+                        if (validationValue.equalsIgnoreCase(tag)) {
                             radioButton.setChecked(true);
                             dde_questions.setAnswer(validationValue);
                         }
@@ -327,7 +328,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         @Override
                         public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
                             if (isSelected) {
-                                dde_questions.setAnswer(compoundButton.getText().toString());
+                                dde_questions.setAnswer(compoundButton.getTag().toString());
                                 LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent();
                                 String tag = (String) layout.getTag();
                                 checkRuleCondition(tag, compoundButton.getTag().toString(), "singlechoice");
@@ -493,14 +494,15 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
                     checkBox.setTag(dde_questions.getQuestionId() + ":::" + jsonObject.get("value").getAsString());
                     String text = jsonObject.get("display").getAsString();
+                    String value = jsonObject.get("value").getAsString();
                     checkBox.setText(text);
                     if (editFormFlag) {
-                        if (ans.contains(text + ",")) {
+                        if (ans.contains(value + ",")) {
                             checkBox.setChecked(true);
                             dde_questions.setAnswer(ans);
                         }
                     } else {
-                        if (validationValue.contains(text + ",")) {
+                        if (validationValue.contains(value + ",")) {
                             checkBox.setChecked(true);
                             dde_questions.setAnswer(validationValue);
                         }
@@ -802,7 +804,13 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
                         if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
                             ans = ansObject.get("Answers").getAsString();
-                            int index = display.indexOf(ans);
+                            int index =-1;
+                            for (int i=0;i<display.size();i++){
+                                if(display.get(i).getValue().equals(ans)){
+                                    index = i;
+                                    break;
+                                }
+                            }
                             if (index != -1) {
                                 spinnerDropdown.setSelection(index);
                                 dde_questions.setAnswer(ans);
@@ -826,7 +834,10 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             dde_questions.setAnswer("");
                             checkRuleCondition(tag, "", "dropdown");
                         } else {
-                            dde_questions.setAnswer(adapterView.getSelectedItem().toString());
+                            DisplayValue displayValue= (DisplayValue) adapterView.getSelectedItem();
+
+                            dde_questions.setAnswer(displayValue.getValue());
+
                             checkRuleCondition(tag, ((DisplayValue) adapterView.getSelectedItem()).getValue(), "dropdown");
                         }
                     }

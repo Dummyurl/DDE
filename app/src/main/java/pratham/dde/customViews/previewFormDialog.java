@@ -14,6 +14,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,8 +42,8 @@ public class previewFormDialog extends Dialog {
         super(context);
         this.context = context;
         this.ddeQuestionsList = ddeQuestions;
-        this.answersSingleForm=answersSingleForm;
-        this.previewFormListener= (PreviewFormListener) context;
+        this.answersSingleForm = answersSingleForm;
+        this.previewFormListener = (PreviewFormListener) context;
     }
 
     @Override
@@ -76,7 +79,8 @@ public class previewFormDialog extends Dialog {
                 que.setText("Que :  " + dde_questions.getQuestion());
                 linLayoutSingleEntry.addView(que);
                 /*SET FORM DATE*/
-                if (dde_questions.getQuestionType().equals("image")) {
+                String queType = dde_questions.getQuestionType();
+                if (queType.equals("image")) {
                     ImageView selectedImageTemp = new ImageView(context);
                     // selectedImage.setLayoutParams(new android.view.ViewGroup.LayoutParams(150, 150));
                     selectedImageTemp.setPadding(10, 5, 5, 5);
@@ -84,15 +88,19 @@ public class previewFormDialog extends Dialog {
                     buttonLayoutParams.setMargins(50, 0, 0, 0);
                     selectedImageTemp.setLayoutParams(buttonLayoutParams);
                     String imgpath = dde_questions.getAnswer();
-                    Bitmap bmp = BitmapFactory.decodeFile( Environment.getExternalStorageDirectory().toString() + "/DDEImages/" + imgpath);
+                    Bitmap bmp = BitmapFactory.decodeFile(Environment.getExternalStorageDirectory().toString() + "/DDEImages/" + imgpath);
                     selectedImageTemp.setImageBitmap(bmp);
                     linLayoutSingleEntry.addView(selectedImageTemp);
                 } else {
                     TextView ans = new TextView(context);
                     ans.setLayoutParams(textViewParam);
                     ans.setTextSize(1, 20);
-                    ans.setText("Ans :  " + dde_questions.getAnswer());
-
+                    if (queType.equals("singlechoice") || queType.equals("multiple") || queType.equals("dropdown")) {
+                        String value=getDisplayByValue(dde_questions);
+                        ans.setText(value);
+                    } else {
+                        ans.setText("Ans :  " + dde_questions.getAnswer());
+                    }
                     linLayoutSingleEntry.addView(ans);
                 }
 
@@ -101,6 +109,27 @@ public class previewFormDialog extends Dialog {
             }
         }
     }
+
+    private String getDisplayByValue(DDE_Questions dde_questions) {
+        String ans = "";
+        JsonArray queOption = dde_questions.getQuestionOption();
+        String answer = dde_questions.getAnswer();
+        String values[] = answer.split(",");
+
+        for (int jIndex = 0; jIndex < queOption.size(); jIndex++)
+            for (int vIndex = 0; vIndex < values.length; vIndex++) {
+                JsonObject obj = queOption.get(jIndex).getAsJsonObject();
+                if (obj.get("value").getAsString().equals(values[vIndex])) {
+                    ans += obj.get("display").getAsString() + ",";
+                    break;
+                }
+            }
+        if (ans.endsWith(",")) {
+            ans = ans.substring(0, ans.length() - 1);
+        }
+        return ans;
+    }
+
     @OnClick(R.id.btn_close_village)
     public void closeDialog() {
         dismiss();

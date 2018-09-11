@@ -54,16 +54,16 @@ public class MainActivity extends BaseActivity {
         dialog = new ProgressDialog(mContext);
         if (appDatabase.getStatusDao().getValueByKey("LastPulledDate") == null)
             initialiseStatusTable();
-        /*input_email.setText("prathamdde@dde.com");
-        input_password.setText("Admin@1234");*/
+        input_email.setText("prathamdde@dde.com");
+        input_password.setText("Admin@1234");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        input_email.setText("");
+       /* input_email.setText("");
         input_password.setText("");
-        input_email.requestFocus();
+        input_email.requestFocus();*/
     }
 
     private void initialiseStatusTable() {
