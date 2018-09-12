@@ -55,7 +55,8 @@ public class FillFormsFragment extends Fragment {
         if (getArguments() != null) {
             userName = getArguments().getString("userName");
             password = getArguments().getString("password");
-            programId = appDatabase.getUserDao().getProgramIDs(userName, password);
+            if (appDatabase!=null)
+                programId = appDatabase.getUserDao().getProgramIDs(userName, password);
         }
     }
 

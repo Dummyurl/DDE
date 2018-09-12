@@ -978,7 +978,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     dialogForSpinners.dismiss();
                 }
 
-                 Log.d("ErrordestCol", "destCol: Linked form or question might be deleted. Spinner will not load. Contact administrator.");
+                Log.d("ErrordestCol", "destCol: Linked form or question might be deleted. Spinner will not load. Contact administrator.");
                 return null;
             } else {
                 try {
@@ -1035,12 +1035,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             super.onPostExecute(aVoid);
             if (answerList.size() == 0) {
                 if (!deletedToastShown) {
-
                     List<String> dependingForm = appDatabase.getDDE_FormWiseDataSourceDao().getDistinctAllDSFormId(dde_questions.getFormId());
                     for (int depIndex = 0; depIndex < dependingForm.size(); depIndex++) {
                         depForms = depForms + ", " + appDatabase.getDDE_FormsDao().getFormName(dependingForm.get(depIndex).toString());
                     }
-                     Toast.makeText(context, "Linked form or question might be deleted or not present. Download "+depForms+" form(s) again.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Linked form or question might be deleted or not present. Download "+depForms+" form(s) again.", Toast.LENGTH_LONG).show();
                     deletedToastShown = true;
                 }
                 answerList.add("select options");
