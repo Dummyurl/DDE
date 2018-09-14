@@ -369,7 +369,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     private void saveSourceData(JSONObject response) {
         try {
             maxProgressCnt = response.getInt("Count");
-            int pstatus=0;
+            int pstatus = 0;
             if (response.length() > 1 && response.getJSONObject("Data").getJSONArray("Table").length() > 0) {
                 JSONObject jsonObjectData = response.getJSONObject("Data");
                 JSONArray tableArray = jsonObjectData.getJSONArray("Table");
