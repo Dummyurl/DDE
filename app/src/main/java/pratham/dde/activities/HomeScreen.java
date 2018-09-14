@@ -315,7 +315,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 JSONObject tempJsonObject = dataSourceForFormOnline.get(dataSourceIndex);
                 String dsFormId = tempJsonObject.getString("dsformid");
                 String lastPulledDate = appDatabase.getDDE_FormWiseDataSourceDao().getLastUpdateDateOfDSFormId(dsFormId);
-                String lastPulledDate2 = "2018-08-15 17:56:37.000";
+                //String lastPulledDate2 = "2018-08-15 17:56:37.000";
                 JSONObject jsonObject = new JSONObject();
                 if (lastPulledDate != null) {
                     Date localUpdateDateDT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(lastPulledDate);

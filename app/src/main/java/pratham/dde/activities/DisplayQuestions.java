@@ -879,10 +879,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     }
                 } else {
                     boolean flag = true;
-                    if (jObject.getInt("ROWNUMBER") == 133333) {
-                        int x = 0;
-                        x++;
-                    }
                     for (Map.Entry<String, String> mapEntry : map.entrySet()) {
                         if (jObject.has(mapEntry.getKey())) {
                             if (!jObject.getString(mapEntry.getKey()).equalsIgnoreCase(mapEntry.getValue())) {
@@ -1073,7 +1069,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     for (int depIndex = 0; depIndex < dependingForm.size(); depIndex++) {
                         depForms = depForms + ", " + appDatabase.getDDE_FormsDao().getFormName(dependingForm.get(depIndex).toString());
                     }
-                    Toast.makeText(context, "Linked form or question might be deleted or not present. Download " + depForms + " form(s) again.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Linked form or question might be deleted/not present/datasource linked improperly. Download " + depForms + " form(s) again.", Toast.LENGTH_LONG).show();
                     deletedToastShown = true;
                 }
                 answerList.add("select options");
