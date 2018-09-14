@@ -1012,9 +1012,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             for (int k = 0; k < formIdWiseQuestions.size(); k++) {
                                 if (formIdWiseQuestions.get(k).getQuestionId().equals(dep)) {
                                     depTemp = formIdWiseQuestions.get(k).getDependentQuestionIdentifier();
-                                    depTemp = formIdWiseQuestions.get(k).getDependentQuestionIdentifier();
+                                    depDSTemp = formIdWiseQuestions.get(k).getDataSourceQuestionIdentifier();
                                     dep = depTemp;
-                                    map.put(formIdWiseQuestions.get(k).getDestColumname(), formIdWiseQuestions.get(k).getAnswer());
+                                    map.put(appDatabase.getDDE_QuestionsDao().getDestColumnByQid(depDSTemp), formIdWiseQuestions.get(k).getAnswer());
                                     break;
                                 }
                             }
