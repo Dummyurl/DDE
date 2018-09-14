@@ -50,7 +50,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -65,7 +64,10 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import butterknife.BindView;
@@ -300,7 +302,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     RadioButton radioButton = new RadioButton(this);
                     radioButton.setId(i);
                     radioButton.setLayoutParams(paramsWrapContaint);
-                    String tag=jsonObject.get("value").getAsString();
+                    String tag = jsonObject.get("value").getAsString();
                     radioButton.setTag(tag);
                     String text = jsonObject.get("display").getAsString();
                     radioButton.setText(text);
@@ -446,7 +448,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 GridLayout gridLayout = new GridLayout(this);
                 gridLayout.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
                 gridLayout.setColumnCount(3);
-                if (!validationValue.isEmpty() && !validationValue.endsWith(",")) validationValue += ",";
+                if (!validationValue.isEmpty() && !validationValue.endsWith(","))
+                    validationValue += ",";
 
                 if (editFormFlag) {
                     String dest_column = dde_questions.getDestColumname();
@@ -804,9 +807,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
                         if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
                             ans = ansObject.get("Answers").getAsString();
-                            int index =-1;
-                            for (int i=0;i<display.size();i++){
-                                if(display.get(i).getValue().equals(ans)){
+                            int index = -1;
+                            for (int i = 0; i < display.size(); i++) {
+                                if (display.get(i).getValue().equals(ans)) {
                                     index = i;
                                     break;
                                 }
@@ -834,7 +837,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             dde_questions.setAnswer("");
                             checkRuleCondition(tag, "", "dropdown");
                         } else {
-                            DisplayValue displayValue= (DisplayValue) adapterView.getSelectedItem();
+                            DisplayValue displayValue = (DisplayValue) adapterView.getSelectedItem();
 
                             dde_questions.setAnswer(displayValue.getValue());
 
@@ -864,7 +867,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         }
     }
 
-    private ArrayList<String> getDependentValues(ArrayList<String> answerList, String destColName, String conditionColName, String conditionColValue) {
+    private ArrayList<String> getDependentValues(ArrayList<String> answerList, String destColName, String conditionColName, String conditionColValue, NavigableMap<String, String> map) {
 
         for (DataSourceEntries dataSourceEntries : dataSourceEntriesOnline) {
             try {
@@ -875,14 +878,28 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         if (!answerList.contains(value)) answerList.add(value);
                     }
                 } else {
-                    String value1 = null;
-                    String value2 = null;
-                    if (jObject.has(destColName)) value1 = jObject.getString(destColName);
-                    if (jObject.has(conditionColName)) value2 = jObject.getString(conditionColName);
-                    if (value2.equalsIgnoreCase(conditionColValue))
-                        if (!answerList.contains(value1)) answerList.add(value1);
+                    boolean flag = true;
+                    if (jObject.getInt("ROWNUMBER") == 133333) {
+                        int x = 0;
+                        x++;
+                    }
+                    for (Map.Entry<String, String> mapEntry : map.entrySet()) {
+                        if (jObject.has(mapEntry.getKey())) {
+                            if (!jObject.getString(mapEntry.getKey()).equalsIgnoreCase(mapEntry.getValue())) {
+                                flag = false;
+                                break;
+                            }
+                        } else {
+                            flag = false;
+                            break;
+                        }
+                    }
+                    if (flag) {
+                        answerList.add(jObject.getString(destColName));
+                    }
                 }
-            } catch (JSONException e) {
+
+            } catch (Exception e) {
                 e.printStackTrace();
                 return null;
             }
@@ -982,11 +999,28 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 return null;
             } else {
                 try {
+                    NavigableMap<String, String> map = new TreeMap<String, String>();
+
                     answerList.add("select options");
                     if (destColumnParent.isEmpty()) {
-                        answerList = getDependentValues(answerList, destCol, null, null);
+                        answerList = getDependentValues(answerList, destCol, null, null, map);
                     } else if (!answer.isEmpty() && !answer.equalsIgnoreCase("select options")) {
-                        answerList = getDependentValues(answerList, destCol, destColumnParent, answer);
+                        String dep = dde_questions.getDependentQuestionIdentifier();
+                        String depTemp = null;
+                        String depDSTemp;
+                        do {
+                            for (int k = 0; k < formIdWiseQuestions.size(); k++) {
+                                if (formIdWiseQuestions.get(k).getQuestionId().equals(dep)) {
+                                    depTemp = formIdWiseQuestions.get(k).getDependentQuestionIdentifier();
+                                    depTemp = formIdWiseQuestions.get(k).getDependentQuestionIdentifier();
+                                    dep = depTemp;
+                                    map.put(formIdWiseQuestions.get(k).getDestColumname(), formIdWiseQuestions.get(k).getAnswer());
+                                    break;
+                                }
+                            }
+                        } while (depTemp != null);
+
+                        answerList = getDependentValues(answerList, destCol, destColumnParent, answer, map);
                     }
 
                     Log.d("pkpkpk", "Size: " + answerList.size());
@@ -1039,7 +1073,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     for (int depIndex = 0; depIndex < dependingForm.size(); depIndex++) {
                         depForms = depForms + ", " + appDatabase.getDDE_FormsDao().getFormName(dependingForm.get(depIndex).toString());
                     }
-                    Toast.makeText(context, "Linked form or question might be deleted or not present. Download "+depForms+" form(s) again.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Linked form or question might be deleted or not present. Download " + depForms + " form(s) again.", Toast.LENGTH_LONG).show();
                     deletedToastShown = true;
                 }
                 answerList.add("select options");
@@ -1281,7 +1315,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                             visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
                                             GridLayout tempGrid = (GridLayout) layout.getChildAt(1);
                                             String defaultval = visibleTempQue.getDefaultValue();
-                                            if (defaultval!= null && !defaultval.isEmpty() && !defaultval.equalsIgnoreCase("null") && !defaultval.endsWith(",")) defaultval += ",";
+                                            if (defaultval != null && !defaultval.isEmpty() && !defaultval.equalsIgnoreCase("null") && !defaultval.endsWith(","))
+                                                defaultval += ",";
                                             for (int checkBoxIndex = 0; checkBoxIndex < tempGrid.getChildCount(); checkBoxIndex++) {
                                                 String checkBoxTag = tempGrid.getChildAt(checkBoxIndex).getTag().toString();
                                                 String[] splitted = checkBoxTag.split(":::");
