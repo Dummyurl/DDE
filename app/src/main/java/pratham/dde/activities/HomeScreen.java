@@ -168,7 +168,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     private void getQuestions() {
         if (updatedFormsToPull.size() > 0) {
             if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
-                QuestionUrl = Utility.getProperty("getQuestionsAndData", mContext);
+                QuestionUrl = Utility.getProperty("prodgetQuestionsAndData", mContext);
                 dataSourceForFormOnline = new ArrayList<>();
                 SelectQuestionDialog selectVillageDialog = new SelectQuestionDialog(HomeScreen.this, updatedFormsToPull);
                 selectVillageDialog.show();
@@ -176,7 +176,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 Toast.makeText(mContext, "Check your internet connection.", Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(mContext, "Forms and questions are up to date.", Toast.LENGTH_SHORT).show();
+            if (SyncUtility.isDataConnectionAvailable(HomeScreen.this))
+                Toast.makeText(mContext, "Forms and questions are up to date.", Toast.LENGTH_SHORT).show();
+            else
+                Toast.makeText(mContext, "Check your internet connection.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -225,7 +228,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         progressDialog.setCancelable(false);
         maxProgressCnt = 0;
         progressDialog.show();
-        dataSourceUrl = Utility.getProperty("getDataSource", mContext);
+        dataSourceUrl = Utility.getProperty("prodgetDataSource", mContext);
         dataSourceIndex = 0;
         PageNumber = 1;
         setDatasourceList();
@@ -235,11 +238,11 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     private void setDatasourceList() {
         List<DDE_FormWiseDataSource> listOfDSEntries;
         try {
-            listOfDSEntries = appDatabase.getDDE_FormWiseDataSourceDao().getAllDSEntries();
+            listOfDSEntries = appDatabase.getDDE_FormWiseDataSourceDao().getAllDSEntriesByUID(userId);
             if (listOfDSEntries != null) {
                 // remove logic -----> form updated and datasource too
                 for (int dsEntryIndex = 0; dsEntryIndex < dataSourceForFormOnline.size(); dsEntryIndex++) {
-                    DDE_FormWiseDataSource dataObj = appDatabase.getDDE_FormWiseDataSourceDao().getDataBYDSId(dataSourceForFormOnline.get(dsEntryIndex).getString("dsformid"));
+                    DDE_FormWiseDataSource dataObj = appDatabase.getDDE_FormWiseDataSourceDao().getDataBYDSIdAndUserId(dataSourceForFormOnline.get(dsEntryIndex).getString("dsformid"),userId);
                     if (dataObj != null) {
                         String DSUpdateDate = appDatabase.getDDE_FormsDao().getDataupdatedDateByFormID(dataObj.getDsformid());
                         String localUpdateDate = dataObj.getUpdatedDate();
@@ -384,19 +387,28 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                     dataSourceEntryObj.setFormId(formId);
                     dataSourceEntryObj.setEntryId(entryId);
                     dataSourceEntryObj.setAnswers(answers);
+                    String userNames = appDatabase.getDataSourceEntriesDao().getUsersAssociatedWithData(entryId);
+                    if (userNames!= null) {
+                        if (!userNames.contains(userId+","))
+                            userNames += userId+",";
+                        else
+                            userNames = userId+",";
+                    } else
+                        userNames = userId+",";
+                    dataSourceEntryObj.setUsers(userNames);
                     dataSourceEntries.add(dataSourceEntryObj);
                 }
                 appDatabase.getDataSourceEntriesDao().insertEntry(dataSourceEntries);
                 PageNumber++;
                 if (maxProgressCnt < rowsPerPage) {
-                    appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime());
+                    appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime(),userId);
                     pstatus = 100;
                     PageNumber = 1;
                     dataSourceIndex++;
                 } else {
                     pstatus = ((rowsPerPage * (PageNumber - 1)) * 100) / maxProgressCnt;
                     if (pstatus > 100) {
-                        appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime());
+                        appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime(),userId);
                         PageNumber = 1;
                         dataSourceIndex++;
                     }
@@ -405,7 +417,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             } else {
                 PageNumber = 1;
                 progressDialog.setProgress(0);
-                appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime());
+                appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime(),userId);
                 dataSourceIndex++;
             }
 
@@ -417,12 +429,12 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         }
     }
 
-    @Override
+ /*   @Override
     protected void onResume() {
         super.onResume();
-        callFillforms();
-        //showSavedOldForms();
-    }
+        //callFillforms();
+        showSavedOldForms();
+    }*/
 
     private void showSavedOldForms() {
         navigationView.getMenu().getItem(0).setChecked(true);
@@ -435,7 +447,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     }
 
     private void getQuestionsAndData(final int formId) {
-        // TODO get questions and data if required
         String url = QuestionUrl + formId;
         AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
             @Override
@@ -502,9 +513,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 DDE_FormWiseDataSource dde_formWiseDataSourceObj = new DDE_FormWiseDataSource();
                 for (int dsIndex = 0; dsIndex < datasourceList.length(); dsIndex++) {
                     dsJsonObject = datasourceList.getJSONObject(dsIndex);
-                    dde_formWiseDataSourceObj.setFormwisedsid(dsJsonObject.getString("formwisedsid"));
+                    dde_formWiseDataSourceObj.setFormwisedsid(dsJsonObject.getString("formwisedsid")+userId);
                     dde_formWiseDataSourceObj.setDsformid(dsJsonObject.getString("dsformid"));
                     dde_formWiseDataSourceObj.setFormid(dsJsonObject.getString("formid"));
+                    dde_formWiseDataSourceObj.setUserId(userId);
                     appDatabase.getDDE_FormWiseDataSourceDao().insertEntry(dde_formWiseDataSourceObj);
                     containFlag = false;
                     for (int dsOnlineIndex = 0; dsOnlineIndex < dataSourceForFormOnline.size(); dsOnlineIndex++) {
@@ -557,7 +569,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         updatedFormsToPull.clear();
         User user = appDatabase.getUserDao().getUserDetails(userName, password);
         if (user != null)
-            getNewForms(Utility.getProperty("getForms", HomeScreen.this), user.getUserToken());
+            getNewForms(Utility.getProperty("prodgetForms", HomeScreen.this), user.getUserToken());
     }
 
     /* getFormsfromServer */
@@ -632,9 +644,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                             for (int formNo = 0; formNo < dde_forms.length; formNo++) {
                                 if (db_dde_forms[dbFormNo].getFormid() == dde_forms[formNo].getFormid()) {
                                     flag = true;
+                                    break;
                                 }
                             }
-                            if (!flag) {
+                            if (flag) {
                                 if (!dbFormIds.contains(String.valueOf(db_dde_forms[dbFormNo].getFormid())))
                                     dbFormIds.add(String.valueOf(db_dde_forms[dbFormNo].getFormid()));
                             }
@@ -681,6 +694,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 } else {
                     Utility.dismissDialog(dialog);
                     Toast.makeText(mContext, "Problem with server", Toast.LENGTH_SHORT).show();
+                    callFillforms();
                 }
             } else {
                 Utility.dismissDialog(dialog);

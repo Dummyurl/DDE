@@ -46,8 +46,8 @@ public class UploadAnswerAndImageToServer {
         fillAgainListner = (FillAgainListner) context;
         this.listAns = listAns;
         this.token = token;
-        uploadDataUrl = (Utility.getProperty("uploadDataUrl", context));
-        uploadImageUrl = (Utility.getProperty("uploadImageUrl", context));
+        uploadDataUrl = (Utility.getProperty("produploadDataUrl", context));
+        uploadImageUrl = (Utility.getProperty("produploadImageUrl", context));
         uploadingIndex = 0;
         if (listAns.size() > 0) uploadData();
         else {

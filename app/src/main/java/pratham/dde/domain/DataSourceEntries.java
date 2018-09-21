@@ -13,6 +13,7 @@ public class DataSourceEntries implements Serializable {
     String entryId;
     String formId;
     String answers;
+    String users;
 
     public String getEntryId() {
         return entryId;
@@ -36,5 +37,13 @@ public class DataSourceEntries implements Serializable {
 
     public void setAnswers(String answers) {
         this.answers = answers;
+    }
+
+    public String getUsers() {
+        return users;
+    }
+
+    public void setUsers(String users) {
+        this.users = users;
     }
 }

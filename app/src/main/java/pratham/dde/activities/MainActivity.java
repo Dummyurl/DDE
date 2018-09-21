@@ -54,14 +54,14 @@ public class MainActivity extends BaseActivity {
         dialog = new ProgressDialog(mContext);
         if (appDatabase.getStatusDao().getValueByKey("LastPulledDate") == null)
             initialiseStatusTable();
-        input_email.setText("prathamdde@dde.com");
-        input_password.setText("Admin@1234");
+        input_email.setText("pk@pk.com");
+        input_password.setText("Pravin@123");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-       /* input_email.setText("");
+        /*input_email.setText("");
         input_password.setText("");
         input_email.requestFocus();*/
     }
@@ -94,7 +94,7 @@ public class MainActivity extends BaseActivity {
         if (userName.equals("") || password.equals(""))
             Utility.showDialogue(this, "Insert Username and Password correctly");
         else if (!validateUserFromLocalDatabase())
-            getNewTokenFromServer(Utility.getProperty("checkCredentials", mContext));
+            getNewTokenFromServer(Utility.getProperty("prodcheckCredentials", mContext));
         else startNextActivity();
     }
 
@@ -150,7 +150,7 @@ public class MainActivity extends BaseActivity {
                 String token_type = response.getString("token_type");
                 String expiryDate = response.getString(".expires");
 
-                callAPIForPrograms(token_type + " " + access_token, Utility.getProperty("getPrograms", mContext), expiryDate, Name, userName);
+                callAPIForPrograms(token_type + " " + access_token, Utility.getProperty("prodgetPrograms", mContext), expiryDate, Name, userName);
             } else {
                 Utility.showDialogue(this, "Invalid User! Try registering.");
             }

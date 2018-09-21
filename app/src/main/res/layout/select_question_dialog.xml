@@ -85,7 +85,7 @@
             android:background="@drawable/btn_style"
             android:gravity="center"
             android:padding="5dp"
-            android:text="Clear All"
+            android:text="Select All"
             android:textColor="#ffffff"
             android:textSize="20sp" />
 

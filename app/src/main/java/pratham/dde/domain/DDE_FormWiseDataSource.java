@@ -13,6 +13,7 @@ public class DDE_FormWiseDataSource {
     private String formid;
     private String dsformid;
     private String updatedDate;
+    private String userId;
 
     @NonNull
     public String getFormwisedsid() {
@@ -45,5 +46,13 @@ public class DDE_FormWiseDataSource {
 
     public void setUpdatedDate(String updatedDate) {
         this.updatedDate = updatedDate;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

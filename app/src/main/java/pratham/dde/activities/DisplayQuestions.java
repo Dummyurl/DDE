@@ -158,11 +158,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 path = Environment.getExternalStorageDirectory().toString() + "/DDEImages";
                 if (!getIntent().getExtras().getBoolean("fillAgainFlag", false)) {
                     DDE_Application.setCashedDataSourceEntriesOnline(new ArrayList<DataSourceEntries>());
-                    dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId));
+                    dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId),"%"+userId+",%");
                 } else {
                     dataSourceEntriesOnline = DDE_Application.getCashedDataSourceEntriesOnline();
                     if (dataSourceEntriesOnline == null)
-                        dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId));
+                        dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId),"%"+userId+",%");
                 }
                 return null;
             }
@@ -984,6 +984,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         @Override
         protected Void doInBackground(Void... voids) {
             String dataSourceQuestionIdentifier = dde_questions.getDataSourceQuestionIdentifier();
+            //destCol = dde_questions.getDataSourceColumnName();
             destCol = appDatabase.getDDE_QuestionsDao().getDestColumnByQid(dataSourceQuestionIdentifier);
             answerList = new ArrayList<>();
             if (destCol == null) {
@@ -1005,11 +1006,14 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         String depTemp = null;
                         String depDSTemp;
                         do {
+                            DDE_Questions tempQuestion;
                             for (int k = 0; k < formIdWiseQuestions.size(); k++) {
-                                if (formIdWiseQuestions.get(k).getQuestionId().equals(dep)) {
-                                    depTemp = formIdWiseQuestions.get(k).getDependentQuestionIdentifier();
-                                    depDSTemp = formIdWiseQuestions.get(k).getDataSourceQuestionIdentifier();
+                                tempQuestion = formIdWiseQuestions.get(k);
+                                if (tempQuestion.getQuestionId().equals(dep)) {
+                                    depTemp = tempQuestion.getDependentQuestionIdentifier();
+                                    depDSTemp = tempQuestion.getDataSourceQuestionIdentifier();
                                     dep = depTemp;
+//                                    map.put(tempQuestion.getDataSourceColumnName(), tempQuestion.getAnswer());
                                     map.put(appDatabase.getDDE_QuestionsDao().getDestColumnByQid(depDSTemp), formIdWiseQuestions.get(k).getAnswer());
                                     break;
                                 }

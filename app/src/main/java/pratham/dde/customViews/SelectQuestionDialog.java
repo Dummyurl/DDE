@@ -80,7 +80,7 @@ public class SelectQuestionDialog extends Dialog {
     @OnClick(R.id.txt_clear_changes_village)
     public void clearChanges() {
         for (int i = 0; i < checkBoxes.size(); i++) {
-            checkBoxes.get(i).setChecked(false);
+            checkBoxes.get(i).setChecked(true);
         }
     }
 

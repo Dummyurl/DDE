@@ -15,6 +15,9 @@ public interface DataSourceEntriesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertEntry(List<DataSourceEntries> dataSourceEntries);
 
-    @Query("Select * from DataSourceEntries where formId=:formid")
-    public List<DataSourceEntries> getDatasourceOnline(String formid);
+    @Query("Select * from DataSourceEntries where formId=:formid and users LIKE :userId")
+    public List<DataSourceEntries> getDatasourceOnline(String formid, String userId);
+
+    @Query("Select users from DataSourceEntries where entryId=:entryId")
+    String getUsersAssociatedWithData(String entryId);
 }

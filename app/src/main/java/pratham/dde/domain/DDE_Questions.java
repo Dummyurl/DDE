@@ -110,6 +110,9 @@ public class DDE_Questions {
     @SerializedName("DataSourceQuestionIdentifier")
     private String DataSourceQuestionIdentifier;
 
+    @SerializedName("DataSourceColumnName")
+    private String DataSourceColumnName;
+
     @SerializedName("DependentQuestionIdentifier")
     private String DependentQuestionIdentifier;
 
@@ -124,50 +127,12 @@ public class DDE_Questions {
     @Ignore
     private String answer="";
 
-
     public String getAnswer() {
         return answer;
     }
 
     public void setAnswer(String answer) {
         this.answer = answer;
-    }
-
-    @Override
-    public String toString() {
-        return "DDE_Questions{" + "QuestionId='" + QuestionId + '\'' +
-                ", FieldSeqNo=" + FieldSeqNo
-                + ", QuestionType='" + QuestionType + '\''
-                + ", Question='" + Question + '\''
-                + ", Validations='" + Validations + '\''
-                + ", DestColumname='" + DestColumname + '\''
-                + ", FormId=" + FormId
-                + ", DataSource='"+ DataSource + '\''
-                + ", QuestionDescription='"+ QuestionDescription + '\''
-                + ", QuestionOption='"+ QuestionOption + '\''
-                + ", QuestionIsRequired='"+ QuestionIsRequired + '\''
-                + ", QuestionAllowDecimal='"+ QuestionAllowDecimal + '\''
-                + ", QuestionValueDependsOn='"+ QuestionValueDependsOn + '\''
-                + ", QuestionDependValueOperator='"+ QuestionDependValueOperator + '\''
-                + ", IncludeNoneOfTheAbove='"+ IncludeNoneOfTheAbove + '\''
-                + ", NoneOfTheAboveVal='"+ NoneOfTheAboveVal + '\''
-                + ", SelectFromDataSource='"+ SelectFromDataSource + '\''
-                + ", ValidationJson='"+ ValidationJson + '\''
-                + ", OptionJson='" + OptionJson + '\''
-                + ", DefaultValue='" + DefaultValue + '\''
-                + ", MAXCHARACTERSALLOWED='" + MAXCHARACTERSALLOWED + '\''
-                + ", MINCHARACTERSALLOWED='" + MINCHARACTERSALLOWED + '\''
-                + ", MINLENGTH='" + MINLENGTH + '\''
-                + ", MAXLENGTH='" + MAXLENGTH + '\''
-                + ", MINRANGE='" + MINRANGE + '\''
-                + ", MAXRANGE='" + MAXRANGE + '\''
-                + ", DEPENDESONVALUE='" + DEPENDESONVALUE + '\''
-                + ", DEPENDSONOPERATOR='" + DEPENDSONOPERATOR + '\''
-                + ", MINIMUMSELECT='" + MINIMUMSELECT + '\''
-                + ", MAXIMUMSELECT='" + MAXIMUMSELECT + '\''
-                + ", DataSourceQuestionIdentifier='" + DataSourceQuestionIdentifier + '\''
-                + ", DependentQuestionIdentifier='" + DependentQuestionIdentifier + '\''
-                + '}';
     }
 
     @NonNull
@@ -410,6 +375,14 @@ public class DDE_Questions {
 
     public void setDataSourceQuestionIdentifier(String dataSourceQuestionIdentifier) {
         DataSourceQuestionIdentifier = dataSourceQuestionIdentifier;
+    }
+
+    public String getDataSourceColumnName() {
+        return DataSourceColumnName;
+    }
+
+    public void setDataSourceColumnName(String dataSourceColumnName) {
+        DataSourceColumnName = dataSourceColumnName;
     }
 
     public String getDependentQuestionIdentifier() {
