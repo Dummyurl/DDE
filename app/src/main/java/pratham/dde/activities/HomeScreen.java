@@ -251,7 +251,10 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                             Date DSUpdateDateDT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(DSUpdateDate);
                             if (localUpdateDateDT.compareTo(DSUpdateDateDT) >= 0) {
                                 //remove from dataSourceForFormOnline
+
+
                                 dataSourceForFormOnline.remove(dsEntryIndex);
+
                             }
                         }
                     }
@@ -654,7 +657,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         }
                     }
                     for (int formCounter = 0; formCounter < dbFormIds.size(); formCounter++) {
-                        appDatabase.getDDE_QuestionsDao().deleteQuestionsByFormID(dbFormIds.get(formCounter));
+                    //    appDatabase.getDDE_QuestionsDao().deleteQuestionsByFormID(dbFormIds.get(formCounter));
                         appDatabase.getAnswerDao().setPushedStatusByFormId(dbFormIds.get(formCounter), 1);
                         appDatabase.getDDE_FormsDao().deleteFormById(dbFormIds.get(formCounter));
                     }

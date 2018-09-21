@@ -110,9 +110,9 @@ public class DDE_Questions {
     @SerializedName("DataSourceQuestionIdentifier")
     private String DataSourceQuestionIdentifier;
 
-    @SerializedName("DataSourceColumnName")
+   /* @SerializedName("DataSourceColumnName")
     private String DataSourceColumnName;
-
+*/
     @SerializedName("DependentQuestionIdentifier")
     private String DependentQuestionIdentifier;
 
@@ -377,13 +377,13 @@ public class DDE_Questions {
         DataSourceQuestionIdentifier = dataSourceQuestionIdentifier;
     }
 
-    public String getDataSourceColumnName() {
+   /* public String getDataSourceColumnName() {
         return DataSourceColumnName;
     }
 
     public void setDataSourceColumnName(String dataSourceColumnName) {
         DataSourceColumnName = dataSourceColumnName;
-    }
+    }*/
 
     public String getDependentQuestionIdentifier() {
         return DependentQuestionIdentifier;
