@@ -447,7 +447,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 JsonArray optionCheckBox = dde_questions.getQuestionOption();
                 GridLayout gridLayout = new GridLayout(this);
                 gridLayout.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                gridLayout.setColumnCount(3);
+                gridLayout.setColumnCount(1);
                 if (!validationValue.isEmpty() && !validationValue.endsWith(","))
                     validationValue += ",";
 

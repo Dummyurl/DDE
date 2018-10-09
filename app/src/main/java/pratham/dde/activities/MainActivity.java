@@ -75,13 +75,12 @@ public class MainActivity extends BaseActivity {
     }
 
     private void checkVersion() {
-        String latestVersion = "";
+        String playStoreVersion = "";
         String currentVersion = Utility.getCurrentVersion(MainActivity.this);
         Log.d("version::", "Current version = " + currentVersion);
         try {
-            latestVersion = new GetLatestVersion().execute().get();
+            playStoreVersion  = new GetLatestVersion().execute().get();
 //            latestVersion = "1.1";
-            Log.d("version::", "Latest version = " + latestVersion);
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -90,7 +89,7 @@ public class MainActivity extends BaseActivity {
             e.printStackTrace();
         }
         // Force Update Code
-        if ((!currentVersion.equals(latestVersion)) && latestVersion != null) {
+        if ( playStoreVersion != null && currentVersion != null && compareCurrentAndPlayStoreVersion(currentVersion,playStoreVersion)) {
             final AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Upgrade to a better version !");
             builder.setCancelable(false);
@@ -108,6 +107,12 @@ public class MainActivity extends BaseActivity {
             });
             builder.show();
         }
+    }
+
+    private boolean compareCurrentAndPlayStoreVersion(String currentVersion, String playStoreVersion ) {
+        if ((Float.parseFloat(currentVersion)- Float.parseFloat(playStoreVersion)) >= 0)
+            return false;
+        return true;
     }
 
     private void initialiseStatusTable() {
