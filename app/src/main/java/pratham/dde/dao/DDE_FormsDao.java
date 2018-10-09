@@ -36,7 +36,7 @@ public interface DDE_FormsDao {
     @Query("SELECT formpassword FROM DDE_Forms where formid=:formId")
     String getFormPassword(String formId);
 
-    @Query("SELECT PulledDateTime FROM DDE_Forms where formid=:formId")
+    @Query("SELECT PulledDateTime FROM DDE_Forms where formid=:formId ")
     String getPulledDateTimeByFormID(String formId);
 
     @Query("SELECT dataupdateddate FROM DDE_Forms where formid=:formId")

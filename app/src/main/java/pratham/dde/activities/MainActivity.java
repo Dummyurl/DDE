@@ -1,9 +1,13 @@
 package pratham.dde.activities;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -19,6 +23,9 @@ import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+
+import java.util.concurrent.ExecutionException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -64,6 +71,43 @@ public class MainActivity extends BaseActivity {
         input_email.setText("");
         input_password.setText("");
         input_email.requestFocus();
+        checkVersion();
+    }
+
+    private void checkVersion() {
+        String latestVersion = "";
+        String currentVersion = Utility.getCurrentVersion(MainActivity.this);
+        Log.d("version::", "Current version = " + currentVersion);
+        try {
+            latestVersion = new GetLatestVersion().execute().get();
+//            latestVersion = "1.1";
+            Log.d("version::", "Latest version = " + latestVersion);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // Force Update Code
+        if ((!currentVersion.equals(latestVersion)) && latestVersion != null) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Upgrade to a better version !");
+            builder.setCancelable(false);
+            builder.setPositiveButton("Update", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //Click button action
+                    if (SyncUtility.isDataConnectionAvailable(MainActivity.this)) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=pratham.dde")));
+                    } else {
+                        Toast.makeText(mContext, "No internet connection", Toast.LENGTH_SHORT).show();
+                    }
+                    dialog.dismiss();
+                }
+            });
+            builder.show();
+        }
     }
 
     private void initialiseStatusTable() {
@@ -245,4 +289,45 @@ public class MainActivity extends BaseActivity {
         intent.putExtra("password", password);
         startActivity(intent);
     }
+
+    private class GetLatestVersion extends AsyncTask<String, String, String> {
+        String latestVersion;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                //It retrieves the latest version by scraping the content of current version from play store at runtime
+                // Document doc = w3cDom.fromJsoup(Jsoup.connect(urlOfAppFromPlayStore).get());
+                //Log.d(TAG,"playstore doc "+getStringFromDoc(doc));
+                latestVersion = Jsoup.connect("https://play.google.com/store/apps/details?id=pratham.dde&hl=en")
+                        .timeout(30000)
+                        .userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
+                        .referrer("http://www.google.com")
+                        .get()
+                        .select("div.hAyfc:nth-child(4) > span:nth-child(2) > div:nth-child(1) > span:nth-child(1)")
+                        .first()
+                        .ownText();
+                /*latestVersion = Jsoup.connect("https://play.google.com/store/apps/details?id=" + "pratham.dde" + "&hl=en")
+                        .timeout(30000)
+                        .userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
+                        .referrer("http://www.google.com")
+                        .get()
+                        .select(".hAyfc .htlgb")
+//                        .select("div[itemprop=softwareVersion]")
+                        .get(7)
+//                        .first()
+                        .ownText();*/
+                Log.d("latest::", latestVersion);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return latestVersion;
+        }
+    }
+
 }

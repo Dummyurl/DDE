@@ -6,6 +6,8 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 
 import java.io.InputStream;
@@ -119,6 +121,19 @@ public class Utility{
             dialog.dismiss();
             dialog = null;
         }
+    }
+
+    public static String getCurrentVersion(Context context) {
+        PackageManager pm = context.getPackageManager();
+        PackageInfo pInfo = null;
+        try {
+            pInfo = pm.getPackageInfo(context.getPackageName(), 0);
+
+        } catch (PackageManager.NameNotFoundException e1) {
+            e1.printStackTrace();
+        }
+        String currentVersion = pInfo.versionName;
+        return currentVersion;
     }
 
 }

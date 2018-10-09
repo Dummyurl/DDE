@@ -1,12 +1,14 @@
 apply plugin: 'com.android.application'
 
+def buildDateTime = new Date().format('yyMMdd').toInteger()
+//and assign it like this:: "versionCode buildDateTime"
 android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "pratham.dde"
         minSdkVersion 16
         targetSdkVersion 27
-        versionCode 1
+        versionCode buildDateTime
         versionName "1.0"
         vectorDrawables.useSupportLibrary=true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -55,4 +57,7 @@ dependencies {
 
     //Material design
     implementation 'com.android.support:design:27.0.0'
+
+    //JSOUP
+    implementation 'org.jsoup:jsoup:1.8.3'
 }
