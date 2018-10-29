@@ -109,7 +109,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     public static final int PICK_IMAGE_FROM_GALLERY = 1;
     public static final int CAPTURE_IMAGE = 0;
     ImageView selectedImage;
-    static String userId;//logged UserId
+    static String userId;//logged UserId(
     static String formId;
     boolean editFormFlag = false;
     String imageName = "";
