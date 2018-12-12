@@ -654,7 +654,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                     }
                     for (int formCounter = 0; formCounter < dbFormIds.size(); formCounter++) {
                       //  appDatabase.getDDE_QuestionsDao().deleteQuestionsByFormID(dbFormIds.get(formCounter));
-                        appDatabase.getAnswerDao().setPushedStatusByFormId(dbFormIds.get(formCounter), 1);
+//                        appDatabase.getAnswerDao().setPushedStatusByFormId(dbFormIds.get(formCounter), 1);
                         appDatabase.getDDE_FormsDao().deleteFormById(dbFormIds.get(formCounter));
                     }
 

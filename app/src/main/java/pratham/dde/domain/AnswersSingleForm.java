@@ -16,7 +16,7 @@ public class AnswersSingleForm {
     private String date;
     private String FormId;
     private String TableName;
-    private int  pushStatus= 0;
+    private int pushStatus= 0;
     @TypeConverters(JSONArrayToString.class)
     private JsonArray answerArrayOfSingleForm;
 

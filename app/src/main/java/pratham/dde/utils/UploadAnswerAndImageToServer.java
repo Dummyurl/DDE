@@ -1,5 +1,6 @@
 package pratham.dde.utils;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Environment;
@@ -172,16 +173,15 @@ public class UploadAnswerAndImageToServer {
                 @Override
                 public void onResponse(String response) {
                     Toast.makeText(context, "Data pushed successfully", Toast.LENGTH_SHORT).show();
-
                     updateStatusOfAllForms(entryIdsOfAllForms, ALLDATAPUSHED);
                     Utility.dismissDialog(dialog);
                 }
 
                 @Override
                 public void onError(ANError anError) {
-                    Toast.makeText(context, "Data push failed", Toast.LENGTH_SHORT).show();
-                    updateStatusOfAllForms(entryIdsOfAllForms, IMAGEPUSHED);
                     Utility.dismissDialog(dialog);
+                    Utility.showDialogue(context,"Problem in pushing data due to" + anError.getErrorDetail());
+                    updateStatusOfAllForms(entryIdsOfAllForms, IMAGEPUSHED);
                 }
             });
         } catch (JSONException e) {

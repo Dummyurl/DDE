@@ -71,7 +71,7 @@ public class Utility{
         }
     }
 
-    public static void showDialogue(Activity act, String msg) {
+    public static void showDialogue(Context act, String msg) {
         AlertDialog alertDialog = new AlertDialog.Builder(act).create();
         alertDialog.setTitle("Alert");
         alertDialog.setMessage(msg);
