@@ -30,18 +30,17 @@ public class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         appDatabase = AppDatabase.getDatabaseInstance(this);
+        BackupDatabase.backup(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        BackupDatabase.backup(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        BackupDatabase.backup(this);
     }
 
     @Override

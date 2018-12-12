@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.androidnetworking.AndroidNetworking;
@@ -180,8 +181,13 @@ public class UploadAnswerAndImageToServer {
                 @Override
                 public void onError(ANError anError) {
                     Utility.dismissDialog(dialog);
-                    Utility.showDialogue(context,"Problem in pushing data due to" + anError.getErrorDetail());
                     updateStatusOfAllForms(entryIdsOfAllForms, IMAGEPUSHED);
+                    Log.d("Error detail", "onError: "+anError.getErrorDetail());
+                    Log.d("Error detail", "onError: "+anError.getErrorBody());
+                    Log.d("Error detail", "onError: "+anError.getMessage());
+                    Log.d("Error detail", "onError: "+anError.getErrorCode());
+                    Log.d("Error detail", "onError: "+anError.getErrorCode());
+                    Utility.showDialogue(context,"Problem in pushing data due to: " + anError.getErrorDetail());
                 }
             });
         } catch (JSONException e) {
