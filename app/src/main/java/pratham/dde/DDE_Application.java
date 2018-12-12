@@ -24,12 +24,7 @@ public class DDE_Application extends Application {
     }
 
     public static void setCashedDataSourceEntriesOnline(List<DataSourceEntries> cashedDataSourceEntriesOnline) {
-        if (DDE_Application.cashedDataSourceEntriesOnline != null) {
-            DDE_Application.cashedDataSourceEntriesOnline.clear();
-            DDE_Application.cashedDataSourceEntriesOnline.addAll(cashedDataSourceEntriesOnline);
-        } else {
-            DDE_Application.cashedDataSourceEntriesOnline = new ArrayList<>();
-            DDE_Application.cashedDataSourceEntriesOnline.addAll(cashedDataSourceEntriesOnline);
-        }
+        DDE_Application.cashedDataSourceEntriesOnline = new ArrayList<>();
+        DDE_Application.cashedDataSourceEntriesOnline.addAll(cashedDataSourceEntriesOnline);
     }
 }

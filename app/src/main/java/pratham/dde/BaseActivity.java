@@ -29,16 +29,24 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        appDatabase = Room.databaseBuilder(this,
-                AppDatabase.class, AppDatabase.DB_NAME)
-                .allowMainThreadQueries()
-                .build();
+        appDatabase = AppDatabase.getDatabaseInstance(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        BackupDatabase.backup(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        BackupDatabase.backup(this);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        BackupDatabase.backup(this);
     }
 
     protected void closeDatabase() {

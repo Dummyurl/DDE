@@ -1,7 +1,9 @@
 package pratham.dde.database;
 
 import android.arch.persistence.room.Database;
+import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
+import android.content.Context;
 
 import pratham.dde.dao.AnswerDao;
 import pratham.dde.dao.DDE_FormWiseDataSourceDao;
@@ -24,6 +26,8 @@ import pratham.dde.domain.User;
 
 public abstract class AppDatabase extends RoomDatabase {
 
+    private static AppDatabase INSTANCE;
+
     public static final String DB_NAME = "dynamic_data";
 
     public abstract UserDao getUserDao();
@@ -41,6 +45,16 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract AnswerDao getAnswerDao();
 
     public abstract StatusDao getStatusDao();
+
+    public static AppDatabase getDatabaseInstance(final Context context) {
+        if (INSTANCE == null) {
+            INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
+                    AppDatabase.class, DB_NAME)
+                    .allowMainThreadQueries() // SHOULD NOT BE USED IN PRODUCTION !!!
+                    .build();
+        }
+        return INSTANCE;
+    }
 
 
 }

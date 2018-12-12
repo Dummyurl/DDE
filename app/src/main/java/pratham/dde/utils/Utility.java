@@ -97,7 +97,6 @@ public class Utility{
             return false;
         }
     }
-
     /*show loader */
     public static void showDialogInApiCalling(Dialog dialog, Context context, String msg) {
         if (dialog == null) {
@@ -122,6 +121,7 @@ public class Utility{
             dialog = null;
         }
     }
+
 
     public static String getCurrentVersion(Context context) {
         PackageManager pm = context.getPackageManager();

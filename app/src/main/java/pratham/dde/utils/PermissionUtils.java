@@ -41,4 +41,5 @@ public class PermissionUtils {
     public static final String Manifest_GROUP_SMS = Manifest.permission_group.SMS;
     public static final String Manifest_GROUP_STORAGE = Manifest.permission_group.STORAGE;
 
+    public static final String WRITE_PERMISSION = "write_permission";
 }
