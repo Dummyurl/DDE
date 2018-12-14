@@ -75,7 +75,7 @@ public class FillFormsFragment extends Fragment {
 
     /*fetching  forms according to programid*/
     private void getFormsfromDb() {
-        // DDE_Forms[] dde = appDatabase.getDDE_FormsDao().getAllForms();
+        // DDE_Forms[] dde = appDatabase.getDDE_FormsDao().getAllErrorsLog();
 
         String[] programIdArray = programId.split(",");
         forms = new ArrayList();

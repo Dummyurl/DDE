@@ -1,6 +1,5 @@
 package pratham.dde.utils;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -9,6 +8,9 @@ import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.util.Log;
+
+import com.androidnetworking.error.ANError;
 
 import java.io.InputStream;
 import java.text.DateFormat;
@@ -18,6 +20,9 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
+
+import pratham.dde.database.AppDatabase;
+import pratham.dde.domain.ErrorLog;
 
 public class Utility{
 
@@ -136,4 +141,18 @@ public class Utility{
         return currentVersion;
     }
 
+    public static void updateErrorLog(ANError anError, AppDatabase appDatabase, String activityMethod) {
+        try {
+            ErrorLog errorLog = new ErrorLog();
+            errorLog.setErrorBody(anError.getErrorBody());
+            errorLog.setErrorCode(anError.getErrorCode());
+            errorLog.setErrorDetail(anError.getErrorDetail());
+            errorLog.setActivityMethod(activityMethod);
+            Log.d("Error details", "onError: "+errorLog.toString());
+            appDatabase.getErrorLogDao().insert(errorLog);
+            Log.d("ErrorCount:", "updateErrorLog: "+ appDatabase.getErrorLogDao().getAllErrorsLog().size());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

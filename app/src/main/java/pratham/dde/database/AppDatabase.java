@@ -11,6 +11,7 @@ import pratham.dde.dao.DDE_FormsDao;
 import pratham.dde.dao.DDE_QuestionsDao;
 import pratham.dde.dao.DDE_RulesDao;
 import pratham.dde.dao.DataSourceEntriesDao;
+import pratham.dde.dao.ErrorLogDao;
 import pratham.dde.dao.StatusDao;
 import pratham.dde.dao.UserDao;
 import pratham.dde.domain.AnswersSingleForm;
@@ -19,10 +20,11 @@ import pratham.dde.domain.DDE_Forms;
 import pratham.dde.domain.DDE_Questions;
 import pratham.dde.domain.DDE_RuleTable;
 import pratham.dde.domain.DataSourceEntries;
+import pratham.dde.domain.ErrorLog;
 import pratham.dde.domain.Status;
 import pratham.dde.domain.User;
 
-@Database(entities = {User.class, Status.class, DDE_Questions.class, DDE_Forms.class, DDE_FormWiseDataSource.class, AnswersSingleForm.class, DDE_RuleTable.class, DataSourceEntries.class}, version = 1)
+@Database(entities = {User.class, Status.class, DDE_Questions.class, DDE_Forms.class, DDE_FormWiseDataSource.class, AnswersSingleForm.class, DDE_RuleTable.class, DataSourceEntries.class, ErrorLog.class}, version = 1)
 
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -45,6 +47,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract AnswerDao getAnswerDao();
 
     public abstract StatusDao getStatusDao();
+
+    public abstract ErrorLogDao getErrorLogDao();
 
     public static AppDatabase getDatabaseInstance(final Context context) {
         if (INSTANCE == null) {

@@ -93,7 +93,7 @@ import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
 
 
-public class DisplayQuestions extends BaseActivity implements FillAgainListner, PermissionResult, PreviewFormListener {
+public class DisplayQuestions extends BaseActivity implements FillAgainListner, PreviewFormListener {
     @BindView(R.id.homeButton)
     ImageView homeButton;
     @BindView(R.id.formNameHeader)
@@ -128,12 +128,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_questions);
         ButterKnife.bind(this);
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-            String[] permissionArray = new String[]{PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE, PermissionUtils.Manifest_CAMERA};
-            if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
-                askCompactPermissions(permissionArray, this);
-            } else proceedFurther();
-        } else proceedFurther();
+        proceedFurther();
     }
 
     private void proceedFurther() {
@@ -1996,20 +1991,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         return "" + Year + "/" + Month + "/" + Day;
     }
 
-    @Override
-    public void permissionGranted() {
-        proceedFurther();
-    }
 
-    @Override
-    public void permissionDenied() {
-        showPermissionWarningDilog();
-    }
-
-    @Override
-    public void permissionForeverDenied() {
-        showPermissionWarningDilog();
-    }
 
     class SortQuestions implements Comparator<DDE_Questions> {
         // Used for sorting in ascending order of
@@ -2087,22 +2069,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             }
         });
         alertDialog.show();
-    }
-
-    private void showPermissionWarningDilog() {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setTitle("Alert");
-        alertDialogBuilder.setMessage("Denying the permissions may cause in application failure." + "\nPermissions can also be given through app settings.");
-
-        alertDialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                /*UPLOAD TO SERVER*/
-                dialog.dismiss();
-                proceedFurther();
-            }
-        });
-        alertDialogBuilder.show();
     }
 
 

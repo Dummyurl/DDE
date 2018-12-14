@@ -1,10 +1,8 @@
 package pratham.dde.utils;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Environment;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.androidnetworking.AndroidNetworking;
@@ -21,6 +19,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.util.List;
 
+import pratham.dde.database.BackupDatabase;
 import pratham.dde.domain.AnswersSingleForm;
 import pratham.dde.interfaces.FillAgainListner;
 
@@ -136,6 +135,7 @@ public class UploadAnswerAndImageToServer {
                         @Override
                         public void onError(ANError anError) {
                             Toast.makeText(context, "Image push failed", Toast.LENGTH_SHORT).show();
+                            Utility.updateErrorLog(anError,appDatabase, "MainActivity : uploadImageToServer");
                             uploadingIndex++;
                             uploadData();
                             Utility.dismissDialog(dialog);
@@ -182,11 +182,7 @@ public class UploadAnswerAndImageToServer {
                 public void onError(ANError anError) {
                     Utility.dismissDialog(dialog);
                     updateStatusOfAllForms(entryIdsOfAllForms, IMAGEPUSHED);
-                    Log.d("Error detail", "onError: "+anError.getErrorDetail());
-                    Log.d("Error detail", "onError: "+anError.getErrorBody());
-                    Log.d("Error detail", "onError: "+anError.getMessage());
-                    Log.d("Error detail", "onError: "+anError.getErrorCode());
-                    Log.d("Error detail", "onError: "+anError.getErrorCode());
+                    Utility.updateErrorLog(anError,appDatabase, "MainActivity : uploadAnswerDataToServer");
                     Utility.showDialogue(context,"Problem in pushing data due to: " + anError.getErrorDetail());
                 }
             });
@@ -198,6 +194,7 @@ public class UploadAnswerAndImageToServer {
     public void updateStatusOfAllForms(String[] entryIdsOfAllForms, int statusCode) {
         for (int statusCnt = 0; statusCnt < entryIdsOfAllForms.length; statusCnt++)
             appDatabase.getAnswerDao().setPushedStatus(entryIdsOfAllForms[statusCnt], statusCode);
+        BackupDatabase.backup(context);
         fillAgainListner.fillAgainForm(true);
     }
 

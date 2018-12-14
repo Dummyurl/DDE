@@ -6,8 +6,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -35,11 +37,14 @@ import pratham.dde.R;
 import pratham.dde.domain.Status;
 import pratham.dde.domain.User;
 import pratham.dde.services.SyncUtility;
+import pratham.dde.utils.PermissionResult;
+import pratham.dde.utils.PermissionUtils;
 import pratham.dde.utils.Utility;
 
 import static pratham.dde.utils.Utility.isTokenValid;
+import static pratham.dde.utils.Utility.updateErrorLog;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements PermissionResult {
 
     @BindView(R.id.input_email)
     TextView input_email;
@@ -48,17 +53,27 @@ public class MainActivity extends BaseActivity {
     Context mContext;
     Dialog dialog;
 
+    SharedPreferences sp;
+    public static final String PREFS_VERSION = "pratham.dde.activities";
+    public static final String CURRENT_VERSION = "App Version";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mContext = MainActivity.this;
+        sp = getSharedPreferences(PREFS_VERSION, Context.MODE_PRIVATE);
         ButterKnife.bind(this);
-        startApp();
+        dialog = new ProgressDialog(mContext);
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+            String[] permissionArray = new String[]{PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE, PermissionUtils.Manifest_CAMERA};
+            if (!isPermissionsGranted(MainActivity.this, permissionArray)) {
+                askCompactPermissions(permissionArray, this);
+            } else checkVersion();
+        } else checkVersion();
     }
 
     private void startApp() {
-        dialog = new ProgressDialog(mContext);
         if (appDatabase.getStatusDao().getValueByKey("LastPulledDate") == null)
             initialiseStatusTable();
      /*   input_email.setText("pk@pk.com");
@@ -71,46 +86,49 @@ public class MainActivity extends BaseActivity {
         input_email.setText("");
         input_password.setText("");
         input_email.requestFocus();
-        checkVersion();
     }
 
     private void checkVersion() {
-        String playStoreVersion = "";
         String currentVersion = Utility.getCurrentVersion(MainActivity.this);
-        Log.d("version::", "Current version = " + currentVersion);
-        try {
-            playStoreVersion  = new GetLatestVersion().execute().get();
-//            latestVersion = "1.1";
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        // Force Update Code
-        if ( playStoreVersion != null && currentVersion != null && compareCurrentAndPlayStoreVersion(currentVersion,playStoreVersion)) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Upgrade to a better version !");
-            builder.setCancelable(false);
-            builder.setPositiveButton("Update", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    //Click button action
-                    if (SyncUtility.isDataConnectionAvailable(MainActivity.this)) {
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=pratham.dde")));
-                    } else {
-                        Toast.makeText(mContext, "No internet connection", Toast.LENGTH_SHORT).show();
-                    }
-                    dialog.dismiss();
+        String updatedVersion = sp.getString(CURRENT_VERSION, "-1");
+        if (updatedVersion.equalsIgnoreCase("-1")) {
+            if (SyncUtility.isDataConnectionAvailable(MainActivity.this)) {
+                try {
+                    new GetLatestVersion().execute().get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            });
-            builder.show();
+            } else startApp();
+        } else {
+            if (updatedVersion != null && currentVersion != null && isCurrentVersionLesserThanPlayStoreVersion(currentVersion, updatedVersion)) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Upgrade to a better version !");
+                builder.setCancelable(false);
+                builder.setPositiveButton("Update", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //Click button action
+                        dialog.dismiss();
+                        if (SyncUtility.isDataConnectionAvailable(MainActivity.this)) {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=pratham.dde")));
+                            finish();
+                        } else {
+                            Utility.showDialogue(MainActivity.this, "No internet connection! Try updating later.");
+                            startApp();
+                        }
+                    }
+                });
+                builder.show();
+            }
         }
     }
 
-    private boolean compareCurrentAndPlayStoreVersion(String currentVersion, String playStoreVersion ) {
-        if ((Float.parseFloat(currentVersion)- Float.parseFloat(playStoreVersion)) >= 0)
+    private boolean isCurrentVersionLesserThanPlayStoreVersion(String currentVersion, String playStoreVersion) {
+        if ((Float.parseFloat(currentVersion) - Float.parseFloat(playStoreVersion)) >= 0)
             return false;
         return true;
     }
@@ -164,7 +182,7 @@ public class MainActivity extends BaseActivity {
     private void getNewTokenFromServer(String url) {
         //TODO checkNetwork
         if (SyncUtility.isDataConnectionAvailable(this)) {
-            Utility.showDialogInApiCalling(dialog, mContext, "getting new token from server");
+            Utility.showDialogInApiCalling(dialog, mContext, "Getting new token from server");
             AndroidNetworking.post(url).addBodyParameter("username", userName).addBodyParameter("password", password).addBodyParameter("grant_type", "password").setTag("test").setPriority(Priority.MEDIUM).build().getAsJSONObject(new JSONObjectRequestListener() {
                 @Override
                 public void onResponse(JSONObject response) {
@@ -175,13 +193,8 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onError(ANError error) {
                     Utility.dismissDialog(dialog);
-                    try {
-                        String errorBody = error.getErrorBody();
-                        Toast.makeText(MainActivity.this, "" + new JSONObject(errorBody).getString("error_description"), Toast.LENGTH_LONG).show();
-                    } catch (JSONException e) {
-                        Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    }
+                    updateErrorLog(error,appDatabase,"MainActivity : getNewTokenFromServer");
+                    Utility.showDialogue(mContext,"Problem in registering new user on server!" + error.getErrorDetail());
                 }
             });
         } else {
@@ -211,8 +224,6 @@ public class MainActivity extends BaseActivity {
     JSONArray programsJson;
 
     private void callAPIForPrograms(final String access_token, String url, final String expiryDate, final String Name, final String userName) {
-        //TODO checkNetwork
-
         if (SyncUtility.isDataConnectionAvailable(this)) {
             Utility.showDialogInApiCalling(dialog, mContext, "Getting programs");
             AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONArray(new JSONArrayRequestListener() {
@@ -228,7 +239,8 @@ public class MainActivity extends BaseActivity {
                 public void onError(ANError error) {
                     // handle error
                     Utility.dismissDialog(dialog);
-                    Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                    updateErrorLog(error,appDatabase, "MainActivity : callAPIForPrograms");
+                    Utility.showDialogue(mContext,"Problem in getting programs from server!" + error.getErrorDetail());
                 }
             });
         } else {
@@ -301,6 +313,7 @@ public class MainActivity extends BaseActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            Utility.showDialogInApiCalling(dialog, MainActivity.this, "Checking if new version is available!");
         }
 
         @Override
@@ -329,10 +342,54 @@ public class MainActivity extends BaseActivity {
                         .ownText();*/
                 Log.d("latest::", latestVersion);
             } catch (Exception e) {
+                Utility.dismissDialog(dialog);
                 e.printStackTrace();
             }
             return latestVersion;
         }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            Utility.dismissDialog(dialog);
+            if (latestVersion != null) {
+                sp = getSharedPreferences(PREFS_VERSION, Context.MODE_PRIVATE);
+                sp.edit().putString(CURRENT_VERSION, latestVersion).apply();
+                checkVersion();
+            } else {
+                startApp();
+            }
+        }
     }
 
+    @Override
+    public void permissionGranted() {
+        checkVersion();
+    }
+
+    @Override
+    public void permissionDenied() {
+        showPermissionWarningDilog();
+    }
+
+    @Override
+    public void permissionForeverDenied() {
+        showPermissionWarningDilog();
+    }
+
+    private void showPermissionWarningDilog() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("Alert");
+        alertDialogBuilder.setMessage("Denying the permissions may cause in application failure." + "\nPermissions can also be given through app settings.");
+
+        alertDialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                /*UPLOAD TO SERVER*/
+                dialog.dismiss();
+                checkVersion();
+            }
+        });
+        alertDialogBuilder.show();
+    }
 }

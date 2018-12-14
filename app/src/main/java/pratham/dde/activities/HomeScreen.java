@@ -120,7 +120,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                     case R.id.nav_get_new_forms:
                         navigationView.getMenu().getItem(1).setChecked(false);
                         formIndex = 0;
-//                        forms = appDatabase.getDDE_FormsDao().getAllForms();
+//                        forms = appDatabase.getDDE_FormsDao().getAllErrorsLog();
                         if (!formLoaded) {
                             if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
                                 formLoaded = true;
@@ -348,6 +348,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
                             @Override
                             public void onError(ANError anError) {
+                                Utility.updateErrorLog(anError,appDatabase, "HomeScreen : loadSourceData");
                                 if (dataSourceForFormOnline.size() > dataSourceIndex) {
                                     PageNumber = 1;
                                     dataSourceIndex++;
@@ -458,6 +459,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             @Override
             public void onError(ANError anError) {
                 showErrorDialog(formId);
+                Utility.updateErrorLog(anError,appDatabase, "HomeScreen : getQuestionsAndData");
                 Utility.dismissDialog(dialog);
             }
         });
@@ -586,7 +588,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 @Override
                 public void onError(ANError error) {
                     Utility.dismissDialog(dialog);
-                    Toast.makeText(mContext, "Problem with the server, Contact administrator.", Toast.LENGTH_SHORT).show();
+                    Utility.updateErrorLog(error,appDatabase, "HomeScreen : getNewForms");
+                    Utility.showDialogue(HomeScreen.this,"Problem in getting new forms due to: " + error.getErrorDetail());
                 }
             });
         }
@@ -771,7 +774,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             getQuestionsAndData((int) forms.get(formIndex));
         } else {
             fetchQuestionsSourceData();
-            Toast.makeText(HomeScreen.this, "Nothing Selected", Toast.LENGTH_SHORT);
+            Toast.makeText(HomeScreen.this, "Nothing Selected", Toast.LENGTH_SHORT).show();
         }
     }
 
