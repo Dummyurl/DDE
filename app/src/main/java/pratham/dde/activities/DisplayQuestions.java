@@ -22,6 +22,7 @@ import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.text.Editable;
+import android.text.Html;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -87,7 +88,6 @@ import pratham.dde.interfaces.FillAgainListner;
 import pratham.dde.interfaces.PreviewFormListener;
 import pratham.dde.services.SyncUtility;
 import pratham.dde.utils.DisplayValue;
-import pratham.dde.utils.PermissionResult;
 import pratham.dde.utils.PermissionUtils;
 import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
@@ -116,7 +116,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     String entryID;
     JsonArray answerJsonArray;
     String path;
-    boolean firstRun = true, deletedToastShown = false;
+    boolean firstRun = true, deletedAlertShown = false;
     Dialog dialog;
     List<DataSourceEntries> dataSourceEntriesOnline;
     Context mContext;
@@ -153,11 +153,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 path = Environment.getExternalStorageDirectory().toString() + "/DDEImages";
                 if (!getIntent().getExtras().getBoolean("fillAgainFlag", false)) {
                     DDE_Application.setCashedDataSourceEntriesOnline(new ArrayList<DataSourceEntries>());
-                    dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId),"%"+userId+",%");
+                    dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId), "%" + userId + ",%");
                 } else {
                     dataSourceEntriesOnline = DDE_Application.getCashedDataSourceEntriesOnline();
                     if (dataSourceEntriesOnline == null)
-                        dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId),"%"+userId+",%");
+                        dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId), "%" + userId + ",%");
                 }
                 return null;
             }
@@ -195,7 +195,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 }
 
                 // flag for reinitialisation for the forms which has been deleted and still using
-                deletedToastShown = false;
+                deletedAlertShown = false;
 
                 for (int i = 0; i < formIdWiseQuestions.size(); i++) {
                     displaySingleQue(formIdWiseQuestions.get(i));
@@ -795,7 +795,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 }
                 ArrayAdapter<DisplayValue> spinnerArrayAdapter = new ArrayAdapter<DisplayValue>(this, android.R.layout.simple_selectable_list_item, display);
                 spinnerDropdown.setAdapter(spinnerArrayAdapter);
-                spinnerDropdown.setLayoutParams(paramsWrapContaint);
+                spinnerDropdown.setLayoutParams(params);
                 if (editFormFlag) {
                     String dest_column = dde_questions.getDestColumname();
                     for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
@@ -961,11 +961,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             if (!dialog.isShowing() && !dialogForSpinners.isShowing()) {
                 dialogForSpinners = new ProgressDialog(DisplayQuestions.this);
                 dialogForSpinners.setTitle("Loading Data Spinner");
-                dialogForSpinners.getWindow().setDimAmount(1f);
+//                dialogForSpinners.getWindow().setDimAmount(1f);
                 dialogForSpinners.setCancelable(false);
                 dialogForSpinners.show();
             }
-            paramsWrapContent = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
+            paramsWrapContent = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
             paramsWrapContent.setMargins(10, 0, 0, 0);
             layoutObj = renderAllQuestionsLayout.findViewWithTag(dde_questions.getQuestionId());
             if (layoutObj != null) {
@@ -1063,13 +1063,32 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             if (answerList.size() == 0) {
-                if (!deletedToastShown) {
+                if (!deletedAlertShown) {
                     List<String> dependingForm = appDatabase.getDDE_FormWiseDataSourceDao().getDistinctAllDSFormId(dde_questions.getFormId());
                     for (int depIndex = 0; depIndex < dependingForm.size(); depIndex++) {
-                        depForms = depForms + ", " + appDatabase.getDDE_FormsDao().getFormName(dependingForm.get(depIndex).toString());
+                        if (depForms.isEmpty())
+                            depForms = appDatabase.getDDE_FormsDao().getFormName(dependingForm.get(depIndex));
+                        else
+                            depForms = depForms + ", " + appDatabase.getDDE_FormsDao().getFormName(dependingForm.get(depIndex));
                     }
-                    Toast.makeText(context, "Linked form or question might be deleted/not present/datasource linked improperly. Download " + depForms + " form(s) again.", Toast.LENGTH_LONG).show();
-                    deletedToastShown = true;
+                    AlertDialog builder = new AlertDialog.Builder(DisplayQuestions.this).create();
+                    builder.setMessage(Html.fromHtml("Linked form or question might be deleted / not present / datasource linked improperly. Download <b>" + depForms + "</b> form(s) again."));
+                    builder.setCancelable(false);
+                    builder.setButton(DialogInterface.BUTTON_POSITIVE, "Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    });
+                   /* builder.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });*/
+                    builder.show();
+                    deletedAlertShown = true;
+//                    Toast.makeText(context, "Linked form or question might be deleted/not present/datasource linked improperly. Download " + depForms + " form(s) again.", Toast.LENGTH_LONG).show();
                 }
                 answerList.add("select options");
             }
@@ -1990,7 +2009,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         }
         return "" + Year + "/" + Month + "/" + Day;
     }
-
 
 
     class SortQuestions implements Comparator<DDE_Questions> {
