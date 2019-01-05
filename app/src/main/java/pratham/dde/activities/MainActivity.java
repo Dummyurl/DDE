@@ -180,7 +180,6 @@ public class MainActivity extends BaseActivity implements PermissionResult {
     }
 
     private void getNewTokenFromServer(String url) {
-        //TODO checkNetwork
         if (SyncUtility.isDataConnectionAvailable(this)) {
             Utility.showDialogInApiCalling(dialog, mContext, "Getting new token from server");
             AndroidNetworking.post(url).addBodyParameter("username", userName).addBodyParameter("password", password).addBodyParameter("grant_type", "password").setTag("test").setPriority(Priority.MEDIUM).build().getAsJSONObject(new JSONObjectRequestListener() {

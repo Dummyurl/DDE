@@ -364,6 +364,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             }
         } else {
             progressDialog.dismiss();
+            // TODO download dependent forms and set them as dependent
             callFillforms();
             if (dataSourceForFormOnline.size() == dataSourceIndex)
                 Toast.makeText(mContext, "Downloaded successfully.", Toast.LENGTH_SHORT).show();
@@ -680,8 +681,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                                 builder.setCancelable(true);
                                 builder.show();
                             }*/
-                            //Todo  show EditForms
-
                             getQuestions();
                             formLoaded = true;
                             callFillforms();
@@ -767,7 +766,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     @Override
     public void getSelectedForms(ArrayList list) {
-        //Todo
         if (!list.isEmpty()) {
             forms = list;
             Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");

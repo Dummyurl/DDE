@@ -302,7 +302,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     String text = jsonObject.get("display").getAsString();
                     radioButton.setText(text);
                     if (editFormFlag) {
-                        //todo
                         String dest_column = dde_questions.getDestColumname();
                         for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
                             JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
