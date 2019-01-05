@@ -79,7 +79,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     Context mContext;
     String token, QuestionUrl;
     List forms;
-    int formIndex = 0;
+    int formIndex = 0, depformIndex = 0;
     int dataSourceIndex = 0;
     int PageNumber = 1;
     List<JSONObject> dataSourceForFormOnline;
@@ -348,7 +348,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
                             @Override
                             public void onError(ANError anError) {
-                                Utility.updateErrorLog(anError,appDatabase, "HomeScreen : loadSourceData");
+                                Utility.updateErrorLog(anError, appDatabase, "HomeScreen : loadSourceData");
                                 if (dataSourceForFormOnline.size() > dataSourceIndex) {
                                     PageNumber = 1;
                                     dataSourceIndex++;
@@ -365,9 +365,32 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         } else {
             progressDialog.dismiss();
             // TODO download dependent forms and set them as dependent
-            callFillforms();
-            if (dataSourceForFormOnline.size() == dataSourceIndex)
+            progressDialog = new ProgressDialog(this);
+            //progressDialog.setMessage("Progress : " + (dataSourceIndex + 1) + "/" + dataSourceForFormOnline.size());
+            progressDialog.setTitle("Downloading dependent form data please wait..");
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            progressDialog.setProgress(0);
+            progressDialog.setMax(100);
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+            depformIndex = 0;
+            getDependentForms();
+        }
+    }
+
+    private void getDependentForms() {
+        try {
+            if (dataSourceForFormOnline.size() == depformIndex) {
+                progressDialog.setProgress(100);
+                progressDialog.dismiss();
+                callFillforms();
                 Toast.makeText(mContext, "Downloaded successfully.", Toast.LENGTH_SHORT).show();
+            } else {
+                int currentDsFormId = dataSourceForFormOnline.get(depformIndex).getInt("dsformid");
+                getQuestionsForDependentForms(currentDsFormId);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
@@ -390,13 +413,13 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                     dataSourceEntryObj.setEntryId(entryId);
                     dataSourceEntryObj.setAnswers(answers);
                     String userNames = appDatabase.getDataSourceEntriesDao().getUsersAssociatedWithData(entryId);
-                    if (userNames!= null) {
-                        if (!userNames.contains(userId+","))
-                            userNames += userId+",";
+                    if (userNames != null) {
+                        if (!userNames.contains(userId + ","))
+                            userNames += userId + ",";
                         else
-                            userNames = userId+",";
+                            userNames = userId + ",";
                     } else
-                        userNames = userId+",";
+                        userNames = userId + ",";
                     dataSourceEntryObj.setUsers(userNames);
                     dataSourceEntries.add(dataSourceEntryObj);
                 }
@@ -460,7 +483,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             @Override
             public void onError(ANError anError) {
                 showErrorDialog(formId);
-                Utility.updateErrorLog(anError,appDatabase, "HomeScreen : getQuestionsAndData");
+                Utility.updateErrorLog(anError, appDatabase, "HomeScreen : getQuestionsAndData");
                 Utility.dismissDialog(dialog);
             }
         });
@@ -494,6 +517,34 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         alertDialogBuilder.show();
     }
 
+    private void showErrorDialogForDependent(final int formId) {
+        String formName = appDatabase.getDDE_FormsDao().getFormName(String.valueOf(formId));
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("Error");
+        alertDialogBuilder.setCancelable(false);
+        alertDialogBuilder.setMessage("Problem in pulling " + formName + " !");
+
+        alertDialogBuilder.setPositiveButton("Reload", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogHere, int which) {
+                dialogHere.dismiss();
+                Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
+                getQuestionsForDependentForms(formId);
+            }
+        });
+
+        alertDialogBuilder.setNegativeButton("Skip", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogHere, int which) {
+                dialogHere.dismiss();
+                Utility.showDialogInApiCalling(dialog, mContext, "Getting Questions");
+                depformIndex++;
+                getQuestionsForDependentForms(formId);
+            }
+        });
+        alertDialogBuilder.show();
+    }
+
     private void saveData(JSONObject response) {
         saveQuestion(response);
         if (formIndex < forms.size()) {
@@ -516,7 +567,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 DDE_FormWiseDataSource dde_formWiseDataSourceObj = new DDE_FormWiseDataSource();
                 for (int dsIndex = 0; dsIndex < datasourceList.length(); dsIndex++) {
                     dsJsonObject = datasourceList.getJSONObject(dsIndex);
-                    dde_formWiseDataSourceObj.setFormwisedsid(dsJsonObject.getString("formwisedsid")+userId);
+                    dde_formWiseDataSourceObj.setFormwisedsid(dsJsonObject.getString("formwisedsid") + userId);
                     dde_formWiseDataSourceObj.setDsformid(dsJsonObject.getString("dsformid"));
                     dde_formWiseDataSourceObj.setFormid(dsJsonObject.getString("formid"));
                     appDatabase.getDDE_FormWiseDataSourceDao().insertEntry(dde_formWiseDataSourceObj);
@@ -589,8 +640,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 @Override
                 public void onError(ANError error) {
                     Utility.dismissDialog(dialog);
-                    Utility.updateErrorLog(error,appDatabase, "HomeScreen : getNewForms");
-                    Utility.showDialogue(HomeScreen.this,"Problem in getting new forms due to: " + error.getErrorDetail());
+                    Utility.updateErrorLog(error, appDatabase, "HomeScreen : getNewForms");
+                    Utility.showDialogue(HomeScreen.this, "Problem in getting new forms due to: " + error.getErrorDetail());
                 }
             });
         }
@@ -657,7 +708,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         }
                     }
                     for (int formCounter = 0; formCounter < dbFormIds.size(); formCounter++) {
-                      //  appDatabase.getDDE_QuestionsDao().deleteQuestionsByFormID(dbFormIds.get(formCounter));
+                        //  appDatabase.getDDE_QuestionsDao().deleteQuestionsByFormID(dbFormIds.get(formCounter));
 //                        appDatabase.getAnswerDao().setPushedStatusByFormId(dbFormIds.get(formCounter), 1);
                         appDatabase.getDDE_FormsDao().deleteFormById(dbFormIds.get(formCounter));
                     }
@@ -783,5 +834,95 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             return 0;
         }
     }*/
+
+    private void getQuestionsForDependentForms(final int formId) {
+        String url = QuestionUrl + formId;
+        AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
+            @Override
+            public void onResponse(JSONObject response) {
+                depformIndex++;
+                saveDependentFormDataData(response);
+            }
+
+            @Override
+            public void onError(ANError anError) {
+                showErrorDialogForDependent(formId);
+                Utility.updateErrorLog(anError, appDatabase, "HomeScreen : getQuestionsAndData");
+                Utility.dismissDialog(dialog);
+            }
+        });
+
+    }
+
+    private void saveDependentFormDataData(JSONObject response) {
+        //TODO save questions in db with flag datasource
+        //saveQuestion(response);
+        saveDependentFormQuestion(response);
+        getDependentForms();
+    }
+
+    private void saveDependentFormQuestion(JSONObject response) {
+            try {
+//                boolean containFlag;
+                JSONObject data = response.getJSONObject("Data");
+                String questions = data.getString("Questions");
+                //JSONArray datasourceList = response.getJSONArray("DatasourceList");
+//                if (datasourceList.length() > 0) {
+//                    // For unique datasources
+//                    JSONObject dsJsonObject;
+//                    DDE_FormWiseDataSource dde_formWiseDataSourceObj = new DDE_FormWiseDataSource();
+//                    for (int dsIndex = 0; dsIndex < datasourceList.length(); dsIndex++) {
+//                        dsJsonObject = datasourceList.getJSONObject(dsIndex);
+//                        dde_formWiseDataSourceObj.setFormwisedsid(dsJsonObject.getString("formwisedsid") + userId);
+//                        dde_formWiseDataSourceObj.setDsformid(dsJsonObject.getString("dsformid"));
+//                        dde_formWiseDataSourceObj.setFormid(dsJsonObject.getString("formid"));
+//                        appDatabase.getDDE_FormWiseDataSourceDao().insertEntry(dde_formWiseDataSourceObj);
+//                        containFlag = false;
+//                        for (int dsOnlineIndex = 0; dsOnlineIndex < dataSourceForFormOnline.size(); dsOnlineIndex++) {
+//                            if (dsJsonObject.getString("dsformid").equalsIgnoreCase(dataSourceForFormOnline.get(dsOnlineIndex).getString("dsformid")))
+//                                containFlag = true;
+//                        }
+//                        if (!containFlag) dataSourceForFormOnline.add(dsJsonObject);
+//                    }
+//                }
+                String formId;
+                Gson gson = new Gson();
+                Type listType = new TypeToken<ArrayList<DDE_Questions>>() {
+                }.getType();
+                ArrayList<DDE_Questions> questionList = gson.fromJson(questions, listType);
+                if (questionList.size() > 0) {
+                    String allRules = data.getString("Rules");
+                    Type listTypeRule = new TypeToken<ArrayList<DDE_RuleTable>>() {
+                    }.getType();
+                    ArrayList<DDE_RuleTable> rulesList = gson.fromJson(allRules, listTypeRule);
+
+                    /*ENTERING FORMID MANUALLY*/
+                    formId = questionList.get(0).getFormId();
+                    for (int i = 0; i < rulesList.size(); i++) {
+                        rulesList.get(i).setFormID(formId);
+                    }
+                    appDatabase.getDDE_RulesDao().deleteRulesByFormID(formId);
+                    appDatabase.getDDE_RulesDao().insertAllRule(rulesList);
+
+
+                    appDatabase.getDDE_FormsDao().updatePulledDate(questionList.get(0).getFormId(), "" + Utility.getCurrentDateTime());
+                    appDatabase.getDDE_QuestionsDao().deleteQuestionsByFormID(formId);
+                    appDatabase.getDDE_QuestionsDao().insertAllQuestions(questionList);
+                    formId = response.getJSONObject("Formdata").getString("formid");
+                    appDatabase.getDDE_FormsDao().updatePulledDate(formId, "" + Utility.getCurrentDateTime());
+                } else {
+                    appDatabase.getDDE_FormsDao().updatePulledDate(response.getJSONObject("Formdata").getString("formid"), "" + Utility.getCurrentDateTime());
+                }
+//                for (int formIndex = 0; formIndex < updatedFormsToPull.size(); formIndex++) {
+//                    if (updatedFormsToPull.get(formIndex).getFormid() == response.getJSONObject("Formdata").getInt("formid")) {
+//                        updatedFormsToPull.remove(formIndex);
+//                        break;
+//                    }
+//                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+    }
 
 }
