@@ -216,7 +216,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     /*    Display A Single Questions One By One*/
     private void displaySingleQue(final DDE_Questions dde_questions) {
         final LinearLayout layout = new LinearLayout(this);
-        layout.setPadding(10, 10, 10, 10);
+        layout.setPadding(10, 10, 10, 50);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setTag(dde_questions.getQuestionId());
         TextView textView = new TextView(this);
@@ -252,7 +252,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             case "text":
                 final EditText editText = new EditText(this);
                 editText.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                editText.setPadding(15, 5, 5, 5);
+                //editText.setPadding(15, 5, 5, 5);
                 editText.setSingleLine(true);
                 editText.setLayoutParams(params);
                 layout.addView(editText);
@@ -339,7 +339,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             case "email":
                 final EditText et_email = new EditText(this);
                 et_email.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                et_email.setPadding(15, 5, 5, 5);
+                //et_email.setPadding(15, 5, 5, 5);
                 et_email.setSingleLine(true);
                 et_email.setLayoutParams(params);
                 layout.addView(et_email);
@@ -381,7 +381,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             case "number":
                 final EditText number = new EditText(this);
                 number.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                number.setPadding(15, 5, 5, 5);
+                //number.setPadding(15, 5, 5, 5);
 
                 for (int i = 1; i < validationArray.size(); i++) {
                     JsonObject jsonObject = validationArray.get(i).getAsJsonObject();
@@ -858,7 +858,19 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         /*check dependency if depends then hide*/
         if (depQueID.contains(dde_questions.getQuestionId())) {
             layout.setVisibility(View.GONE);
+        } /*else {
+            *//*LinearLayout.LayoutParams parameters = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2, 0);
+            View view = new View(DisplayQuestions.this);
+            view.setLayoutParams(parameters);
+            renderAllQuestionsLayout.addView(view);*//*
         }
+        LinearLayout.LayoutParams parameters = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 5, 0);
+        parameters.setMargins(20, 20, 20, 20);
+        View view = new View(DisplayQuestions.this);
+        view.setLayoutParams(parameters);
+        //view.setAlpha(0.3f);
+        view.setBackgroundColor(getResources().getColor(R.color.black));
+        renderAllQuestionsLayout.addView(view);*/
     }
 
     private ArrayList<String> getDependentValues(ArrayList<String> answerList, String destColName, String conditionColName, String conditionColValue, NavigableMap<String, String> map) {
