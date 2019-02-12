@@ -264,8 +264,6 @@ public class MainActivity extends BaseActivity implements PermissionResult {
             user.setName(Name);
             user.setExpiryDate(expiryDate);
             appDatabase.getUserDao().insert(user);
-
-
         }
         startNextActivity();
     }

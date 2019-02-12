@@ -109,7 +109,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     public static final int PICK_IMAGE_FROM_GALLERY = 1;
     public static final int CAPTURE_IMAGE = 0;
     ImageView selectedImage;
-    static String userId;//logged UserId(
+    static String userId;//logged UserId
     static String formId;
     boolean editFormFlag = false;
     String imageName = "";
@@ -153,11 +153,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 path = Environment.getExternalStorageDirectory().toString() + "/DDEImages";
                 if (!getIntent().getExtras().getBoolean("fillAgainFlag", false)) {
                     DDE_Application.setCashedDataSourceEntriesOnline(new ArrayList<DataSourceEntries>());
-                    dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId), "%" + userId + ",%");
+                    dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId), "%," + userId + ",%");//TODO change
                 } else {
                     dataSourceEntriesOnline = DDE_Application.getCashedDataSourceEntriesOnline();
                     if (dataSourceEntriesOnline == null)
-                        dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId), "%" + userId + ",%");
+                        dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId), "%," + userId + ",%");
                 }
                 return null;
             }
@@ -859,7 +859,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         if (depQueID.contains(dde_questions.getQuestionId())) {
             layout.setVisibility(View.GONE);
         } /*else {
-            *//*LinearLayout.LayoutParams parameters = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2, 0);
+         *//*LinearLayout.LayoutParams parameters = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2, 0);
             View view = new View(DisplayQuestions.this);
             view.setLayoutParams(parameters);
             renderAllQuestionsLayout.addView(view);*//*
@@ -1075,7 +1075,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             super.onPostExecute(aVoid);
             if (answerList.size() == 0) {
                 if (!deletedAlertShown) {
-                    List<String> dependingForm = appDatabase.getDDE_FormWiseDataSourceDao().getDistinctAllDSFormId(dde_questions.getFormId());
+                    List<String> dependingForm = appDatabase.getDDE_FormWiseDataSourceDao().getDistinctAllDSFormId(dde_questions.getFormId(), userId);
                     for (int depIndex = 0; depIndex < dependingForm.size(); depIndex++) {
                         if (depForms.isEmpty())
                             depForms = appDatabase.getDDE_FormsDao().getFormName(dependingForm.get(depIndex));

@@ -18,18 +18,18 @@ public interface DDE_FormWiseDataSourceDao {
     @Query("SELECT dsformid FROM DDE_FormWiseDataSource where formid=:formId")
     String getDSFormId(String formId);
 
-    @Query("SELECT distinct dsformid FROM DDE_FormWiseDataSource where formid=:formId")
-    List<String> getDistinctAllDSFormId(String formId);
+    @Query("SELECT distinct dsformid FROM DDE_FormWiseDataSource where formid=:formId and userId=:userId")
+    List<String> getDistinctAllDSFormId(String formId, String userId);
 
-    @Query("SELECT updatedDate FROM DDE_FormWiseDataSource where dsformid=:dsformid")
-    String getLastUpdateDateOfDSFormId(String dsformid);
+    @Query("SELECT updatedDate FROM DDE_FormWiseDataSource where dsformid=:dsformid and userId=:userId")
+    String getLastUpdateDateOfDSFormId(String dsformid,String userId);
 
-    @Query("SELECT * FROM DDE_FormWiseDataSource where dsformid=:dsformid")
-    DDE_FormWiseDataSource getDataBYDSIdAndUserId(String dsformid);
+    @Query("SELECT * FROM DDE_FormWiseDataSource where dsformid=:dsformid and userId=:userId")
+    DDE_FormWiseDataSource getDataBYDSIdAndUserId(String dsformid, String userId);
 
-    @Query("update DDE_FormWiseDataSource set updatedDate=:updateDate where dsformid=:dsFormId")
-    void setUpdateDate(String dsFormId, String updateDate);
+    @Query("update DDE_FormWiseDataSource set updatedDate=:updateDate where dsformid=:dsFormId and userId=:userId")
+    void setUpdateDate(String dsFormId, String updateDate, String userId);
 
-    @Query("SELECT * FROM DDE_FormWiseDataSource")
-    List<DDE_FormWiseDataSource> getAllDSEntriesByUID();
+    @Query("SELECT * FROM DDE_FormWiseDataSource where userId=:userId")
+    List<DDE_FormWiseDataSource> getAllDSEntriesByUID(String userId);
 }

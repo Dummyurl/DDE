@@ -238,11 +238,11 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     private void setDatasourceList() {
         List<DDE_FormWiseDataSource> listOfDSEntries;
         try {
-            listOfDSEntries = appDatabase.getDDE_FormWiseDataSourceDao().getAllDSEntriesByUID();
+            listOfDSEntries = appDatabase.getDDE_FormWiseDataSourceDao().getAllDSEntriesByUID(userId);
             if (listOfDSEntries != null) {
                 // remove logic -----> form updated and datasource too
                 for (int dsEntryIndex = 0; dsEntryIndex < dataSourceForFormOnline.size(); dsEntryIndex++) {
-                    DDE_FormWiseDataSource dataObj = appDatabase.getDDE_FormWiseDataSourceDao().getDataBYDSIdAndUserId(dataSourceForFormOnline.get(dsEntryIndex).getString("dsformid"));
+                    DDE_FormWiseDataSource dataObj = appDatabase.getDDE_FormWiseDataSourceDao().getDataBYDSIdAndUserId(dataSourceForFormOnline.get(dsEntryIndex).getString("dsformid"),userId);
                     if (dataObj != null) {
                         String DSUpdateDate = appDatabase.getDDE_FormsDao().getDataupdatedDateByFormID(dataObj.getDsformid());
                         String localUpdateDate = dataObj.getUpdatedDate();
@@ -317,7 +317,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             try {
                 JSONObject tempJsonObject = dataSourceForFormOnline.get(dataSourceIndex);
                 String dsFormId = tempJsonObject.getString("dsformid");
-                String lastPulledDate = appDatabase.getDDE_FormWiseDataSourceDao().getLastUpdateDateOfDSFormId(dsFormId);
+                String lastPulledDate = appDatabase.getDDE_FormWiseDataSourceDao().getLastUpdateDateOfDSFormId(dsFormId,userId);
                 //String lastPulledDate2 = "2018-08-15 17:56:37.000";
                 JSONObject jsonObject = new JSONObject();
                 if (lastPulledDate != null) {
@@ -414,26 +414,26 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                     dataSourceEntryObj.setAnswers(answers);
                     String userNames = appDatabase.getDataSourceEntriesDao().getUsersAssociatedWithData(entryId);
                     if (userNames != null) {
-                        if (!userNames.contains(userId + ","))
+                        if (!userNames.contains("," + userId + ","))
                             userNames += userId + ",";
                         else
-                            userNames = userId + ",";
+                            userNames = "," +  userId + ",";
                     } else
-                        userNames = userId + ",";
+                        userNames = "," + userId + ",";
                     dataSourceEntryObj.setUsers(userNames);
                     dataSourceEntries.add(dataSourceEntryObj);
                 }
                 appDatabase.getDataSourceEntriesDao().insertEntry(dataSourceEntries);
                 PageNumber++;
                 if (maxProgressCnt < rowsPerPage) {
-                    appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime());
+                    appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime(),userId);
                     pstatus = 100;
                     PageNumber = 1;
                     dataSourceIndex++;
                 } else {
                     pstatus = ((rowsPerPage * (PageNumber - 1)) * 100) / maxProgressCnt;
                     if (pstatus > 100) {
-                        appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime());
+                        appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime(),userId);
                         PageNumber = 1;
                         dataSourceIndex++;
                     }
@@ -442,7 +442,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             } else {
                 PageNumber = 1;
                 progressDialog.setProgress(0);
-                appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime());
+                appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime(),userId);
                 dataSourceIndex++;
             }
 
@@ -567,7 +567,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 DDE_FormWiseDataSource dde_formWiseDataSourceObj = new DDE_FormWiseDataSource();
                 for (int dsIndex = 0; dsIndex < datasourceList.length(); dsIndex++) {
                     dsJsonObject = datasourceList.getJSONObject(dsIndex);
-                    dde_formWiseDataSourceObj.setFormwisedsid(dsJsonObject.getString("formwisedsid") + userId);
+                    dde_formWiseDataSourceObj.setFormwisedsid(dsJsonObject.getString("formwisedsid"));
+                    dde_formWiseDataSourceObj.setUserId(userId);
                     dde_formWiseDataSourceObj.setDsformid(dsJsonObject.getString("dsformid"));
                     dde_formWiseDataSourceObj.setFormid(dsJsonObject.getString("formid"));
                     appDatabase.getDDE_FormWiseDataSourceDao().insertEntry(dde_formWiseDataSourceObj);

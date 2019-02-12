@@ -16,7 +16,7 @@ public interface DataSourceEntriesDao {
     void insertEntry(List<DataSourceEntries> dataSourceEntries);
 
     @Query("Select * from DataSourceEntries where formId=:formid and users LIKE :userId")
-    public List<DataSourceEntries> getDatasourceOnline(String formid, String userId);
+    List<DataSourceEntries> getDatasourceOnline(String formid, String userId);
 
     @Query("Select users from DataSourceEntries where entryId=:entryId")
     String getUsersAssociatedWithData(String entryId);
