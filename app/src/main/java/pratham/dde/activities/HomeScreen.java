@@ -170,8 +170,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
                 QuestionUrl = Utility.getProperty("prodgetQuestionsAndData", mContext);
                 dataSourceForFormOnline = new ArrayList<>();
-                SelectQuestionDialog selectVillageDialog = new SelectQuestionDialog(HomeScreen.this, updatedFormsToPull);
-                selectVillageDialog.show();
+                SelectQuestionDialog selectQuestionDialog = new SelectQuestionDialog(HomeScreen.this, updatedFormsToPull);
+                selectQuestionDialog.show();
             } else {
                 Toast.makeText(mContext, "Check your internet connection.", Toast.LENGTH_SHORT).show();
             }
@@ -417,7 +417,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         if (!userNames.contains("," + userId + ","))
                             userNames += userId + ",";
                         else
-                            userNames = "," +  userId + ",";
+                            userNames = "," + userId + ",";
                     } else
                         userNames = "," + userId + ",";
                     dataSourceEntryObj.setUsers(userNames);
@@ -445,8 +445,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 appDatabase.getDDE_FormWiseDataSourceDao().setUpdateDate(dataSourceForFormOnline.get(dataSourceIndex).getString("dsformid"), Utility.getCurrentDateTime(),userId);
                 dataSourceIndex++;
             }
-
-
             progressDialog.setProgress(pstatus);
             loadSourceData();
         } catch (JSONException e) {
@@ -681,6 +679,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                                 updateddate = tempObj.getString("createddate");
                             }
                             Date update = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(updateddate);
+                            // checking if pulled form has been updated or not
                             if (pulledDateDate.compareTo(update) < 0) {
                                 if (!updatedFormsToPull.contains(dde_form))
                                     updatedFormsToPull.add(dde_form);
@@ -689,6 +688,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         }
                         dde_forms[i] = dde_form;
                     }
+
+                    // deleting local forms which are updated on server.
                     DDE_Forms[] db_dde_forms;
                     List<String> dbFormIds = new ArrayList<>();
                     boolean flag;
@@ -714,6 +715,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         appDatabase.getDDE_FormsDao().deleteFormById(dbFormIds.get(formCounter));
                     }
 
+                    // inserting downloaded forms to database
                     new AsyncTask<Void, Void, String>() {
                         @Override
                         protected String doInBackground(Void... voids) {
@@ -733,6 +735,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                                 builder.setCancelable(true);
                                 builder.show();
                             }*/
+
+                          // Getting questions for updates forms
                             getQuestions();
                             formLoaded = true;
                             callFillforms();

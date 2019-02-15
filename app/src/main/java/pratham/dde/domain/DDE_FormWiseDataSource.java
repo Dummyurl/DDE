@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 
 @Entity(primaryKeys = {"formwisedsid", "userId"})
 public class DDE_FormWiseDataSource {
+
     @NonNull
     private String formwisedsid;
     @NonNull
