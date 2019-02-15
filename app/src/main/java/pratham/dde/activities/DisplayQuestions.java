@@ -45,12 +45,15 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.ParseException;
@@ -67,6 +70,7 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -87,7 +91,6 @@ import pratham.dde.utils.DisplayValue;
 import pratham.dde.utils.PermissionUtils;
 import pratham.dde.utils.UploadAnswerAndImageToServer;
 import pratham.dde.utils.Utility;
-
 
 public class DisplayQuestions extends BaseActivity implements FillAgainListner, PreviewFormListener {
     @BindView(R.id.homeButton)
@@ -575,9 +578,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             }
                         });
 
-                        chooseImageDialog.btn_choose_from_gallery.setOnClickListener(new View.OnClickListener()
-
-                        {
+                        chooseImageDialog.btn_choose_from_gallery.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 chooseImageDialog.cancel();
@@ -855,7 +856,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         if (depQueID.contains(dde_questions.getQuestionId())) {
             layout.setVisibility(View.GONE);
         } /*else {
-            *//*LinearLayout.LayoutParams parameters = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2, 0);
+         *//*LinearLayout.LayoutParams parameters = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2, 0);
             View view = new View(DisplayQuestions.this);
             view.setLayoutParams(parameters);
             renderAllQuestionsLayout.addView(view);*//*
@@ -1071,7 +1072,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             super.onPostExecute(aVoid);
             if (answerList.size() == 0) {
                 if (!deletedAlertShown) {
-                    List<String> dependingForm = appDatabase.getDDE_FormWiseDataSourceDao().getDistinctAllDSFormId(dde_questions.getFormId(),userId);
+                    List<String> dependingForm = appDatabase.getDDE_FormWiseDataSourceDao().getDistinctAllDSFormId(dde_questions.getFormId(), userId);
                     for (int depIndex = 0; depIndex < dependingForm.size(); depIndex++) {
                         if (depForms.isEmpty())
                             depForms = appDatabase.getDDE_FormsDao().getFormName(dependingForm.get(depIndex));
