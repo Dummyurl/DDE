@@ -650,6 +650,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             JSONArray formData;
             JSONObject tempObj;
             DDE_Forms dde_form;
+            Boolean newUser;
             final DDE_Forms[] dde_forms;
             if (response.length() > 1) {
                 //JSONObject result = response.getJSONObject("Result");
@@ -657,6 +658,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                     formData = response.getJSONArray("Data");
                     dde_forms = new DDE_Forms[formData.length()];
                     for (int i = 0; i < formData.length(); i++) {
+                        newUser = false;
                         dde_form = new DDE_Forms();
                         tempObj = formData.getJSONObject(i);
                         dde_form.setFormid(tempObj.getInt("formid"));
@@ -666,34 +668,43 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         dde_form.setTablename(tempObj.getString("tablename"));
                         // setting userIds for downloaded forms
                         String userIds = BaseActivity.appDatabase.getDDE_FormsDao().getUserIdsByFormId(String.valueOf(tempObj.getInt("formid")));
-                        if (userIds == null)
+                        if (userIds == null) {
+                            newUser = true;
                             userIds = "," + userId + ",";
-                        else if (!userIds.contains("," + userId + ","))
+                        }
+                        else if (!userIds.contains("," + userId + ",")) {
+                            newUser = true;
                             userIds += userId + ",";
+                        }
                         dde_form.setUserId(userIds);
 
-                        if (!tempObj.getString("dataupdateddate").equalsIgnoreCase("null"))
-                            dde_form.setDataupdateddate(tempObj.getString("dataupdateddate"));
-                        String pulledDateString = BaseActivity.appDatabase.getDDE_FormsDao().getPulledDateTimeByFormID(tempObj.getString("formid"));
-                        if (pulledDateString == null) {
-                            // form not pulled
+                        if (newUser) {
                             if (!updatedFormsToPull.contains(dde_form))
                                 updatedFormsToPull.add(dde_form);
                         } else {
-                            // checking whether form questions are updated on server
-                            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
-                            Date pulledDateDate = simpleDateFormat.parse(pulledDateString);
-                            String updateddate = tempObj.getString("updateddate");
-                            if (updateddate.equals("null")) {
-                                updateddate = tempObj.getString("createddate");
-                            }
-                            Date update = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(updateddate);
-                            // checking if pulled form has been updated or not
-                            if (pulledDateDate.compareTo(update) < 0) {
+                            if (!tempObj.getString("dataupdateddate").equalsIgnoreCase("null"))
+                                dde_form.setDataupdateddate(tempObj.getString("dataupdateddate"));
+                            String pulledDateString = BaseActivity.appDatabase.getDDE_FormsDao().getPulledDateTimeByFormID(tempObj.getString("formid"));
+                            if (pulledDateString == null) {
+                                // form not pulled
                                 if (!updatedFormsToPull.contains(dde_form))
                                     updatedFormsToPull.add(dde_form);
+                            } else {
+                                // checking whether form questions are updated on server
+                                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
+                                Date pulledDateDate = simpleDateFormat.parse(pulledDateString);
+                                String updateddate = tempObj.getString("updateddate");
+                                if (updateddate.equals("null")) {
+                                    updateddate = tempObj.getString("createddate");
+                                }
+                                Date update = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(updateddate);
+                                // checking if pulled form has been updated or not
+                                if (pulledDateDate.compareTo(update) < 0) {
+                                    if (!updatedFormsToPull.contains(dde_form))
+                                        updatedFormsToPull.add(dde_form);
+                                }
+                                dde_form.setPulledDateTime(pulledDateString);
                             }
-                            dde_form.setPulledDateTime(pulledDateString);
                         }
                         dde_forms[i] = dde_form;
                     }
