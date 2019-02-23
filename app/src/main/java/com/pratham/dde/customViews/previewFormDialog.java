@@ -21,7 +21,8 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import pratham.dde.R;
+
+import com.pratham.dde.R;
 import com.pratham.dde.domain.AnswersSingleForm;
 import com.pratham.dde.domain.DDE_Questions;
 import com.pratham.dde.interfaces.PreviewFormListener;

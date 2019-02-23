@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.pratham.dde.BaseActivity;
+import com.pratham.dde.R;
 import com.pratham.dde.activities.DisplayQuestions;
 import com.pratham.dde.interfaces.FabInterface;
 
@@ -28,7 +29,6 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import pratham.dde.R;
 
 import com.pratham.dde.domain.AnswersSingleForm;
 

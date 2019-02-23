@@ -35,7 +35,7 @@ import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
 
-import pratham.dde.BuildConfig;
+import com.pratham.dde.BuildConfig;
 import com.pratham.dde.activities.HomeScreen;
 import com.pratham.dde.interfaces.LocationLisner;
 

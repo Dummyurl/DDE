@@ -19,6 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.pratham.dde.BaseActivity;
+import com.pratham.dde.R;
 import com.pratham.dde.activities.DisplayQuestions;
 import com.pratham.dde.customViews.FormPasswordDialog;
 import com.pratham.dde.customViews.FormattedTextView;
@@ -28,7 +29,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import pratham.dde.R;
 
 import com.pratham.dde.domain.DDE_Forms;
 import com.pratham.dde.domain.DDE_Questions;

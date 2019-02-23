@@ -22,6 +22,7 @@ import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONArrayRequestListener;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.pratham.dde.BaseActivity;
+import com.pratham.dde.R;
 import com.pratham.dde.utils.PermissionUtils;
 
 import org.json.JSONArray;
@@ -34,7 +35,6 @@ import java.util.concurrent.ExecutionException;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import pratham.dde.R;
 import com.pratham.dde.domain.Status;
 import com.pratham.dde.domain.User;
 import com.pratham.dde.services.SyncUtility;

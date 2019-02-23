@@ -6,7 +6,8 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.widget.LinearLayout;
 
-import pratham.dde.R;
+import com.pratham.dde.R;
+
 
 public class FormattedTextView extends android.support.v7.widget.AppCompatButton {
     public FormattedTextView(Context context) {

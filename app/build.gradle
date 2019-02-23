@@ -5,7 +5,7 @@ def buildDateTime = new Date().format('yyMMdd').toInteger()
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "pratham.dde"
+        applicationId "com.pratham.dde"
         minSdkVersion 16
         targetSdkVersion 27
         versionCode buildDateTime

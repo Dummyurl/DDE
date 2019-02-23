@@ -6,7 +6,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import pratham.dde.R;
+import com.pratham.dde.R;
+
 
 /**
  * Created by abc on 6/26/2018.

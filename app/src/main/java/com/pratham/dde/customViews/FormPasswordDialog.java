@@ -7,9 +7,10 @@ import android.support.annotation.NonNull;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.pratham.dde.R;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import pratham.dde.R;
 
 /**
  * Created by abc on 7/14/2018.

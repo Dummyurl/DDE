@@ -5,9 +5,10 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.widget.Button;
 
+import com.pratham.dde.R;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import pratham.dde.R;
 
 /**
  * Created by abc on 7/18/2018.

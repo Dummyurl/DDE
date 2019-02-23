@@ -52,6 +52,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.pratham.dde.BaseActivity;
 import com.pratham.dde.DDE_Application;
+import com.pratham.dde.R;
 import com.pratham.dde.utils.DisplayValue;
 import com.pratham.dde.utils.PermissionUtils;
 
@@ -78,7 +79,6 @@ import java.util.TreeSet;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import pratham.dde.R;
 import com.pratham.dde.customViews.ChooseImageDialog;
 import com.pratham.dde.customViews.previewFormDialog;
 import com.pratham.dde.domain.AnswerJSonArrays;

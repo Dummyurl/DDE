@@ -18,7 +18,8 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import pratham.dde.R;
+
+import com.pratham.dde.R;
 import com.pratham.dde.domain.DDE_Forms;
 import com.pratham.dde.interfaces.QuestionListLisner;
 

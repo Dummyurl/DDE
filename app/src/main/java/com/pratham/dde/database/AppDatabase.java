@@ -24,7 +24,7 @@ import com.pratham.dde.domain.ErrorLog;
 import com.pratham.dde.domain.Status;
 import com.pratham.dde.domain.User;
 
-@Database(entities = {User.class, Status.class, DDE_Questions.class, DDE_Forms.class, DDE_FormWiseDataSource.class, AnswersSingleForm.class, DDE_RuleTable.class, DataSourceEntries.class, ErrorLog.class}, version = 1)
+@Database(entities = {User.class, Status.class, DDE_Questions.class, DDE_Forms.class, DDE_FormWiseDataSource.class, AnswersSingleForm.class, DDE_RuleTable.class, DataSourceEntries.class, ErrorLog.class}, version = 1, exportSchema = false)
 
 public abstract class AppDatabase extends RoomDatabase {
 
