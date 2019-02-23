@@ -139,7 +139,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         break;
 
                     case R.id.nav_old_forms:
-                        List<AnswersSingleForm> allAnswersSingleForms = BaseActivity.appDatabase.getAnswerDao().getAllAnswersByStatusUnuploaded();
+                        List<AnswersSingleForm> allAnswersSingleForms = BaseActivity.appDatabase.getAnswerDao().getAllAnswersByStatusUnuploaded(userId);
                         if (allAnswersSingleForms.isEmpty()) {
                             Utility.showDialogue(HomeScreen.this, "Data is already Synced...");
                         } else {

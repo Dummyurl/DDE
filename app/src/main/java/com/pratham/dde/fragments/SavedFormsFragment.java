@@ -76,8 +76,8 @@ public class SavedFormsFragment extends android.app.Fragment {
 
     private void showOldSavedForm() {
         // pass user to verify
-        List distinctEntrys = BaseActivity.appDatabase.getAnswerDao().getDistinctEntrys(userID, 0);
-        List partiallyPushed = BaseActivity.appDatabase.getAnswerDao().getDistinctEntrys(userID, 1);
+        List distinctEntrys = BaseActivity.appDatabase.getAnswerDao().getDistinctEntries(userID, 0);
+        List partiallyPushed = BaseActivity.appDatabase.getAnswerDao().getDistinctEntries(userID, 1);
         if (partiallyPushed.size() > 0) {
             distinctEntrys.addAll(partiallyPushed);
         }
