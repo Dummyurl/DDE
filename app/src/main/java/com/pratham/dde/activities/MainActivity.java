@@ -23,7 +23,12 @@ import com.androidnetworking.interfaces.JSONArrayRequestListener;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.pratham.dde.BaseActivity;
 import com.pratham.dde.R;
+import com.pratham.dde.domain.Status;
+import com.pratham.dde.domain.User;
+import com.pratham.dde.services.SyncUtility;
+import com.pratham.dde.utils.PermissionResult;
 import com.pratham.dde.utils.PermissionUtils;
+import com.pratham.dde.utils.Utility;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,11 +40,6 @@ import java.util.concurrent.ExecutionException;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import com.pratham.dde.domain.Status;
-import com.pratham.dde.domain.User;
-import com.pratham.dde.services.SyncUtility;
-import com.pratham.dde.utils.PermissionResult;
-import com.pratham.dde.utils.Utility;
 
 import static com.pratham.dde.utils.Utility.isTokenValid;
 import static com.pratham.dde.utils.Utility.updateErrorLog;
@@ -192,8 +192,8 @@ public class MainActivity extends BaseActivity implements PermissionResult {
                 @Override
                 public void onError(ANError error) {
                     Utility.dismissDialog(dialog);
-                    updateErrorLog(error,appDatabase,"MainActivity : getNewTokenFromServer");
-                    Utility.showDialogue(mContext,"Problem in registering new user on server!" + error.getErrorDetail());
+                    updateErrorLog(error, appDatabase, "MainActivity : getNewTokenFromServer");
+                    Utility.showDialogue(mContext, "Problem in registering new user on server!" + error.getErrorDetail());
                 }
             });
         } else {
@@ -238,8 +238,8 @@ public class MainActivity extends BaseActivity implements PermissionResult {
                 public void onError(ANError error) {
                     // handle error
                     Utility.dismissDialog(dialog);
-                    updateErrorLog(error,appDatabase, "MainActivity : callAPIForPrograms");
-                    Utility.showDialogue(mContext,"Problem in getting programs from server!" + error.getErrorDetail());
+                    updateErrorLog(error, appDatabase, "MainActivity : callAPIForPrograms");
+                    Utility.showDialogue(mContext, "Problem in getting programs from server!" + error.getErrorDetail());
                 }
             });
         } else {
