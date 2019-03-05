@@ -53,6 +53,8 @@ import com.google.gson.JsonObject;
 import com.pratham.dde.BaseActivity;
 import com.pratham.dde.DDE_Application;
 import com.pratham.dde.R;
+import com.pratham.dde.domain.User;
+import com.pratham.dde.interfaces.updateTokenListener;
 import com.pratham.dde.utils.DisplayValue;
 import com.pratham.dde.utils.PermissionUtils;
 
@@ -92,7 +94,7 @@ import com.pratham.dde.services.SyncUtility;
 import com.pratham.dde.utils.UploadAnswerAndImageToServer;
 import com.pratham.dde.utils.Utility;
 
-public class DisplayQuestions extends BaseActivity implements FillAgainListner, PreviewFormListener {
+public class DisplayQuestions extends BaseActivity implements FillAgainListner, PreviewFormListener, updateTokenListener {
     @BindView(R.id.homeButton)
     ImageView homeButton;
     @BindView(R.id.formNameHeader)
@@ -107,6 +109,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     List checkBoxList;
     public static final int PICK_IMAGE_FROM_GALLERY = 1;
     public static final int CAPTURE_IMAGE = 0;
+    public static final int UPLOAD = 1;
     ImageView selectedImage;
     static String userId;
     static String formId;
@@ -121,12 +124,14 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     Context mContext;
     previewFormDialog preview;
     String depForms = "";
+    updateTokenListener tokenListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_questions);
         ButterKnife.bind(this);
+        tokenListener = (updateTokenListener) this;
         proceedFurther();
     }
 
@@ -910,7 +915,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     public void proceed(final AnswersSingleForm answersSingleForm) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setTitle("Alert");
-        alertDialogBuilder.setMessage("Do you want to upload form to server?");
+        alertDialogBuilder.setMessage("Do you want to Upload form to server?");
 
         alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
@@ -920,7 +925,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 preview.dismiss();
                 appDatabase.getAnswerDao().insertAnswer(answersSingleForm);
                 if (SyncUtility.isDataConnectionAvailable(DisplayQuestions.this)) {
-                    upload();
+                    getTokenAndUpload();
                 } else {
                     Toast.makeText(DisplayQuestions.this, "CHECK INTERNET CONNECTION", Toast.LENGTH_LONG).show();
                 }
@@ -1636,9 +1641,13 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         }
     }
 
-    private void upload() {
+    private void getTokenAndUpload() {
         /*UPLOAD TO SERVER*/
-        String token = appDatabase.getUserDao().getUserTokenByUserID(userId);
+        User user = appDatabase.getUserDao().getUserDetailsById(userId);
+        Utility.updateToken(user.getUserName(), user.getPassword(), UPLOAD, tokenListener, mContext, dialog);
+    }
+
+    private void upload(String token) {
         List tempAnswerList = new ArrayList();
         tempAnswerList.add(appDatabase.getAnswerDao().getAnswersByEntryId(entryID));
         new UploadAnswerAndImageToServer(this, tempAnswerList, token);
@@ -2097,5 +2106,13 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         alertDialog.show();
     }
 
-
+    @Override
+    public void updateToken(int methodToCall, String updatedToken) {
+        switch (methodToCall) {
+            case 1:
+                // 1 : upload
+                upload(updatedToken);
+            break;
+        }
+    }
 }

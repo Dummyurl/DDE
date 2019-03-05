@@ -76,8 +76,8 @@ public class MainActivity extends BaseActivity implements PermissionResult {
     private void startApp() {
         if (appDatabase.getStatusDao().getValueByKey("LastPulledDate") == null)
             initialiseStatusTable();
-     /*   input_email.setText("pk@pk.com");
-        input_password.setText("Admin@1234");*/
+        /*input_email.setText("jaylonkar");
+        input_password.setText("pratham");*/
     }
 
     @Override
@@ -158,11 +158,15 @@ public class MainActivity extends BaseActivity implements PermissionResult {
         userName = input_email.getText().toString();
         password = input_password.getText().toString();
 
+//        if (userName.equals("") || password.equals(""))
+//            Utility.showDialogue(this, "Insert Username and Password correctly");
+//        else if (!validateUserFromLocalDatabase())
+//            getNewTokenFromServer(Utility.getProperty("prodcheckCredentials", mContext));
+//        else startNextActivity();
         if (userName.equals("") || password.equals(""))
             Utility.showDialogue(this, "Insert Username and Password correctly");
-        else if (!validateUserFromLocalDatabase())
+        else
             getNewTokenFromServer(Utility.getProperty("prodcheckCredentials", mContext));
-        else startNextActivity();
     }
 
     User user;
@@ -197,7 +201,8 @@ public class MainActivity extends BaseActivity implements PermissionResult {
                 }
             });
         } else {
-            Toast.makeText(this, "Internet not available", Toast.LENGTH_SHORT).show();
+            startNextActivity();
+            //Toast.makeText(this, "Internet not available", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -205,15 +210,13 @@ public class MainActivity extends BaseActivity implements PermissionResult {
         try {
             if (response.length() > 2) {
                 String access_token = response.getString("access_token");
-                Log.d("token", access_token);
                 String Name = response.getString("Name");
                 String userName = response.getString("userName");
                 String token_type = response.getString("token_type");
                 String expiryDate = response.getString(".expires");
-
                 callAPIForPrograms(token_type + " " + access_token, Utility.getProperty("prodgetPrograms", mContext), expiryDate, Name, userName);
             } else {
-                Utility.showDialogue(this, "Invalid User! Try registering.");
+                Utility.showDialogue(this, "Invalid User! Try registering on website.");
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -228,7 +231,6 @@ public class MainActivity extends BaseActivity implements PermissionResult {
             AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONArray(new JSONArrayRequestListener() {
                 @Override
                 public void onResponse(JSONArray response) {
-                    // do anything with response
                     programsJson = response;
                     Utility.dismissDialog(dialog);
                     setUserEntries(access_token, expiryDate, Name, userName);

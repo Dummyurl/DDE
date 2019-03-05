@@ -29,4 +29,7 @@ public interface UserDao {
 
     @Query("SELECT UserToken from User where Id=:userId")
     String getUserTokenByUserID(String userId);
+
+    @Query("SELECT * from User where Id=:userId")
+    User getUserDetailsById(String userId);
 }

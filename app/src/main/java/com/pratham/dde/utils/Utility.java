@@ -9,10 +9,20 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.androidnetworking.AndroidNetworking;
+import com.androidnetworking.common.Priority;
 import com.androidnetworking.error.ANError;
+import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.pratham.dde.database.AppDatabase;
 import com.pratham.dde.domain.ErrorLog;
+import com.pratham.dde.domain.User;
+import com.pratham.dde.interfaces.updateTokenListener;
+import com.pratham.dde.services.SyncUtility;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.text.DateFormat;
@@ -23,7 +33,9 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
 
-public class Utility{
+import static com.pratham.dde.BaseActivity.appDatabase;
+
+public class Utility {
 
     //    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
     private static final DateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
@@ -60,6 +72,47 @@ public class Utility{
      */
     public int convertBooleanToInt(Boolean val) {
         return (val) ? 1 : 0;
+    }
+
+    public static void updateToken(String userName, final String password, final int methodToCall, final updateTokenListener updateTokenListener, final Context mContext, final Dialog dialog) {
+        if (SyncUtility.isDataConnectionAvailable(mContext)) {
+            showDialogInApiCalling(dialog, mContext, "Getting new token from server");
+            String url = Utility.getProperty("prodcheckCredentials", mContext);
+            AndroidNetworking.post(url).addBodyParameter("username", userName).addBodyParameter("password", password).addBodyParameter("grant_type", "password").setTag("test").setPriority(Priority.MEDIUM).build().getAsJSONObject(new JSONObjectRequestListener() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Utility.dismissDialog(dialog);
+                    try {
+                        if (response.length() > 2) {
+                            String access_token = response.getString("access_token");
+                            String userName = response.getString("userName");
+                            String token_type = response.getString("token_type");
+                            String expiryDate = response.getString(".expires");
+                            User user = appDatabase.getUserDao().getUserDetails(userName, password);
+                            Log.d("TokenChecker:***", "UserName: "+ userName);
+                            Log.d("TokenChecker:***", "Token: "+ token_type + " " + access_token);
+                            Log.d("TokenChecker:***", "Expiry: "+ expiryDate);
+                            if (user != null)
+                                appDatabase.getUserDao().UpdateTokenAndExpiry(access_token, expiryDate, userName, password);
+                            updateTokenListener.updateToken(methodToCall, token_type + " " + access_token);
+                        } else {
+                            Utility.showDialogue(mContext, "Invalid User! Try registering on website.");
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onError(ANError error) {
+                    Utility.dismissDialog(dialog);
+                    updateErrorLog(error, appDatabase, "Utility : updateTokenFromServer");
+                    Utility.showDialogue(mContext, "Problem in updating token!" + error.getErrorDetail());
+                }
+            });
+        } else {
+            Toast.makeText(mContext, "Internet not available", Toast.LENGTH_SHORT).show();
+        }
     }
 
 
@@ -101,6 +154,7 @@ public class Utility{
             return false;
         }
     }
+
     /*show loader */
     public static void showDialogInApiCalling(Dialog dialog, Context context, String msg) {
         if (dialog == null) {
@@ -113,7 +167,7 @@ public class Utility{
     }
 
     /* Set Message */
-    public static void setMessage(Dialog dialog, String message){
+    public static void setMessage(Dialog dialog, String message) {
         if (dialog != null)
             dialog.setTitle(message);
     }
@@ -125,7 +179,6 @@ public class Utility{
             dialog = null;
         }
     }
-
 
     public static String getCurrentVersion(Context context) {
         PackageManager pm = context.getPackageManager();
@@ -147,9 +200,9 @@ public class Utility{
             errorLog.setErrorCode(anError.getErrorCode());
             errorLog.setErrorDetail(anError.getErrorDetail());
             errorLog.setActivityMethod(activityMethod);
-            Log.d("Error details", "onError: "+errorLog.toString());
+            Log.d("Error details", "onError: " + errorLog.toString());
             appDatabase.getErrorLogDao().insert(errorLog);
-            Log.d("ErrorCount:", "updateErrorLog: "+ appDatabase.getErrorLogDao().getAllErrorsLog().size());
+            Log.d("ErrorCount:", "updateErrorLog: " + appDatabase.getErrorLogDao().getAllErrorsLog().size());
         } catch (Exception e) {
             e.printStackTrace();
         }

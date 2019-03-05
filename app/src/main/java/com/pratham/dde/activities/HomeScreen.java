@@ -27,6 +27,24 @@ import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.pratham.dde.BaseActivity;
+import com.pratham.dde.R;
+import com.pratham.dde.customViews.SelectQuestionDialog;
+import com.pratham.dde.database.BackupDatabase;
+import com.pratham.dde.domain.AnswersSingleForm;
+import com.pratham.dde.domain.DDE_FormWiseDataSource;
+import com.pratham.dde.domain.DDE_Forms;
+import com.pratham.dde.domain.DDE_Questions;
+import com.pratham.dde.domain.DDE_RuleTable;
+import com.pratham.dde.domain.DataSourceEntries;
+import com.pratham.dde.fragments.FillFormsFragment;
+import com.pratham.dde.fragments.SavedFormsFragment;
+import com.pratham.dde.interfaces.FabInterface;
+import com.pratham.dde.interfaces.FillAgainListner;
+import com.pratham.dde.interfaces.QuestionListLisner;
+import com.pratham.dde.interfaces.updateTokenListener;
+import com.pratham.dde.services.SyncUtility;
+import com.pratham.dde.utils.UploadAnswerAndImageToServer;
+import com.pratham.dde.utils.Utility;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,26 +59,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-import com.pratham.dde.R;
-import com.pratham.dde.customViews.SelectQuestionDialog;
-import com.pratham.dde.database.BackupDatabase;
-import com.pratham.dde.domain.AnswersSingleForm;
-import com.pratham.dde.domain.DDE_FormWiseDataSource;
-import com.pratham.dde.domain.DDE_Forms;
-import com.pratham.dde.domain.DDE_Questions;
-import com.pratham.dde.domain.DDE_RuleTable;
-import com.pratham.dde.domain.DataSourceEntries;
-import com.pratham.dde.domain.User;
-import com.pratham.dde.fragments.FillFormsFragment;
-import com.pratham.dde.fragments.SavedFormsFragment;
-import com.pratham.dde.interfaces.FabInterface;
-import com.pratham.dde.interfaces.FillAgainListner;
-import com.pratham.dde.interfaces.QuestionListLisner;
-import com.pratham.dde.services.SyncUtility;
-import com.pratham.dde.utils.UploadAnswerAndImageToServer;
-import com.pratham.dde.utils.Utility;
-
-public class HomeScreen extends AppCompatActivity implements FabInterface, FillAgainListner, QuestionListLisner/* implements LocationLisner */ {
+public class HomeScreen extends AppCompatActivity implements FabInterface, FillAgainListner, QuestionListLisner, updateTokenListener {
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -77,16 +76,18 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     boolean formLoaded = false;
     String dataSourceUrl;
     Context mContext;
-    String token, QuestionUrl;
+    public static String token;
+    String QuestionUrl;
     List forms;
     int formIndex = 0, depformIndex = 0;
     int dataSourceIndex = 0;
     int PageNumber = 1;
     List<JSONObject> dataSourceForFormOnline;
     List<DDE_Forms> updatedFormsToPull;
-    static int rowsPerPage = 10000;
+    public static final int rowsPerPage = 10000, GETNEWFORMS = 1, GETQUESTIONS = 2;
     ProgressDialog progressDialog;
     int maxProgressCnt = 0;
+    updateTokenListener tokenListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +100,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
         mContext = this;
         dialog = new ProgressDialog(mContext);
+        tokenListener = (updateTokenListener) mContext;
         formLoaded = false;
         updatedFormsToPull = new ArrayList<>();
         userName = this.getIntent().getStringExtra("userName");
@@ -129,7 +131,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                                 Toast.makeText(mContext, "Check your internet connection.", Toast.LENGTH_SHORT).show();
                             }
                         } else {
-                            getQuestions();
+                            getNewToken();
                         }
                         break;
 
@@ -165,7 +167,12 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         //else showSavedOldForms();
     }
 
-    private void getQuestions() {
+    private void getNewToken() {
+        //TODO updateToken
+        Utility.updateToken(userName, password, GETQUESTIONS, tokenListener, mContext, dialog);
+    }
+
+    private void getQuestion() {
         if (updatedFormsToPull.size() > 0) {
             if (SyncUtility.isDataConnectionAvailable(HomeScreen.this)) {
                 QuestionUrl = Utility.getProperty("prodgetQuestionsAndData", mContext);
@@ -364,7 +371,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             }
         } else {
             progressDialog.dismiss();
-            // TODO download dependent forms and set them as dependent
             progressDialog = new ProgressDialog(this);
             //progressDialog.setMessage("Progress : " + (dataSourceIndex + 1) + "/" + dataSourceForFormOnline.size());
             progressDialog.setTitle("Downloading dependent form data please wait..");
@@ -618,17 +624,16 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     }
 
     private void updateFormEntries() {
+        //TODO updateToken
+        Utility.updateToken(userName, password, GETNEWFORMS, tokenListener, mContext, dialog);
         updatedFormsToPull.clear();
-        User user = BaseActivity.appDatabase.getUserDao().getUserDetails(userName, password);
-        if (user != null)
-            getNewForms(Utility.getProperty("prodgetForms", HomeScreen.this), user.getUserToken());
     }
 
     /* getFormsfromServer */
-    private void getNewForms(String url, String access_token) {
+    private void getNewForms(String url) {
         if (SyncUtility.isDataConnectionAvailable(this)) {
             Utility.showDialogInApiCalling(dialog, mContext, "Getting new forms... Please wait.");
-            AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", access_token).build().getAsJSONObject(new JSONObjectRequestListener() {
+            AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
                 @Override
                 public void onResponse(JSONObject response) {
                     /*  Log.d("pk-log", "" + response.length());*/
@@ -672,8 +677,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         if (userIds == null) {
                             newUser = true;
                             userIds = "," + userId + ",";
-                        }
-                        else if (!userIds.contains("," + userId + ",")) {
+                        } else if (!userIds.contains("," + userId + ",")) {
                             newUser = true;
                             userIds += userId + ",";
                         }
@@ -758,7 +762,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                             }*/
 
                             // Getting questions for updates forms
-                            getQuestions();
+                            getNewToken();
                             formLoaded = true;
                             callFillforms();
                             //showSavedOldForms();
@@ -881,7 +885,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     }
 
     private void saveDependentFormDataData(JSONObject response) {
-        //TODO save questions in db with flag datasource
         //saveQuestion(response);
         saveDependentFormQuestion(response);
         getDependentForms();
@@ -951,4 +954,18 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     }
 
+    @Override
+    public void updateToken(int methodToCall, String updatedToken) {
+        token = updatedToken;
+        switch (methodToCall) {
+            case 1:
+                // 1 : getNewForms
+                getNewForms(Utility.getProperty("prodgetForms", HomeScreen.this));
+                break;
+            case 2:
+                // 2 : getQuestions
+                getQuestion();
+                break;
+        }
+    }
 }
