@@ -23,6 +23,7 @@ import com.androidnetworking.interfaces.JSONArrayRequestListener;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.pratham.dde.BaseActivity;
 import com.pratham.dde.R;
+import com.pratham.dde.database.BackupDatabase;
 import com.pratham.dde.domain.Status;
 import com.pratham.dde.domain.User;
 import com.pratham.dde.services.SyncUtility;
@@ -62,6 +63,7 @@ public class MainActivity extends BaseActivity implements PermissionResult {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mContext = MainActivity.this;
+        BackupDatabase.backup(mContext);
         sp = getSharedPreferences(PREFS_VERSION, Context.MODE_PRIVATE);
         ButterKnife.bind(this);
         dialog = new ProgressDialog(mContext);
@@ -83,8 +85,8 @@ public class MainActivity extends BaseActivity implements PermissionResult {
     @Override
     protected void onResume() {
         super.onResume();
-        input_email.setText("");
-        input_password.setText("");
+        input_email.setText("ArpitMehrotra");
+        input_password.setText("pratham#1234");
         input_email.requestFocus();
     }
 

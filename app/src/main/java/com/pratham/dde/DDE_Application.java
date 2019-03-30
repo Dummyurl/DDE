@@ -7,6 +7,7 @@ import com.androidnetworking.AndroidNetworking;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.facebook.stetho.Stetho;
 import com.pratham.dde.domain.DataSourceEntries;
 
 public class DDE_Application extends Application {
@@ -16,6 +17,7 @@ public class DDE_Application extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        Stetho.initializeWithDefaults(this);
         AndroidNetworking.initialize(getApplicationContext());
     }
 

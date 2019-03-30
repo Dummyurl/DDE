@@ -56,9 +56,8 @@ public abstract class AppDatabase extends RoomDatabase {
                     AppDatabase.class, DB_NAME)
                     .allowMainThreadQueries() // SHOULD NOT BE USED IN PRODUCTION !!!
                     .build();
+
         }
         return INSTANCE;
     }
-
-
 }
