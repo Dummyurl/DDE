@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -12,14 +13,22 @@
     <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+
+    <permission
+        android:name="com.example.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.example.permission.MAPS_RECEIVE" />
+
     <application
+        android:name="com.pratham.dde.DDE_Application"
         android:allowBackup="false"
         android:hardwareAccelerated="false"
         android:icon="@drawable/dde_icon"
         android:label="@string/app_name"
         android:largeHeap="true"
         android:supportsRtl="true"
-        android:name="com.pratham.dde.DDE_Application"
         android:theme="@style/AppTheme">
         <activity
             android:name="com.pratham.dde.activities.MainActivity"
@@ -39,9 +48,13 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name="com.pratham.dde.activities.DisplayQuestions"
-            android:windowSoftInputMode="stateHidden|adjustResize"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
     </application>
 
 </manifest>

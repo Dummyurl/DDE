@@ -3,15 +3,24 @@ package com.pratham.dde.activities;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.location.Location;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -20,6 +29,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.text.Html;
@@ -29,40 +39,70 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.GridLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.MediaController;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RatingBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+import android.widget.VideoView;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.pratham.dde.BaseActivity;
 import com.pratham.dde.DDE_Application;
+import com.pratham.dde.MapDialog;
 import com.pratham.dde.R;
+import com.pratham.dde.customViews.ChooseImageDialog;
+import com.pratham.dde.customViews.previewFormDialog;
+import com.pratham.dde.domain.AnswerJSonArrays;
+import com.pratham.dde.domain.AnswersSingleForm;
+import com.pratham.dde.domain.DDE_Questions;
+import com.pratham.dde.domain.DDE_RuleTable;
+import com.pratham.dde.domain.DataSourceEntries;
 import com.pratham.dde.domain.User;
+import com.pratham.dde.interfaces.CurrentLocationListener;
+import com.pratham.dde.interfaces.FillAgainListner;
+import com.pratham.dde.interfaces.PreviewFormListener;
 import com.pratham.dde.interfaces.updateTokenListener;
+import com.pratham.dde.services.LocationService;
+import com.pratham.dde.services.SyncUtility;
 import com.pratham.dde.utils.DisplayValue;
 import com.pratham.dde.utils.PermissionUtils;
+import com.pratham.dde.utils.UploadAnswerAndImageToServer;
+import com.pratham.dde.utils.Utility;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -81,20 +121,8 @@ import java.util.TreeSet;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import com.pratham.dde.customViews.ChooseImageDialog;
-import com.pratham.dde.customViews.previewFormDialog;
-import com.pratham.dde.domain.AnswerJSonArrays;
-import com.pratham.dde.domain.AnswersSingleForm;
-import com.pratham.dde.domain.DDE_Questions;
-import com.pratham.dde.domain.DDE_RuleTable;
-import com.pratham.dde.domain.DataSourceEntries;
-import com.pratham.dde.interfaces.FillAgainListner;
-import com.pratham.dde.interfaces.PreviewFormListener;
-import com.pratham.dde.services.SyncUtility;
-import com.pratham.dde.utils.UploadAnswerAndImageToServer;
-import com.pratham.dde.utils.Utility;
 
-public class DisplayQuestions extends BaseActivity implements FillAgainListner, PreviewFormListener, updateTokenListener {
+public class DisplayQuestions extends BaseActivity implements FillAgainListner, PreviewFormListener, updateTokenListener, CurrentLocationListener {
     @BindView(R.id.homeButton)
     ImageView homeButton;
     @BindView(R.id.formNameHeader)
@@ -103,21 +131,28 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     LinearLayout renderAllQuestionsLayout;
     @BindView(R.id.parentScroll)
     ScrollView parentScroll;
+
+    // private static final String MAP_VIEW_BUNDLE_KEY = "AIzaSyCSs-ZUla2cMV_5XojPVtnVfquSttJzW9M";
+
     List depQueID;
     List<DDE_RuleTable> allRules;
     List<DDE_Questions> formIdWiseQuestions = new ArrayList<>();
     List checkBoxList;
+    List checkBoxImageList;
     public static final int PICK_IMAGE_FROM_GALLERY = 1;
     public static final int CAPTURE_IMAGE = 0;
     public static final int UPLOAD = 1;
+    private static final int VIDEO_CAPTURE = 101;
     ImageView selectedImage;
+    ImageView selectedView;
     static String userId;
     static String formId;
     boolean editFormFlag = false;
     String imageName = "";
+    String videoName = "";
     String entryID;
     JsonArray answerJsonArray;
-    String path;
+    String path, videoPath;
     boolean firstRun = true, deletedAlertShown = false;
     Dialog dialog;
     List<DataSourceEntries> dataSourceEntriesOnline;
@@ -125,6 +160,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     previewFormDialog preview;
     String depForms = "";
     updateTokenListener tokenListener;
+    LocationService locationService;
+    //  MapView mapView;
+    MediaController mediaController;
+
+    MapDialog newFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,6 +172,22 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         setContentView(R.layout.activity_display_questions);
         ButterKnife.bind(this);
         tokenListener = (updateTokenListener) this;
+        mediaController = new MediaController(DisplayQuestions.this);
+        locationService = new LocationService(this);
+        if (locationService.checkLocationEnabled()) {
+            // textView1.setText(locationService.getLocation().toString());
+        } else {
+            locationService.checkLocation();
+        }
+     /*   Bundle mapViewBundle = null;
+        if (savedInstanceState != null) {
+            mapViewBundle = savedInstanceState.getBundle(MAP_VIEW_BUNDLE_KEY);
+        }*/
+     /*   LinearLayout.LayoutParams mapViewparam = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 200, 0);
+        mapViewparam.setMargins(10, 0, 0, 0);
+        mapView = new MapView(this);
+        mapView.onCreate(mapViewBundle);
+        mapView.setLayoutParams(mapViewparam);*/
         proceedFurther();
     }
 
@@ -154,7 +210,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 formId = getIntent().getStringExtra("formId");
                 userId = getIntent().getStringExtra("userId");
                 entryID = getIntent().getStringExtra("entryId");
-                path = Environment.getExternalStorageDirectory().toString() + "/DDEImages";
+                path = Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEImages";
+                videoPath = Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEVideos";
                 if (!getIntent().getExtras().getBoolean("fillAgainFlag", false)) {
                     DDE_Application.setCashedDataSourceEntriesOnline(new ArrayList<DataSourceEntries>());
                     dataSourceEntriesOnline = appDatabase.getDataSourceEntriesDao().getDatasourceOnline(appDatabase.getDDE_FormWiseDataSourceDao().getDSFormId(formId), "%," + userId + ",%");
@@ -179,6 +236,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     editFormFlag = false;
                 }
                 checkBoxList = new ArrayList();
+                checkBoxImageList = new ArrayList();
                 String formName = appDatabase.getDDE_FormsDao().getFormName(formId);
                 if (formName != null) {
                     formNameHeader.setText(formName);
@@ -189,7 +247,6 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
                 /* SET VISIBILITY TO QUESTIONS */
                 setVisibilityToQuestions(formId);
-
 
                 if (editFormFlag) {
                     AnswersSingleForm answersSingleForm = appDatabase.getAnswerDao().getAnswersByEntryId(entryID);
@@ -213,6 +270,18 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         }.execute();
     }
 
+    /* @Override
+     public void onSaveInstanceState(Bundle outState) {
+         super.onSaveInstanceState(outState);
+
+         Bundle mapViewBundle = outState.getBundle(MAP_VIEW_BUNDLE_KEY);
+         if (mapViewBundle == null) {
+             mapViewBundle = new Bundle();
+             outState.putBundle(MAP_VIEW_BUNDLE_KEY, mapViewBundle);
+         }
+         mapView.onSaveInstanceState(mapViewBundle);
+     }
+ */
     private void setVisibilityToQuestions(String formId) {
         depQueID = appDatabase.getDDE_RulesDao().getDependantQuestion(formId);
     }
@@ -236,7 +305,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         LinearLayout.LayoutParams paramsWrapContaint = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
         paramsWrapContaint.setMargins(10, 0, 0, 0);
 
-        /*SET DEFAULT VALUE TO ANSWWER FIELD*/
+        /*SET DEFAULT VALUE TO ANSWER FIELD*/
         String validationValue = "";
         JsonArray validationArray = dde_questions.getValidations();
         for (int i = 1; i < validationArray.size(); i++) {
@@ -516,11 +585,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     checkBox.setLayoutParams(paramGrid);
                     gridLayout.addView(checkBox);
                 }
-
                 layout.addView(gridLayout);
-
                 break;
-
             case "image":
                 LinearLayout outerLinearLayout = new LinearLayout(this);
                 outerLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -855,6 +921,375 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 else
                     new ShowDataSources(DisplayQuestions.this, layout, dde_questions, "", "firstInitializaion").execute();
                 break;
+            case "singleimage":
+                //  JsonArray option = dde_questions.getQuestionOption();
+                HorizontalScrollView horizontalScrollView = new HorizontalScrollView(this);
+                horizontalScrollView.setLayoutParams(params);
+                LinearLayout.LayoutParams paramsWrapContaintRadio = new LinearLayout.LayoutParams(getDp(200), getDp(170), 0);
+                paramsWrapContaint.setMargins(10, 20, 0, 20);
+                RadioGroup imageRadio = new RadioGroup(this);
+                imageRadio.setOrientation(LinearLayout.HORIZONTAL);
+                String path = Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEDownloadedImages/unzipped/" + dde_questions.getQuestionId() + "/file/";
+                Log.d("Files", "Path: " + path);
+                File directory = new File(path);
+                File[] files = directory.listFiles();
+                if (files != null && files.length > 0) {
+                    Log.d("Files", "Size: " + files.length);
+                    for (int i = 0; i < files.length; i++) {
+                        Log.d("Files", "FileName:" + files[i].getName());
+                        RadioButton radioButton = new RadioButton(this);
+                        radioButton.setId(i);
+                        radioButton.setButtonDrawable(R.drawable.selector);
+                        radioButton.setPadding(20, 20, 20, 20);
+                        radioButton.setLayoutParams(paramsWrapContaintRadio);
+                        radioButton.setTag(files[i].getName());
+                        radioButton.setText(files[i].getName());
+                        String pathName = path + files[i].getName();
+                        Resources res = getResources();
+                        Bitmap bitmap = BitmapFactory.decodeFile(pathName);
+                        Drawable bd = new BitmapDrawable(res, bitmap);
+                        radioButton.setCompoundDrawablesWithIntrinsicBounds(null, null, bd, null);
+
+                        if (editFormFlag) {
+                            String dest_column = dde_questions.getDestColumname();
+                            for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                                JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                                if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                    String ansimage = ansObject.get("Answers").getAsString();
+                                    radioButton.setChecked(true);
+                                    dde_questions.setAnswer(ansimage);
+                                }
+                            }
+                        } else {
+                            if (validationValue.equalsIgnoreCase(radioButton.getTag().toString())) {
+                                radioButton.setChecked(true);
+                                dde_questions.setAnswer(validationValue);
+                            }
+                        }
+                        radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
+                                if (isSelected) {
+                                    dde_questions.setAnswer(dde_questions.getQuestionId() + "/" + compoundButton.getTag().toString());
+                                    LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent().getParent();
+                                    String tag = (String) layout.getTag();
+                                    checkRuleCondition(tag, compoundButton.getTag().toString(), "singleimage");
+                                }
+                            }
+                        });
+                        imageRadio.addView(radioButton);
+                    }
+                    imageRadio.setLayoutParams(params);
+                    horizontalScrollView.addView(imageRadio);
+                    layout.addView(horizontalScrollView);
+                } else {
+                    Toast.makeText(this, "Image not found", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case "multipleimage":
+                String ansImage = "";
+                String pathImageCheckBox = Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEDownloadedImages/unzipped/" + dde_questions.getQuestionId() + "/file/";
+                Log.d("Files", "Path: " + pathImageCheckBox);
+                File directoryImageCheckBox = new File(pathImageCheckBox);
+                File[] filesImageCheckBox = directoryImageCheckBox.listFiles();
+                GridLayout gridLayoutImage = new GridLayout(this);
+                gridLayoutImage.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                gridLayoutImage.setColumnCount(2);
+                if (!validationValue.isEmpty() && !validationValue.endsWith("|"))
+                    validationValue += "|";
+
+                if (editFormFlag) {
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            ansImage = ansObject.get("Answers").getAsString();
+                            if (!ansImage.endsWith("|")) ansImage += "|";
+                        }
+                    }
+                } else {
+                    dde_questions.setAnswer(validationValue);
+                }
+                if (filesImageCheckBox != null && filesImageCheckBox.length > 0) {
+                    for (int i = 0; i < filesImageCheckBox.length; i++) {
+                        final CheckBox checkBox = new CheckBox(this);
+                        checkBox.setButtonDrawable(R.drawable.selector);
+                        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
+                                String selectedAnswers = dde_questions.getAnswer();
+                                if (selectedAnswers.length() > 0) {
+                                    if (!selectedAnswers.endsWith("|")) {
+                                        selectedAnswers += "|";
+                                    }
+                                }
+                                String tag = compoundButton.getTag().toString();
+                                String[] splitted = tag.split(":::");
+                                if (isSelected) {
+                                    if (!selectedAnswers.contains(splitted[1] + "|")) {
+                                        selectedAnswers += splitted[1] + "|";
+                                    }
+                                } else {
+                                    Log.d("replace..", selectedAnswers + "//" + splitted[1]);
+                                    selectedAnswers = selectedAnswers.replace(splitted[1] + "|", "");
+                                }
+                          /* if (selectedAnswers.endsWith(",")) {
+                                selectedAnswers = selectedAnswers.substring(0, selectedAnswers.length() - 1);
+                            }*/
+                                dde_questions.setAnswer(selectedAnswers);
+                                //String queParent = ((LinearLayout) compoundButton.getParent().getParent()).getTag().toString();
+                                String queParent = layout.getTag().toString();
+                                checkRuleCondition(queParent, selectedAnswers, "multipleimage");
+                            }
+                        });
+                        String pathName = pathImageCheckBox + filesImageCheckBox[i].getName();
+                        Resources res = getResources();
+                        Bitmap bitmap = BitmapFactory.decodeFile(pathName);
+                        Drawable bd = new BitmapDrawable(res, bitmap);
+                        checkBox.setCompoundDrawablesWithIntrinsicBounds(null, null, bd, null);
+                        checkBox.setTag(dde_questions.getQuestionId() + ":::" + dde_questions.getQuestionId() + "/" + filesImageCheckBox[i].getName());
+
+                   /* JsonElement jsonElement = optionImageCheckBox.get(i);
+                    JsonObject jsonObject = jsonElement.getAsJsonObject();
+
+                    String text = jsonObject.get("display").getAsString();
+                    String value = jsonObject.get("value").getAsString();*/
+                        checkBox.setText(pathImageCheckBox + filesImageCheckBox[i].getName());
+                        if (editFormFlag) {
+                            if (ansImage.contains(filesImageCheckBox[i].getName() + "|")) {
+                                checkBox.setChecked(true);
+                                dde_questions.setAnswer(ansImage);
+                            }
+                        } else {
+                            if (validationValue.contains(filesImageCheckBox[i].getName() + "|")) {
+                                checkBox.setChecked(true);
+                                dde_questions.setAnswer(validationValue);
+                            }
+                        }
+                        checkBoxImageList.add(checkBox);
+                        GridLayout.LayoutParams paramGrid = new GridLayout.LayoutParams();
+                        paramGrid.height = getDp(120);
+                        paramGrid.width = getDp(120);
+                        paramGrid.setMargins(20, 20, 20, 20);
+                        checkBox.setLayoutParams(paramGrid);
+                        gridLayoutImage.addView(checkBox);
+                    }
+                }
+                layout.addView(gridLayoutImage);
+                break;
+
+            case "rating":
+                LinearLayout.LayoutParams paramsRating = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
+                paramsRating.setMargins(10, 0, 0, 0);
+                final RatingBar ratingBar = new RatingBar(this);
+                ratingBar.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                ratingBar.setNumStars(5);
+                ratingBar.setMax(5);
+                ratingBar.setLayoutParams(paramsRating);
+                layout.addView(ratingBar);
+
+                if (editFormFlag) {
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            String ansRating = ansObject.get("Answers").getAsString();
+                            ratingBar.setRating(Float.parseFloat(ansRating));
+                            dde_questions.setAnswer(ansRating);
+                        }
+                    }
+                } else {
+                    try {
+                        ratingBar.setRating(Float.parseFloat(validationValue));
+                        dde_questions.setAnswer(validationValue);
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+                    @Override
+                    public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+                        dde_questions.setAnswer(String.valueOf(rating));
+                    }
+                });
+
+                break;
+            case "location":
+                final TextView textView1 = new TextView(DisplayQuestions.this);
+                textView1.setBackground(ContextCompat.getDrawable(DisplayQuestions.this, R.drawable.rectangular_box));
+                textView1.setLayoutParams(params);
+                textView1.setTextSize(1, 18);
+                final Button button = new Button(this);
+                button.setText("View Map");
+                final Button getLocation = new Button(this);
+                getLocation.setText("get location");
+                if (editFormFlag) {
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            String ansLocation = ansObject.get("Answers").getAsString();
+                            textView1.setText(ansLocation);
+                            dde_questions.setAnswer(ansLocation);
+                        }
+                    }
+                } else {
+                    textView1.setText(validationValue);
+                    dde_questions.setAnswer(validationValue);
+                }
+
+
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (locationService.checkLocationEnabled()) {
+                            // textView1.setText(locationService.getLocation().toString());
+                            Location location = locationService.mlocation;
+                            if (location != null) {
+
+                                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                                Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+                                if (prev != null) {
+                                    ft.remove(prev);
+                                }
+                                ft.addToBackStack(null);
+
+                                // Create and show the dialog.
+                                newFragment = MapDialog.newInstance(locationService.mlocation.getLatitude(), locationService.mlocation.getLongitude());
+                                newFragment.show(ft, "dialog");
+
+                                //  textView1.setText("Latitude:" + location.getLatitude() + ",Longitude" + location.getLongitude());
+                                /*dde_questions.setAnswer("Latitude:" + location.getLatitude() + ",Longitude" + location.getLongitude());
+                                mapView.setCameraDistance(2);
+                                mapView.getMapAsync(new OnMapReadyCallback() {
+                                    @Override
+                                    public void onMapReady(GoogleMap googleMap) {
+                                        googleMap.addMarker(new MarkerOptions()
+                                                .position(new LatLng(locationService.mlocation.getLatitude(), locationService.mlocation.getLongitude()))
+                                                .title("Marker"));
+                                    }
+                                });*/
+
+                            }
+
+                        } else {
+                            locationService.checkLocation();
+                        }
+                    }
+                });
+
+                getLocation.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        if (locationService.checkLocationEnabled()) {
+                            //
+                            Location location = locationService.mlocation;
+                            if (location != null) {
+                                textView1.setText("Latitude:" + location.getLatitude() + ",Longitude" + location.getLongitude());
+                                dde_questions.setAnswer("Latitude:" + location.getLatitude() + ",Longitude" + location.getLongitude());
+                            }
+                        } else {
+                            locationService.checkLocation();
+                        }
+                    }
+                });
+
+
+                // layout.addView(mapView);
+                // mapView.setActivated(true);
+                layout.addView(textView1);
+                layout.addView(getLocation);
+                layout.addView(button);
+                break;
+            case "video":
+                LinearLayout outerLinearLayoutVideo = new LinearLayout(this);
+                outerLinearLayoutVideo.setOrientation(LinearLayout.HORIZONTAL);
+                final TextView tv_video = new TextView(this);
+                tv_video.setPadding(5, 5, 5, 5);
+                tv_video.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                tv_video.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+                tv_video.setText("Record video");
+                outerLinearLayoutVideo.addView(tv_video);
+                final ImageView selectedVideo = new ImageView(this);
+                // selectedVideo.setMediaController(mediaController);
+               /* selectedVideo.setLayoutParams(new android.view.ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 150));
+                selectedVideo.setPadding(10, 5, 5, 5);*/
+                LinearLayout.LayoutParams buttonLayoutParamsVideo = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200);
+                buttonLayoutParamsVideo.setMargins(50, 0, 50, 0);
+                selectedVideo.setLayoutParams(buttonLayoutParamsVideo);
+                outerLinearLayoutVideo.addView(selectedVideo);
+
+                if (editFormFlag) {
+                    String dest_column = dde_questions.getDestColumname();
+                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                            ans = ansObject.get("Answers").getAsString();
+                           /* Bitmap bmp = BitmapFactory.decodeFile(path + "/" + ans);
+                            selectedImageTemp.setImageBitmap(bmp);*/
+                            // selectedVideo.setVideoPath(videoPath + "/" + ans);
+                            final String finalAns = ans;
+                            selectedView.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    final Dialog dialog = new Dialog(DisplayQuestions.this);
+                                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                                    dialog.setContentView(R.layout.videoplayer);
+                                    dialog.show();
+                                    WindowManager.LayoutParams lp = new WindowManager.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                    lp.copyFrom(dialog.getWindow().getAttributes());
+                                    dialog.getWindow().setAttributes(lp);
+                                    final VideoView videoview = (VideoView) dialog.findViewById(R.id.videoView);
+                                    videoview.setVideoPath(videoPath + "/" + finalAns);
+                                    videoview.setZOrderOnTop(true);
+                                    videoview.setZOrderMediaOverlay(true);
+                                    mediaController.setAnchorView(videoview);
+                                    videoview.setMediaController(mediaController);
+                                    videoview.start();
+                                }
+                            });
+                            dde_questions.setAnswer(ans);
+                        }
+                    }
+                }
+                layout.addView(outerLinearLayoutVideo);
+
+                tv_video.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (hasCamera()) {
+                            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+                                String[] permissionArray = new String[]{PermissionUtils.Manifest_CAMERA};
+
+                                if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
+                                    Toast.makeText(DisplayQuestions.this, "Give Camera permissions through settings and restart the app.", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    videoName = entryID + "_" + dde_questions.getQuestionId() + ".mp4";
+                                    dde_questions.setAnswer(videoName);
+                                    selectedView = selectedVideo;
+                                    Intent takePicture = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+                                    takePicture.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 3 * 60);
+                                    takePicture.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
+                                    startActivityForResult(takePicture, VIDEO_CAPTURE);
+                                }
+                            } else {
+                                videoName = entryID + "_" + dde_questions.getQuestionId() + ".mp4";
+                                dde_questions.setAnswer(videoName);
+                                selectedView = selectedVideo;
+                                Intent takePicture = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+                                takePicture.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 3 * 60);
+                                startActivityForResult(takePicture, VIDEO_CAPTURE);
+                            }
+
+                        } else {
+                            Toast.makeText(DisplayQuestions.this, "Camera not found", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+                break;
         }
         renderAllQuestionsLayout.addView(layout);
         /*check dependency if depends then hide*/
@@ -874,6 +1309,17 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         view.setBackgroundColor(getResources().getColor(R.color.black));
         renderAllQuestionsLayout.addView(view);*/
     }
+
+
+    private boolean hasCamera() {
+        if (getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
     private ArrayList<String> getDependentValues(ArrayList<String> answerList, String destColName, String conditionColName, String conditionColValue, NavigableMap<String, String> map) {
 
@@ -942,6 +1388,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             }
         });
         alertDialogBuilder.show();
+    }
+
+    @Override
+    public Location getLocation() {
+        return null;
     }
 
     private class ShowDataSources extends AsyncTask<Void, Void, Void> {
@@ -2033,6 +2484,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         public int compare(DDE_Questions a, DDE_Questions b) {
             return a.getFieldSeqNo() - b.getFieldSeqNo();
         }
+
     }
 
     @Override
@@ -2050,8 +2502,57 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 selectedImage.setImageBitmap(photo);
                 // String selectedImagePath = getPath(photo);
                 createDirectoryAndSaveFile(photo, imageName);
-            }
+            } else if (requestCode == VIDEO_CAPTURE) {
 
+                Uri selectedVideo = data.getData();
+               /* this.selectedView.setVideoURI(selectedVideo);
+                selectedView.setZOrderOnTop(true);
+                selectedView.setZOrderMediaOverlay(true);*/
+
+                AssetFileDescriptor videoAsset = getContentResolver().openAssetFileDescriptor(data.getData(), "r");
+                FileInputStream in = videoAsset.createInputStream();
+                final File dir = new File(videoPath + "/");
+                if (!dir.exists()) {
+                    dir.mkdir();
+                }
+                File fileName = new File(dir, videoName);
+                if (fileName.exists()) fileName.delete();
+
+
+                OutputStream out = new FileOutputStream(fileName);
+
+                byte[] buf = new byte[1024];
+                int len;
+
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+
+                in.close();
+                out.close();
+
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inSampleSize = 1;
+                Bitmap thumb = ThumbnailUtils.createVideoThumbnail(dir + "/" + videoName, MediaStore.Images.Thumbnails.MICRO_KIND);
+                selectedView.setImageBitmap(thumb);
+                selectedView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        final Dialog dialog = new Dialog(DisplayQuestions.this);
+                        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                        dialog.setContentView(R.layout.videoplayer);
+                        dialog.show();
+                        WindowManager.LayoutParams lp = new WindowManager.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        lp.copyFrom(dialog.getWindow().getAttributes());
+                        dialog.getWindow().setAttributes(lp);
+                        final VideoView videoview = (VideoView) dialog.findViewById(R.id.videoView);
+                        videoview.setVideoPath(dir + "/" + videoName);
+                        mediaController.setAnchorView(videoview);
+                        videoview.setMediaController(mediaController);
+                        videoview.start();
+                    }
+                });
+            }
         } catch (Exception e) {
         }
     }
@@ -2112,7 +2613,47 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             case 1:
                 // 1 : upload
                 upload(updatedToken);
-            break;
+                break;
         }
     }
+
+
+    public int getDp(int value) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
+    }
+   /* @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        mapView.onPause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        mapView.onDestroy();
+        super.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }*/
 }

@@ -24,7 +24,7 @@ public interface DDE_QuestionsDao {
     public List<String> getColumnNamesByFormID(String formId);
 
     @Query("SELECT QuestionType FROM DDE_Questions WHERE formid =:formId and DestColumname=:destColName")
-    public String getQueTypeByFormIDAndDestColName(String formId,String destColName);
+    public String getQueTypeByFormIDAndDestColName(String formId, String destColName);
 
     @Query("DELETE FROM DDE_Questions WHERE formid =:formId")
     public void deleteQuestionsByFormID(String formId);
@@ -38,5 +38,6 @@ public interface DDE_QuestionsDao {
     @Query("SELECT count(QuestionType) FROM DDE_Questions WHERE QuestionType='image' and formid =:formId")
     public int getImageCountByFormID(String formId);
 
-
+    @Query("SELECT count(QuestionType) FROM DDE_Questions WHERE QuestionType='video' and formid =:formId")
+    public int getVideoCountByFormID(String formId);
 }

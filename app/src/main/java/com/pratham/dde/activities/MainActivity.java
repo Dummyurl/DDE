@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.TextView;
@@ -36,6 +37,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 import butterknife.BindView;
@@ -68,7 +71,7 @@ public class MainActivity extends BaseActivity implements PermissionResult {
         ButterKnife.bind(this);
         dialog = new ProgressDialog(mContext);
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-            String[] permissionArray = new String[]{PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE, PermissionUtils.Manifest_CAMERA};
+            String[] permissionArray = new String[]{PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE, PermissionUtils.Manifest_CAMERA, PermissionUtils.Manifest_ACCESS_COARSE_LOCATION, PermissionUtils.Manifest_ACCESS_FINE_LOCATION};
             if (!isPermissionsGranted(MainActivity.this, permissionArray)) {
                 askCompactPermissions(permissionArray, this);
             } else checkVersion();
@@ -159,6 +162,32 @@ public class MainActivity extends BaseActivity implements PermissionResult {
     public void checkLogin() {
         userName = input_email.getText().toString();
         password = input_password.getText().toString();
+
+        //create DDE folder and .nomedia
+
+        String path = Environment.getExternalStorageDirectory() + "/.DDE";
+        File dde = new File(path);
+        if (!dde.exists()) {
+            dde.mkdir();
+            File new_file = new File(path + "/.nomedia");
+            try {
+                new_file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            File nomedia = new File(path + "/.nomedia");
+            if (!nomedia.exists()) {
+                File new_file = new File(path + "/.nomedia");
+                try {
+                    new_file.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
 
 //        if (userName.equals("") || password.equals(""))
 //            Utility.showDialogue(this, "Insert Username and Password correctly");

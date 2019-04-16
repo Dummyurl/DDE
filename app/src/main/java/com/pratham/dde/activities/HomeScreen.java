@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -18,11 +19,15 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.androidnetworking.AndroidNetworking;
+import com.androidnetworking.common.Priority;
 import com.androidnetworking.error.ANError;
+import com.androidnetworking.interfaces.DownloadListener;
+import com.androidnetworking.interfaces.DownloadProgressListener;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -45,6 +50,9 @@ import com.pratham.dde.interfaces.updateTokenListener;
 import com.pratham.dde.services.SyncUtility;
 import com.pratham.dde.utils.UploadAnswerAndImageToServer;
 import com.pratham.dde.utils.Utility;
+
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -82,12 +90,16 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     int formIndex = 0, depformIndex = 0;
     int dataSourceIndex = 0;
     int PageNumber = 1;
+    int imageCntDownload = 0;
     List<JSONObject> dataSourceForFormOnline;
     List<DDE_Forms> updatedFormsToPull;
     public static final int rowsPerPage = 10000, GETNEWFORMS = 1, GETQUESTIONS = 2;
     ProgressDialog progressDialog;
     int maxProgressCnt = 0;
     updateTokenListener tokenListener;
+
+    //store id of image questions for downloading images
+    List<DDE_Questions> imageQuestionList = new ArrayList();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -223,9 +235,13 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         return obj;
     }
 
-    /* load Question SourceDta */
+    /*first load images and then load Question SourceDta  */
     private void fetchQuestionsSourceData() {
         Utility.dismissDialog(dialog);
+
+        //load images
+
+
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Progress : " + (dataSourceIndex + 1) + "/" + dataSourceForFormOnline.size());
         progressDialog.setTitle("Downloading data please wait..");
@@ -238,9 +254,105 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         dataSourceUrl = Utility.getProperty("prodgetDataSource", mContext);
         dataSourceIndex = 0;
         PageNumber = 1;
-        setDatasourceList();
-        loadSourceData();
+        for (int i = 0; i < imageQuestionList.size(); i++) {
+            getImagePath(imageQuestionList.get(i));
+        }
+        if (imageQuestionList.size() == 0) {
+            setDatasourceList();
+            loadSourceData();
+        }
     }
+
+    private void getImagePath(final DDE_Questions dde_questions) {
+        final String queID = dde_questions.getQuestionId();
+        String formId = dde_questions.getFormId();
+        String url = "http://www.ddeapi.prathamskills.org/api/ddeforms/GetQuestionOptions?Identifier=" + queID;
+        AndroidNetworking.post(url).addHeaders("Content-Type", "application/json")
+                .addHeaders("Content-Type", "application/x-www-form-urlencoded")
+                .addHeaders("id", formId)
+                .addHeaders("Authorization", token)
+                .addBodyParameter("username", userName)
+                .addBodyParameter("password", password)
+                .addBodyParameter("grant_type", "password")
+                .build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            String path = response.getString("ZipPath");
+                            downloadImage(path, dde_questions);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onError(ANError anError) {
+                        //todo delete form
+                        BaseActivity.appDatabase.getDDE_FormsDao().deleteFormById(dde_questions.getFormId());
+                        imageCntDownload++;
+                        if (imageCntDownload == imageQuestionList.size()) {
+                            setDatasourceList();
+                            loadSourceData();
+                        }
+                       /* showErrorDialog(formId);
+                        Utility.updateErrorLog(anError, BaseActivity.appDatabase, "HomeScreen : getQuestionsAndData");
+                        Utility.dismissDialog(dialog);*/
+                    }
+                });
+    }
+
+    private void downloadImage(String path, final DDE_Questions dde_questions) {
+        final ProgressDialog progressBarImage = new ProgressDialog(this);
+        progressBarImage.setCancelable(false);
+        progressBarImage.setTitle("downloading Image");
+        progressBarImage.show();
+        final String storagePath = Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEDownloadedImages";
+        AndroidNetworking.download("http://www.ddeapi.prathamskills.org/" + path, storagePath, dde_questions.getQuestionId() + ".zip")
+                .setTag("downloadTest")
+                .setPriority(Priority.MEDIUM)
+                .build()
+                .setDownloadProgressListener(new DownloadProgressListener() {
+                    @Override
+                    public void onProgress(long bytesDownloaded, long totalBytes) {
+                        // do anything with progress
+                        progressBarImage.setMessage("" + bytesDownloaded + "/" + totalBytes);
+                    }
+                })
+                .startDownload(new DownloadListener() {
+                    @Override
+                    public void onDownloadComplete() {
+                        // do anything after completion
+                        progressBarImage.dismiss();
+                        imageCntDownload++;
+                        if (imageCntDownload == imageQuestionList.size()) {
+                            setDatasourceList();
+                            loadSourceData();
+                        }
+                        String source = storagePath + "/" + dde_questions.getQuestionId() + ".zip";
+                        String destination = storagePath + "/unzipped" + "/" + dde_questions.getQuestionId();
+                        try {
+                            ZipFile zipFile = new ZipFile(source);
+                            zipFile.extractAll(destination);
+                        } catch (ZipException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                    @Override
+                    public void onError(ANError error) {
+                        // handle error
+                        //todo delete form
+                        progressBarImage.dismiss();
+                        if (imageCntDownload == imageQuestionList.size()) {
+                            setDatasourceList();
+                            loadSourceData();
+                        }
+                    }
+                });
+    }
+
 
     private void setDatasourceList() {
         List<DDE_FormWiseDataSource> listOfDSEntries;
@@ -265,6 +377,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                 }
 
                 // add logic ------> datasource updated but not forms
+
+
                 DDE_FormWiseDataSource dde_formWiseDataSourceObj;
                 JSONObject dsJsonObject;
                 boolean containFlag;
@@ -477,20 +591,22 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
 
     private void getQuestionsAndData(final int formId) {
         String url = QuestionUrl + formId;
-        AndroidNetworking.get(url).addHeaders("Content-Type", "application/json").addHeaders("Authorization", token).build().getAsJSONObject(new JSONObjectRequestListener() {
-            @Override
-            public void onResponse(JSONObject response) {
-                formIndex++;
-                saveData(response);
-            }
+        AndroidNetworking.get(url).addHeaders("Content-Type", "application/json")
+                .addHeaders("Authorization", token).build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        formIndex++;
+                        saveData(response);
+                    }
 
-            @Override
-            public void onError(ANError anError) {
-                showErrorDialog(formId);
-                Utility.updateErrorLog(anError, BaseActivity.appDatabase, "HomeScreen : getQuestionsAndData");
-                Utility.dismissDialog(dialog);
-            }
-        });
+                    @Override
+                    public void onError(ANError anError) {
+                        showErrorDialog(formId);
+                        Utility.updateErrorLog(anError, BaseActivity.appDatabase, "HomeScreen : getQuestionsAndData");
+                        Utility.dismissDialog(dialog);
+                    }
+                });
     }
 
     private void showErrorDialog(int formId) {
@@ -590,6 +706,12 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
             }.getType();
             ArrayList<DDE_Questions> questionList = gson.fromJson(questions, listType);
             if (questionList.size() > 0) {
+
+                for (DDE_Questions dde_questions : questionList) {
+                    if ("singleimage".equals(dde_questions.getQuestionType()) || "multipleimage".equals(dde_questions.getQuestionType())) {
+                        imageQuestionList.add(dde_questions);
+                    }
+                }
                 String allRules = data.getString("Rules");
                 Type listTypeRule = new TypeToken<ArrayList<DDE_RuleTable>>() {
                 }.getType();

@@ -87,7 +87,7 @@ public class previewFormDialog extends Dialog {
                     buttonLayoutParams.setMargins(50, 0, 0, 0);
                     selectedImageTemp.setLayoutParams(buttonLayoutParams);
                     String imgpath = dde_questions.getAnswer();
-                    Bitmap bmp = BitmapFactory.decodeFile(Environment.getExternalStorageDirectory().toString() + "/DDEImages/" + imgpath);
+                    Bitmap bmp = BitmapFactory.decodeFile(Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEImages/" + imgpath);
                     selectedImageTemp.setImageBitmap(bmp);
                     linLayoutSingleEntry.addView(selectedImageTemp);
                 } else {
@@ -95,8 +95,15 @@ public class previewFormDialog extends Dialog {
                     ans.setLayoutParams(textViewParam);
                     ans.setTextSize(1, 20);
                     if (queType.equals("singlechoice") || queType.equals("multiple") || queType.equals("dropdown")) {
-                        String value=getDisplayByValue(dde_questions);
+                        String value = getDisplayByValue(dde_questions);
                         ans.setText(value);
+                    } else if (queType.equals("multipleimage")) {
+                        String answer = dde_questions.getAnswer().trim();
+                        if (answer.endsWith("|")) {
+                            answer = answer.substring(0, answer.length() - 1);
+                            dde_questions.setAnswer(answer);
+                        }
+                        ans.setText("Ans :  " + dde_questions.getAnswer());
                     } else {
                         ans.setText("Ans :  " + dde_questions.getAnswer());
                     }

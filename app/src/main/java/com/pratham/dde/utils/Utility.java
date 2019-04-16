@@ -89,9 +89,9 @@ public class Utility {
                             String token_type = response.getString("token_type");
                             String expiryDate = response.getString(".expires");
                             User user = appDatabase.getUserDao().getUserDetails(userName, password);
-                            Log.d("TokenChecker:***", "UserName: "+ userName);
-                            Log.d("TokenChecker:***", "Token: "+ token_type + " " + access_token);
-                            Log.d("TokenChecker:***", "Expiry: "+ expiryDate);
+                            Log.d("TokenChecker:***", "UserName: " + userName);
+                            Log.d("TokenChecker:***", "Token: " + token_type + " " + access_token);
+                            Log.d("TokenChecker:***", "Expiry: " + expiryDate);
                             if (user != null)
                                 appDatabase.getUserDao().UpdateTokenAndExpiry(access_token, expiryDate, userName, password);
                             updateTokenListener.updateToken(methodToCall, token_type + " " + access_token);

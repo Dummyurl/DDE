@@ -31,7 +31,7 @@ public interface AnswerDao {
     @Query("SELECT * FROM AnswersSingleForm where pushStatus=:statusCode")
     List<AnswersSingleForm> getAllAnswersByStatus(int statusCode);
 
-    @Query("SELECT * FROM AnswersSingleForm where pushStatus!=2 and userID=:userId")
+    @Query("SELECT * FROM AnswersSingleForm where pushStatus!=3 and userID=:userId")
     List<AnswersSingleForm> getAllAnswersByStatusUnuploaded(String userId);
 
     @Query("select distinct count(*) as cnt, FormId from AnswersSingleForm group by FormId")
