@@ -925,7 +925,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 //  JsonArray option = dde_questions.getQuestionOption();
                 HorizontalScrollView horizontalScrollView = new HorizontalScrollView(this);
                 horizontalScrollView.setLayoutParams(params);
-                LinearLayout.LayoutParams paramsWrapContaintRadio = new LinearLayout.LayoutParams(getDp(200), getDp(170), 0);
+                LinearLayout.LayoutParams paramsWrapContaintRadio = new LinearLayout.LayoutParams(getDp(150), getDp(150), 0);
                 paramsWrapContaint.setMargins(10, 20, 0, 20);
                 RadioGroup imageRadio = new RadioGroup(this);
                 imageRadio.setOrientation(LinearLayout.HORIZONTAL);
@@ -948,6 +948,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         Resources res = getResources();
                         Bitmap bitmap = BitmapFactory.decodeFile(pathName);
                         Drawable bd = new BitmapDrawable(res, bitmap);
+                        radioButton.setBackground(bd);
+                        radioButton.setButtonDrawable(R.drawable.selector);
                         radioButton.setCompoundDrawablesWithIntrinsicBounds(null, null, bd, null);
 
                         if (editFormFlag) {
@@ -1013,7 +1015,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 if (filesImageCheckBox != null && filesImageCheckBox.length > 0) {
                     for (int i = 0; i < filesImageCheckBox.length; i++) {
                         final CheckBox checkBox = new CheckBox(this);
-                        checkBox.setButtonDrawable(R.drawable.selector);
+                       // checkBox.setButtonDrawable(R.drawable.selector);
                         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                             @Override
                             public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
@@ -1046,9 +1048,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         Resources res = getResources();
                         Bitmap bitmap = BitmapFactory.decodeFile(pathName);
                         Drawable bd = new BitmapDrawable(res, bitmap);
+                        checkBox.setBackground(bd);
+                        checkBox.setButtonDrawable(R.drawable.selector);
 //                        checkBox.setButtonDrawable(bd);
                         //checkBox.setBackground(R.drawable.selector);
-                        checkBox.setCompoundDrawablesWithIntrinsicBounds(null, null, null, bd);
+                        //checkBox.setCompoundDrawablesWithIntrinsicBounds(null, null, null, bd);
                         checkBox.setTag(dde_questions.getQuestionId() + ":::" + dde_questions.getQuestionId() + "/" + filesImageCheckBox[i].getName());
 
                    /* JsonElement jsonElement = optionImageCheckBox.get(i);
@@ -1056,7 +1060,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
                     String text = jsonObject.get("display").getAsString();
                     String value = jsonObject.get("value").getAsString();*/
-                        checkBox.setText(pathImageCheckBox + filesImageCheckBox[i].getName());
+//                        checkBox.setText(pathImageCheckBox + filesImageCheckBox[i].getName());
                         if (editFormFlag) {
                             if (ansImage.contains(filesImageCheckBox[i].getName() + "|")) {
                                 checkBox.setChecked(true);
@@ -1070,8 +1074,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         }
                         checkBoxImageList.add(checkBox);
                         GridLayout.LayoutParams paramGrid = new GridLayout.LayoutParams();
-                        paramGrid.height = getDp(120);
-                        paramGrid.width = getDp(120);
+                        paramGrid.height = getDp(160);
+                        paramGrid.width = getDp(160);
                         paramGrid.setMargins(20, 20, 20, 20);
                         checkBox.setLayoutParams(paramGrid);
                         gridLayoutImage.addView(checkBox);
