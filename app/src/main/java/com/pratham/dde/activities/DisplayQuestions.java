@@ -943,7 +943,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         radioButton.setPadding(20, 20, 20, 20);
                         radioButton.setLayoutParams(paramsWrapContaintRadio);
                         radioButton.setTag(files[i].getName());
-                        radioButton.setText(files[i].getName());
+                        // radioButton.setText(files[i].getName());
                         String pathName = path + files[i].getName();
                         Resources res = getResources();
                         Bitmap bitmap = BitmapFactory.decodeFile(pathName);
@@ -1046,7 +1046,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         Resources res = getResources();
                         Bitmap bitmap = BitmapFactory.decodeFile(pathName);
                         Drawable bd = new BitmapDrawable(res, bitmap);
-                        checkBox.setCompoundDrawablesWithIntrinsicBounds(null, null, bd, null);
+//                        checkBox.setButtonDrawable(bd);
+                        //checkBox.setBackground(R.drawable.selector);
+                        checkBox.setCompoundDrawablesWithIntrinsicBounds(null, null, null, bd);
                         checkBox.setTag(dde_questions.getQuestionId() + ":::" + dde_questions.getQuestionId() + "/" + filesImageCheckBox[i].getName());
 
                    /* JsonElement jsonElement = optionImageCheckBox.get(i);
@@ -1213,6 +1215,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 tv_video.setText("Record video");
                 outerLinearLayoutVideo.addView(tv_video);
                 final ImageView selectedVideo = new ImageView(this);
+                selectedVideo.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+
                 // selectedVideo.setMediaController(mediaController);
                /* selectedVideo.setLayoutParams(new android.view.ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 150));
                 selectedVideo.setPadding(10, 5, 5, 5);*/
@@ -1848,6 +1852,17 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                             spinner.setSelection(getIndex(spinner, visibleTempQue.getDefaultValue()));
                                             visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
                                             break;
+                                        case "video":
+                                            LinearLayout linearLayout = (LinearLayout) layout.getChildAt(1);
+                                            ImageView view = (ImageView) linearLayout.getChildAt(1);
+                                            String path = (String) view.getTag();
+                                            if (path != null) {
+                                                BitmapFactory.Options options = new BitmapFactory.Options();
+                                                options.inSampleSize = 1;
+                                                Bitmap thumb = ThumbnailUtils.createVideoThumbnail(path, MediaStore.Images.Thumbnails.MICRO_KIND);
+                                                view.setImageBitmap(thumb);
+                                            }
+
                                     }
 
                                 }
@@ -2535,6 +2550,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 options.inSampleSize = 1;
                 Bitmap thumb = ThumbnailUtils.createVideoThumbnail(dir + "/" + videoName, MediaStore.Images.Thumbnails.MICRO_KIND);
                 selectedView.setImageBitmap(thumb);
+                selectedView.setTag(dir + "/" + videoName);
                 selectedView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

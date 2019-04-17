@@ -34,7 +34,6 @@ public class previewFormDialog extends Dialog {
     LinearLayout parent;
     AnswersSingleForm answersSingleForm;
     PreviewFormListener previewFormListener;
-
     Context context;
 
     public previewFormDialog(@NonNull Context context, List<DDE_Questions> ddeQuestions, AnswersSingleForm answersSingleForm) {
@@ -109,9 +108,7 @@ public class previewFormDialog extends Dialog {
                     }
                     linLayoutSingleEntry.addView(ans);
                 }
-
                 parent.addView(linLayoutSingleEntry);
-
             }
         }
     }
@@ -150,6 +147,5 @@ public class previewFormDialog extends Dialog {
     public void ok() {
         previewFormListener.proceed(answersSingleForm);
     }
-
 
 }

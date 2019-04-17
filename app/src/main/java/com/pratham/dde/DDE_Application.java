@@ -3,12 +3,10 @@ package com.pratham.dde;
 import android.app.Application;
 
 import com.androidnetworking.AndroidNetworking;
+import com.pratham.dde.domain.DataSourceEntries;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.facebook.stetho.Stetho;
-import com.pratham.dde.domain.DataSourceEntries;
 
 public class DDE_Application extends Application {
 
@@ -17,7 +15,7 @@ public class DDE_Application extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Stetho.initializeWithDefaults(this);
+        /*  Stetho.initializeWithDefaults(this);*/
         AndroidNetworking.initialize(getApplicationContext());
     }
 
