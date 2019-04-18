@@ -29,7 +29,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.text.Html;
@@ -64,11 +63,6 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 import android.widget.VideoView;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -925,8 +919,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 //  JsonArray option = dde_questions.getQuestionOption();
                 HorizontalScrollView horizontalScrollView = new HorizontalScrollView(this);
                 horizontalScrollView.setLayoutParams(params);
-                LinearLayout.LayoutParams paramsWrapContaintRadio = new LinearLayout.LayoutParams(getDp(150), getDp(150), 0);
-                paramsWrapContaint.setMargins(10, 20, 0, 20);
+                RadioGroup.LayoutParams paramsWrapContaintRadio = new RadioGroup.LayoutParams(getDp(130), getDp(130), 1);
+                paramsWrapContaint.setMargins(20, 20, 20, 20);
                 RadioGroup imageRadio = new RadioGroup(this);
                 imageRadio.setOrientation(LinearLayout.HORIZONTAL);
                 String path = Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEDownloadedImages/unzipped/" + dde_questions.getQuestionId() + "/file/";
@@ -939,8 +933,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         Log.d("Files", "FileName:" + files[i].getName());
                         RadioButton radioButton = new RadioButton(this);
                         radioButton.setId(i);
-                        radioButton.setButtonDrawable(R.drawable.selector);
-                        radioButton.setPadding(20, 20, 20, 20);
+                        // radioButton.setButtonDrawable(R.drawable.selector);
                         radioButton.setLayoutParams(paramsWrapContaintRadio);
                         radioButton.setTag(files[i].getName());
                         // radioButton.setText(files[i].getName());
@@ -950,7 +943,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         Drawable bd = new BitmapDrawable(res, bitmap);
                         radioButton.setBackground(bd);
                         radioButton.setButtonDrawable(R.drawable.selector);
-                        radioButton.setCompoundDrawablesWithIntrinsicBounds(null, null, bd, null);
+//                        radioButton.setPadding(20,20,20,20);
+
+                        //radioButton.setCompoundDrawablesWithIntrinsicBounds(null, null, bd, null);
 
                         if (editFormFlag) {
                             String dest_column = dde_questions.getDestColumname();
@@ -1015,7 +1010,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 if (filesImageCheckBox != null && filesImageCheckBox.length > 0) {
                     for (int i = 0; i < filesImageCheckBox.length; i++) {
                         final CheckBox checkBox = new CheckBox(this);
-                       // checkBox.setButtonDrawable(R.drawable.selector);
+                        // checkBox.setButtonDrawable(R.drawable.selector);
                         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                             @Override
                             public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
@@ -1074,8 +1069,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         }
                         checkBoxImageList.add(checkBox);
                         GridLayout.LayoutParams paramGrid = new GridLayout.LayoutParams();
-                        paramGrid.height = getDp(160);
-                        paramGrid.width = getDp(160);
+                        paramGrid.height = getDp(130);
+                        paramGrid.width = getDp(130);
                         paramGrid.setMargins(20, 20, 20, 20);
                         checkBox.setLayoutParams(paramGrid);
                         gridLayoutImage.addView(checkBox);
@@ -1238,12 +1233,19 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                            /* Bitmap bmp = BitmapFactory.decodeFile(path + "/" + ans);
                             selectedImageTemp.setImageBitmap(bmp);*/
                             // selectedVideo.setVideoPath(videoPath + "/" + ans);
+
                             final String finalAns = ans;
-                            selectedView.setOnClickListener(new View.OnClickListener() {
+                            BitmapFactory.Options options = new BitmapFactory.Options();
+                            options.inSampleSize = 1;
+                            Bitmap thumb = ThumbnailUtils.createVideoThumbnail(videoPath + "/" + finalAns, MediaStore.Images.Thumbnails.MICRO_KIND);
+                            selectedVideo.setImageBitmap(thumb);
+                           
+                            selectedVideo.setTag(R.id.path, videoPath + "/" + finalAns);
+                            selectedVideo.setTag(R.id.name, finalAns);
+                            selectedVideo.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     final Dialog dialog = new Dialog(DisplayQuestions.this);
-                                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                                     dialog.setContentView(R.layout.videoplayer);
                                     dialog.show();
                                     WindowManager.LayoutParams lp = new WindowManager.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -1253,8 +1255,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                     videoview.setVideoPath(videoPath + "/" + finalAns);
                                     videoview.setZOrderOnTop(true);
                                     videoview.setZOrderMediaOverlay(true);
-                                    mediaController.setAnchorView(videoview);
                                     videoview.setMediaController(mediaController);
+                                    mediaController.setAnchorView(videoview);
                                     videoview.start();
                                 }
                             });
@@ -1859,12 +1861,13 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                         case "video":
                                             LinearLayout linearLayout = (LinearLayout) layout.getChildAt(1);
                                             ImageView view = (ImageView) linearLayout.getChildAt(1);
-                                            String path = (String) view.getTag();
+                                            String path = (String) view.getTag(R.id.path);
                                             if (path != null) {
                                                 BitmapFactory.Options options = new BitmapFactory.Options();
                                                 options.inSampleSize = 1;
                                                 Bitmap thumb = ThumbnailUtils.createVideoThumbnail(path, MediaStore.Images.Thumbnails.MICRO_KIND);
                                                 view.setImageBitmap(thumb);
+                                                visibleTempQue.setAnswer(view.getTag(R.id.name).toString());
                                             }
 
                                     }
@@ -2091,6 +2094,10 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     String ans = formIdWiseQuestions.get(ansIndex).getAnswer();
                     if (formIdWiseQuestions.get(ansIndex).getQuestionType().equalsIgnoreCase("multiple")) {
                         if (ans.endsWith(",")) ans = ans.substring(0, ans.length() - 1);
+                        formIdWiseQuestions.get(ansIndex).setAnswer(ans);
+                    }
+                    if (formIdWiseQuestions.get(ansIndex).getQuestionType().equalsIgnoreCase("multipleimage")) {
+                        if (ans.endsWith("|")) ans = ans.substring(0, ans.length() - 1);
                         formIdWiseQuestions.get(ansIndex).setAnswer(ans);
                     }
                     answerJSonArrays.setAnswers(ans);
@@ -2554,7 +2561,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                 options.inSampleSize = 1;
                 Bitmap thumb = ThumbnailUtils.createVideoThumbnail(dir + "/" + videoName, MediaStore.Images.Thumbnails.MICRO_KIND);
                 selectedView.setImageBitmap(thumb);
-                selectedView.setTag(dir + "/" + videoName);
+                selectedView.setTag(R.id.path, dir + "/" + videoName);
+                selectedView.setTag(R.id.name, videoName);
                 selectedView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

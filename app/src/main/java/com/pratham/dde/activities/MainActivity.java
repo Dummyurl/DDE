@@ -88,8 +88,8 @@ public class MainActivity extends BaseActivity implements PermissionResult {
     @Override
     protected void onResume() {
         super.onResume();
-        input_email.setText("ArpitMehrotra");
-        input_password.setText("pratham#1234");
+        input_email.setText("");
+        input_password.setText("");
         input_email.requestFocus();
     }
 
