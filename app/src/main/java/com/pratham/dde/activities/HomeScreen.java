@@ -266,7 +266,8 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
     private void getImagePath(final DDE_Questions dde_questions) {
         final String queID = dde_questions.getQuestionId();
         String formId = dde_questions.getFormId();
-        String url = "http://www.ddeapi.prathamskills.org/api/ddeforms/GetQuestionOptions?Identifier=" + queID;
+        String url = Utility.getProperty("prodGetImagezipPath", mContext) + queID;
+//        String url = "http://www.ddeapi.prathamskills.org/api/ddeforms/GetQuestionOptions?Identifier=" + queID;
         AndroidNetworking.post(url).addHeaders("Content-Type", "application/json")
                 .addHeaders("Content-Type", "application/x-www-form-urlencoded")
                 .addHeaders("id", formId)
@@ -307,8 +308,9 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
         progressBarImage.setCancelable(false);
         progressBarImage.setTitle("downloading Image");
         progressBarImage.show();
+        String url = Utility.getProperty("prodDownloadImageZip", mContext);
         final String storagePath = Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEDownloadedImages";
-        AndroidNetworking.download("http://www.ddeapi.prathamskills.org/" + path, storagePath, dde_questions.getQuestionId() + ".zip")
+        AndroidNetworking.download(url + path, storagePath, dde_questions.getQuestionId() + ".zip")
                 .setTag("downloadTest")
                 .setPriority(Priority.MEDIUM)
                 .build()
