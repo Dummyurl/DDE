@@ -339,7 +339,6 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         } catch (ZipException e) {
                             e.printStackTrace();
                         }
-
                     }
 
                     @Override
