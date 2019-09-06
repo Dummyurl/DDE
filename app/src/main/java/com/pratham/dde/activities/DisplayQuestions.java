@@ -2192,6 +2192,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     private boolean checkValue(String questionId, String questionType, String validationName, String validationType, String validationValue, String answer) {
         try {
             if (renderAllQuestionsLayout.findViewWithTag(questionId).getVisibility() == View.VISIBLE) {
+                if (validationValue.isEmpty())
+                    return true;
                 switch (validationName) {
                     case "REQUIRED":
                         // return answer != "" ? true : false;

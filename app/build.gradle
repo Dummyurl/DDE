@@ -1,15 +1,22 @@
 apply plugin: 'com.android.application'
 
-def buildDateTime = new Date().format('yyMMdd').toInteger()
-//and assign it like this:: "versionCode buildDateTime"
+/*Major Version : API Changes , Adding new feature , Redesign the App ,
+ Increment the MAJOR after the MINOR version achieved the number 9*/
+ext.versionMajor = 1
+/*Minor Version : While adding a functionality , minor changes like color change or icon changes*/
+ext.versionMinor = 2
+/*Patch : Bug fixing*/
+ext.versionPatch = 4
+ext.minSdkVersion = 16
+
 android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.pratham.dde"
-        minSdkVersion 16
+        minSdkVersion project.ext.minSdkVersion
         targetSdkVersion 27
-        versionCode buildDateTime
-        versionName "1.6"
+        versionCode generateVersionCode()
+        versionName "1.81"//prod apk - cms
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -19,6 +26,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+}
+
+private Integer generateVersionCode() {
+    return ext.minSdkVersion * 10000000 + ext.versionMajor * 10000 + ext.versionMinor * 100 + ext.versionPatch
 }
 
 dependencies {
