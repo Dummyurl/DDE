@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="pratham.dde.com.pratham.dde.activities.DisplayQuestions">
+    tools:context="com.pratham.dde.activities.DisplayQuestions">
 
 
     <LinearLayout

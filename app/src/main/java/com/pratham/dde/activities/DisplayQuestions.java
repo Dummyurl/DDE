@@ -530,6 +530,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         @Override
                         public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
                             String selectedAnswers = dde_questions.getAnswer();
+                            if (selectedAnswers == null)
+                                selectedAnswers = "";
                             if (selectedAnswers.length() > 0) {
                                 if (!selectedAnswers.endsWith(",")) {
                                     selectedAnswers += ",";
@@ -1239,7 +1241,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             options.inSampleSize = 1;
                             Bitmap thumb = ThumbnailUtils.createVideoThumbnail(videoPath + "/" + finalAns, MediaStore.Images.Thumbnails.MICRO_KIND);
                             selectedVideo.setImageBitmap(thumb);
-                           
+
                             selectedVideo.setTag(R.id.path, videoPath + "/" + finalAns);
                             selectedVideo.setTag(R.id.name, finalAns);
                             selectedVideo.setOnClickListener(new View.OnClickListener() {
@@ -1787,91 +1789,96 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             for (int queCnt = 0; queCnt < formIdWiseQuestions.size(); queCnt++) {
                                 if (formIdWiseQuestions.get(queCnt).getQuestionId().equals(showQueTag)) {
                                     visibleTempQue = formIdWiseQuestions.get(queCnt);
-                                    switch (visibleTempQue.getQuestionType()) {
-                                        case "singlechoice":
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            RadioGroup tempGroup = (RadioGroup) layout.getChildAt(1);
-                                            for (int radioButtonIndex = 0; radioButtonIndex < tempGroup.getChildCount(); radioButtonIndex++) {
-                                                if (((RadioButton) tempGroup.getChildAt(radioButtonIndex)).getText().equals(visibleTempQue.getDefaultValue())) {
-                                                    ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setChecked(true);
-                                                } else {
-                                                    ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setChecked(false);
+                                    String defaultValue = visibleTempQue.getDefaultValue();
+                                    if (defaultValue != null) {
+                                        //setting default values
+                                        switch (visibleTempQue.getQuestionType()) {
+                                            case "singlechoice":
+                                                visibleTempQue.setAnswer(defaultValue);
+                                                RadioGroup tempGroup = (RadioGroup) layout.getChildAt(1);
+                                                for (int radioButtonIndex = 0; radioButtonIndex < tempGroup.getChildCount(); radioButtonIndex++) {
+                                                    if (((RadioButton) tempGroup.getChildAt(radioButtonIndex)).getText().equals(defaultValue)) {
+                                                        ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setChecked(true);
+                                                    } else {
+                                                        ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setChecked(false);
+                                                    }
                                                 }
-                                            }
-                                            break;
-                                        case "multiple":
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            GridLayout tempGrid = (GridLayout) layout.getChildAt(1);
-                                            String defaultval = visibleTempQue.getDefaultValue();
-                                            if (defaultval != null && !defaultval.isEmpty() && !defaultval.equalsIgnoreCase("null") && !defaultval.endsWith(","))
-                                                defaultval += ",";
-                                            for (int checkBoxIndex = 0; checkBoxIndex < tempGrid.getChildCount(); checkBoxIndex++) {
-                                                String checkBoxTag = tempGrid.getChildAt(checkBoxIndex).getTag().toString();
-                                                String[] splitted = checkBoxTag.split(":::");
-                                                if (defaultval.contains(splitted[1] + ",")) {
-                                                    ((CheckBox) tempGrid.getChildAt(checkBoxIndex)).setChecked(true);
-                                                } else {
-                                                    ((CheckBox) tempGrid.getChildAt(checkBoxIndex)).setChecked(false);
+                                                break;
+                                            case "multiple":
+                                                visibleTempQue.setAnswer(defaultValue);
+                                                GridLayout tempGrid = (GridLayout) layout.getChildAt(1);
+                                                String defaultval = defaultValue;
+                                                if (defaultval != null) {
+                                                    if (!defaultval.isEmpty() && !defaultval.equalsIgnoreCase("null") && !defaultval.endsWith(","))
+                                                        defaultval += ",";
+                                                    for (int checkBoxIndex = 0; checkBoxIndex < tempGrid.getChildCount(); checkBoxIndex++) {
+                                                        String checkBoxTag = tempGrid.getChildAt(checkBoxIndex).getTag().toString();
+                                                        String[] splitted = checkBoxTag.split(":::");
+                                                        if (defaultval.contains(splitted[1] + ",")) {
+                                                            ((CheckBox) tempGrid.getChildAt(checkBoxIndex)).setChecked(true);
+                                                        } else {
+                                                            ((CheckBox) tempGrid.getChildAt(checkBoxIndex)).setChecked(false);
+                                                        }
+                                                    }
                                                 }
-                                            }
-                                            break;
-                                        case "text":
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            EditText tempEditText = (EditText) layout.getChildAt(1);
-                                            tempEditText.setText(visibleTempQue.getDefaultValue());
-                                            break;
-                                        case "number":
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            EditText tempEditNumber = (EditText) layout.getChildAt(1);
-                                            tempEditNumber.setText(visibleTempQue.getDefaultValue());
-                                            break;
-                                        case "email":
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            EditText tempEditEmail = (EditText) layout.getChildAt(1);
-                                            tempEditEmail.setText(visibleTempQue.getDefaultValue());
-                                            break;
+                                                break;
+                                            case "text":
+                                                visibleTempQue.setAnswer(defaultValue);
+                                                EditText tempEditText = (EditText) layout.getChildAt(1);
+                                                tempEditText.setText(defaultValue);
+                                                break;
+                                            case "number":
+                                                visibleTempQue.setAnswer(defaultValue);
+                                                EditText tempEditNumber = (EditText) layout.getChildAt(1);
+                                                tempEditNumber.setText(defaultValue);
+                                                break;
+                                            case "email":
+                                                visibleTempQue.setAnswer(defaultValue);
+                                                EditText tempEditEmail = (EditText) layout.getChildAt(1);
+                                                tempEditEmail.setText(defaultValue);
+                                                break;
 
-                                        case "date":
-                                            String defaultDate = visibleTempQue.getDefaultValue();
-                                            if (parseDate(defaultDate) != null) {
-                                                visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                                TextView tempDate = (TextView) layout.getChildAt(1);
-                                                tempDate.setText(parseDate(defaultDate));
-                                            }
-                                            break;
-                                        case "time":
-                                            String defaultTime = visibleTempQue.getDefaultValue();
-                                            try {
-                                                final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
-                                                final Date dateObj;
-                                                dateObj = sdf.parse(defaultTime);
-                                                defaultTime = new SimpleDateFormat("K:mm aa").format(dateObj);
-                                                TextView tempTime = (TextView) layout.getChildAt(1);
-                                                tempTime.setText(defaultTime);
-                                                visibleTempQue.setAnswer(defaultTime);
-                                            } catch (ParseException e) {
-                                                e.printStackTrace();
-                                            }
-                                            break;
-                                        case "dropdown":
-                                            Spinner spinner = (Spinner) layout.getChildAt(1);
-                                            spinner.setSelection(getIndex(spinner, visibleTempQue.getDefaultValue()));
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            break;
-                                        case "video":
-                                            LinearLayout linearLayout = (LinearLayout) layout.getChildAt(1);
-                                            ImageView view = (ImageView) linearLayout.getChildAt(1);
-                                            String path = (String) view.getTag(R.id.path);
-                                            if (path != null) {
-                                                BitmapFactory.Options options = new BitmapFactory.Options();
-                                                options.inSampleSize = 1;
-                                                Bitmap thumb = ThumbnailUtils.createVideoThumbnail(path, MediaStore.Images.Thumbnails.MICRO_KIND);
-                                                view.setImageBitmap(thumb);
-                                                visibleTempQue.setAnswer(view.getTag(R.id.name).toString());
-                                            }
+                                            case "date":
+                                                String defaultDate = defaultValue;
+                                                if (parseDate(defaultDate) != null) {
+                                                    visibleTempQue.setAnswer(defaultValue);
+                                                    TextView tempDate = (TextView) layout.getChildAt(1);
+                                                    tempDate.setText(parseDate(defaultDate));
+                                                }
+                                                break;
+                                            case "time":
+                                                String defaultTime = defaultValue;
+                                                try {
+                                                    final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
+                                                    final Date dateObj;
+                                                    dateObj = sdf.parse(defaultTime);
+                                                    defaultTime = new SimpleDateFormat("K:mm aa").format(dateObj);
+                                                    TextView tempTime = (TextView) layout.getChildAt(1);
+                                                    tempTime.setText(defaultTime);
+                                                    visibleTempQue.setAnswer(defaultTime);
+                                                } catch (ParseException e) {
+                                                    e.printStackTrace();
+                                                }
+                                                break;
+                                            case "dropdown":
+                                                Spinner spinner = (Spinner) layout.getChildAt(1);
+                                                spinner.setSelection(getIndex(spinner, defaultValue));
+                                                visibleTempQue.setAnswer(defaultValue);
+                                                break;
+                                            case "video":
+                                                LinearLayout linearLayout = (LinearLayout) layout.getChildAt(1);
+                                                ImageView view = (ImageView) linearLayout.getChildAt(1);
+                                                String path = (String) view.getTag(R.id.path);
+                                                if (path != null) {
+                                                    BitmapFactory.Options options = new BitmapFactory.Options();
+                                                    options.inSampleSize = 1;
+                                                    Bitmap thumb = ThumbnailUtils.createVideoThumbnail(path, MediaStore.Images.Thumbnails.MICRO_KIND);
+                                                    view.setImageBitmap(thumb);
+                                                    visibleTempQue.setAnswer(view.getTag(R.id.name).toString());
+                                                }
 
+                                        }
                                     }
-
                                 }
                             }
                             checkRuleCondition(showQueTag, visibleTempQue.getAnswer(), visibleTempQue.getQuestionType());
