@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/edt_Answer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/_10sdp"
+    android:background="@drawable/custom_edittext_box"
+    android:hint="answer here"
+    android:imeOptions="actionDone"
+    android:minHeight="@dimen/_30sdp"
+    android:padding="@dimen/_4sdp"
+    android:singleLine="true"
+    android:textColor="@color/cardText"
+    android:textColorHint="@color/cardHint"
+    android:textSize="@dimen/_12sdp" />
+

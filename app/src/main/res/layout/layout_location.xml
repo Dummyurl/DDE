@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/locationLL"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_location"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/_10sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginRight="@dimen/_10sdp"
+        android:gravity="center"
+        android:hint="Click Locate to get Current Location"
+        android:textColor="@color/cardButton"
+        android:textSize="@dimen/_12sdp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+    <!--Get Location Button-->
+        <Button
+            android:id="@+id/btn_Location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="@dimen/_8sdp"
+            android:background="@drawable/custom_button_border"
+            android:drawableLeft="@drawable/ic_location"
+            android:drawablePadding="@dimen/_10sdp"
+            android:padding="@dimen/_10sdp"
+            android:text="Locate"
+            android:textColor="@color/cardButton"
+            android:textSize="@dimen/_12sdp"
+            android:textStyle="bold" />
+
+        <!--View Map Button-->
+        <Button
+            android:id="@+id/btn_viewMap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="@dimen/_8sdp"
+            android:background="@drawable/custom_button_border"
+            android:drawableLeft="@drawable/ic_map"
+            android:drawablePadding="@dimen/_10sdp"
+            android:padding="@dimen/_10sdp"
+            android:text="View Map"
+            android:textColor="@color/cardButton"
+            android:textSize="@dimen/_12sdp"
+            android:textStyle="bold" />
+
+        <!--&lt;!&ndash;Map view&ndash;&gt;-->
+        <!--<com.google.android.gms.maps.MapView-->
+        <!--android:id="@+id/mv_CurrentLocation"-->
+        <!--android:layout_width="@dimen/_150sdp"-->
+        <!--android:layout_height="@dimen/_150sdp"-->
+        <!--android:layout_margin="@dimen/_8sdp"-->
+        <!--android:background="@drawable/custom_button_border" />-->
+
+    </LinearLayout>
+
+</LinearLayout>

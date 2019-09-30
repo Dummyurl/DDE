@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout android:id="@+id/gl_checkboxGroup"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/_4sdp"
+    android:background="@drawable/custom_edittext_box"
+    android:padding="@dimen/_4sdp"
+    xmlns:android="http://schemas.android.com/apk/res/android" />

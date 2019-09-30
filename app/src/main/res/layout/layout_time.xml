@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Button android:id="@+id/btn_timePicker"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_margin="@dimen/_10sdp"
+    android:background="@drawable/custom_button_border"
+    android:drawableLeft="@drawable/ic_time32"
+    android:drawablePadding="@dimen/_10sdp"
+    android:padding="@dimen/_12sdp"
+    android:text="11 : 30 AM"
+    android:textColor="@color/cardButton"
+    android:textSize="@dimen/_12sdp"
+    xmlns:android="http://schemas.android.com/apk/res/android" />

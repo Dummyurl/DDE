@@ -52,6 +52,10 @@ public class Utility {
         return dateFormat.format(cal.getTime());
     }
 
+    public static String getTimeForDateQuestion() {
+        Calendar cal = Calendar.getInstance();
+        return new SimpleDateFormat("K:mm aa").format(cal.getTime());
+    }
     /**
      * Method to generate a random GUID / UUID.
      * Needed when we are creating new IDs.

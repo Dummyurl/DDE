@@ -29,14 +29,14 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
-import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.CardView;
 import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -168,10 +168,9 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         tokenListener = (updateTokenListener) this;
         mediaController = new MediaController(DisplayQuestions.this);
         locationService = new LocationService(this);
-        if (locationService.checkLocationEnabled()) {
-            // textView1.setText(locationService.getLocation().toString());
-        } else {
+        if (!locationService.checkLocationEnabled()) {
             locationService.checkLocation();
+            // textView1.setText(locationService.getLocation().toString());
         }
      /*   Bundle mapViewBundle = null;
         if (savedInstanceState != null) {
@@ -280,352 +279,389 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         depQueID = appDatabase.getDDE_RulesDao().getDependantQuestion(formId);
     }
 
-    /*    Display A Single Questions One By One*/
+    /* Display A Single Questions One By One */
     private void displaySingleQue(final DDE_Questions dde_questions) {
-        final LinearLayout layout = new LinearLayout(this);
-        layout.setPadding(10, 10, 10, 50);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setTag(dde_questions.getQuestionId());
-        TextView textView = new TextView(this);
-        textView.setText(/*dde_questions.getFieldSeqNo() + ". " + */dde_questions.getQuestion());
-        textView.setTag("que" + dde_questions.getQuestionId());
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 25);
-        textView.setTextColor(getResources().getColor(R.color.black));
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
-        params.setMargins(10, 0, 0, 0);
-        textView.setLayoutParams(params);
-        layout.addView(textView);
+        try {
+            final View layout = LayoutInflater.from(this).inflate(R.layout.question_layout, renderAllQuestionsLayout, false);
+//        final LinearLayout layout = new LinearLayout(this);
+//        layout.setPadding(10, 10, 10, 50);
+//        layout.setOrientation(LinearLayout.VERTICAL);
+//todo changed            layout.setTag(dde_questions.getQuestionId());
+            final LinearLayout rootQuestionLL = layout.findViewById(R.id.root);
+            rootQuestionLL.setTag(dde_questions.getQuestionId());
+//        TextView textView = new TextView(this);
+            TextView textView = layout.findViewById(R.id.tv_Question);
+            textView.setText(/*dde_questions.getFieldSeqNo() + ". " + */dde_questions.getQuestion());
+            textView.setTag("que" + dde_questions.getQuestionId());
+//        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 25);
+//        textView.setTextColor(getResources().getColor(R.color.black));
+//        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
+//        params.setMargins(10, 0, 0, 0);
+//        textView.setLayoutParams(params);
+//        layout.addView(textView);
 
-        LinearLayout.LayoutParams paramsWrapContaint = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
-        paramsWrapContaint.setMargins(10, 0, 0, 0);
+            LinearLayout.LayoutParams paramsWrapContaint = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
+            paramsWrapContaint.setMargins(10, 0, 0, 0);
 
-        /*SET DEFAULT VALUE TO ANSWER FIELD*/
-        String validationValue = "";
-        JsonArray validationArray = dde_questions.getValidations();
-        for (int i = 1; i < validationArray.size(); i++) {
-            JsonObject jsonObject = validationArray.get(i).getAsJsonObject();
-            String validation = jsonObject.get("validationName").getAsString();
-            if (validation.equals("DEFAULTVAL")) {
-                if (jsonObject.get("ValidationValue").isJsonNull()) {
-                    validationValue = "";
-                } else {
-                    validationValue = jsonObject.get("ValidationValue").getAsString();
+            /*SET DEFAULT VALUE TO ANSWER FIELD*/
+            String validationValue = "";
+            JsonArray validationArray = dde_questions.getValidations();
+            for (int i = 1; i < validationArray.size(); i++) {
+                JsonObject jsonObject = validationArray.get(i).getAsJsonObject();
+                String validation = jsonObject.get("validationName").getAsString();
+                if (validation.equals("DEFAULTVAL")) {
+                    if (jsonObject.get("ValidationValue").isJsonNull()) {
+                        validationValue = "";
+                    } else {
+                        validationValue = jsonObject.get("ValidationValue").getAsString();
+                    }
                 }
             }
-        }
 
 
-        switch (dde_questions.getQuestionType()) {
-            case "text":
-                final EditText editText = new EditText(this);
-                editText.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                //editText.setPadding(15, 5, 5, 5);
-                editText.setSingleLine(true);
-                editText.setLayoutParams(params);
-                layout.addView(editText);
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            String ans = ansObject.get("Answers").getAsString();
-                            editText.setText(ans);
-                            dde_questions.setAnswer(ans);
-                        }
-                    }
-                } else {
-                    editText.setText(validationValue);
-                    dde_questions.setAnswer(validationValue);
-                }
-                editText.addTextChangedListener(new TextWatcher() {
-
-                    // the user's changes are saved here
-                    public void onTextChanged(CharSequence c, int start, int before, int count) {
-                        //  mCrime.setTitle(c.toString());
-                    }
-
-                    public void beforeTextChanged(CharSequence c, int start, int count, int after) {
-                        // this space intentionally left blank
-                    }
-
-                    public void afterTextChanged(Editable c) {
-                        dde_questions.setAnswer(c.toString());
-                    }
-                });
-                break;
-
-            case "singlechoice":
-                JsonArray option = dde_questions.getQuestionOption();
-                RadioGroup radioGroup = new RadioGroup(this);
-                radioGroup.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                for (int i = 0; i < option.size(); i++) {
-                    JsonElement jsonElement = option.get(i);
-                    JsonObject jsonObject = jsonElement.getAsJsonObject();
-                    RadioButton radioButton = new RadioButton(this);
-                    radioButton.setId(i);
-                    radioButton.setLayoutParams(paramsWrapContaint);
-                    String tag = jsonObject.get("value").getAsString();
-                    radioButton.setTag(tag);
-                    String text = jsonObject.get("display").getAsString();
-                    radioButton.setText(text);
+            switch (dde_questions.getQuestionType()) {
+                case "text":
+                case "email":
+                    View queTextLayout = LayoutInflater.from(this).inflate(R.layout.layout_edittext, rootQuestionLL, false);
+                    final EditText editText = queTextLayout.findViewById(R.id.edt_Answer);
+                    rootQuestionLL.addView(editText);
+//                editText.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                    //editText.setPadding(15, 5, 5, 5);
+//                editText.setSingleLine(true);
+//                editText.setLayoutParams(params);
+//                layout.addView(editText);
                     if (editFormFlag) {
                         String dest_column = dde_questions.getDestColumname();
                         for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
                             JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
                             if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
                                 String ans = ansObject.get("Answers").getAsString();
-                                if (ans.equalsIgnoreCase(tag)) {
-                                    radioButton.setChecked(true);
-                                    dde_questions.setAnswer(ans);
-                                }
+                                editText.setText(ans);
+                                dde_questions.setAnswer(ans);
                             }
                         }
                     } else {
-                        if (validationValue.equalsIgnoreCase(tag)) {
-                            radioButton.setChecked(true);
-                            dde_questions.setAnswer(validationValue);
-                        }
+                        editText.setText(validationValue);
+                        dde_questions.setAnswer(validationValue);
                     }
-                    radioGroup.addView(radioButton);
-                    radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
-                            if (isSelected) {
-                                dde_questions.setAnswer(compoundButton.getTag().toString());
-                                LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent();
-                                String tag = (String) layout.getTag();
-                                checkRuleCondition(tag, compoundButton.getTag().toString(), "singlechoice");
-                            }
+                    editText.addTextChangedListener(new TextWatcher() {
+
+                        // the user's changes are saved here
+                        public void onTextChanged(CharSequence c, int start, int before, int count) {
+                            //  mCrime.setTitle(c.toString());
+                        }
+
+                        public void beforeTextChanged(CharSequence c, int start, int count, int after) {
+                            // this space intentionally left blank
+                        }
+
+                        public void afterTextChanged(Editable c) {
+                            dde_questions.setAnswer(c.toString());
                         }
                     });
-                }
-                radioGroup.setLayoutParams(params);
-                layout.addView(radioGroup);
-                break;
+                    break;
 
-            case "email":
-                final EditText et_email = new EditText(this);
-                et_email.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                //et_email.setPadding(15, 5, 5, 5);
-                et_email.setSingleLine(true);
-                et_email.setLayoutParams(params);
-                layout.addView(et_email);
-                et_email.setText(validationValue);
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            String ans = ansObject.get("Answers").getAsString();
-                            et_email.setText(ans);
-                            dde_questions.setAnswer(ans);
-                        }
-                    }
-                } else {
-                    et_email.setText(validationValue);
-                    dde_questions.setAnswer(validationValue);
-                }
-                et_email.addTextChangedListener(new TextWatcher() {
-
-                    // the user's changes are saved here
-                    public void onTextChanged(CharSequence c, int start, int before, int count) {
-                        //  mCrime.setTitle(c.toString());
-                    }
-
-                    public void beforeTextChanged(CharSequence c, int start, int count, int after) {
-                        // this space intentionally left blank
-                    }
-
-                    public void afterTextChanged(Editable c) {
-                        dde_questions.setAnswer(c.toString());
-                        /*LinearLayout layout = (LinearLayout) et_email.getParent();
-                        String tag = (String) layout.getTag();
-                        //  checkRuleCondition(tag, c.toString());*/
-                    }
-                });
-                break;
-
-            case "number":
-                final EditText number = new EditText(this);
-                number.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                //number.setPadding(15, 5, 5, 5);
-
-                for (int i = 1; i < validationArray.size(); i++) {
-                    JsonObject jsonObject = validationArray.get(i).getAsJsonObject();
-                    String validation = jsonObject.get("validationName").getAsString();
-                    if (validation.equals("ALLOWDECIMAL")) {
-                        if (jsonObject.get("ValidationApply").getAsBoolean()) {
-                            if (jsonObject.get("ValidationValue").getAsString().equalsIgnoreCase("true"))
-                                number.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                            else number.setInputType(InputType.TYPE_CLASS_NUMBER);
+                case "singlechoice":
+                    JsonArray option = dde_questions.getQuestionOption();
+                    View queRadioGrpLayout = LayoutInflater.from(this).inflate(R.layout.layout_radiogroup, rootQuestionLL, false);
+                    RadioGroup radioGroup = queRadioGrpLayout.findViewById(R.id.rg_options);
+//                    RadioGroup radioGroup = new RadioGroup(this);
+//                    radioGroup.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                    for (int i = 0; i < option.size(); i++) {
+                        JsonElement jsonElement = option.get(i);
+                        JsonObject jsonObject = jsonElement.getAsJsonObject();
+                        View queRadioLayout = LayoutInflater.from(this).inflate(R.layout.layout_radiobutton, (ViewGroup) queRadioGrpLayout, false);
+                        final RadioButton radioButton = queRadioLayout.findViewById(R.id.rb_option);
+                        radioButton.setId(i);
+                        radioButton.setLayoutParams(paramsWrapContaint);
+                        String tag = jsonObject.get("value").getAsString();
+                        radioButton.setTag(tag);
+                        String text = jsonObject.get("display").getAsString();
+                        radioButton.setText(text);
+                        if (editFormFlag) {
+                            String dest_column = dde_questions.getDestColumname();
+                            for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                                JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                                if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                    String ans = ansObject.get("Answers").getAsString();
+                                    if (ans.equalsIgnoreCase(tag)) {
+                                        radioButton.setChecked(true);
+                                        dde_questions.setAnswer(ans);
+                                    }
+                                }
+                            }
                         } else {
-                            number.setInputType(InputType.TYPE_CLASS_NUMBER);
+                            if (validationValue.equalsIgnoreCase(tag)) {
+                                radioButton.setChecked(true);
+                                dde_questions.setAnswer(validationValue);
+                            }
+                        }
+                        radioGroup.addView(radioButton);
+                        radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
+                                if (isSelected) {
+                                    dde_questions.setAnswer(compoundButton.getTag().toString());
+                                    LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent();
+                                    String tag = (String) layout.getTag();
+                                    checkRuleCondition(tag, compoundButton.getTag().toString(), "singlechoice");
+                                }
+                            }
+                        });
+                    }
+                    rootQuestionLL.addView(radioGroup);
+//                radioGroup.setLayoutParams(params);
+//                layout.addView(radioGroup);
+                    break;
+
+//                case "email":
+//                    View queEmailLayout = LayoutInflater.from(this).inflate(R.layout.layout_edittext, rootQuestionLL, false);
+//                    final EditText et_email = queEmailLayout.findViewById(R.id.edt_Answer);
+//                    rootQuestionLL.addView(et_email);
+////                    final EditText et_email = new EditText(this);
+////                    et_email.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+//                    //et_email.setPadding(15, 5, 5, 5);
+////                    et_email.setSingleLine(true);
+////                et_email.setLayoutParams(params);
+////                layout.addView(et_email);
+////                    et_email.setText(validationValue);
+//                    if (editFormFlag) {
+//                        String dest_column = dde_questions.getDestColumname();
+//                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+//                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+//                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+//                                String ans = ansObject.get("Answers").getAsString();
+//                                et_email.setText(ans);
+//                                dde_questions.setAnswer(ans);
+//                            }
+//                        }
+//                    } else {
+//                        et_email.setText(validationValue);
+//                        dde_questions.setAnswer(validationValue);
+//                    }
+//                    et_email.addTextChangedListener(new TextWatcher() {
+//
+//                        // the user's changes are saved here
+//                        public void onTextChanged(CharSequence c, int start, int before, int count) {
+//                            //  mCrime.setTitle(c.toString());
+//                        }
+//
+//                        public void beforeTextChanged(CharSequence c, int start, int count, int after) {
+//                            // this space intentionally left blank
+//                        }
+//
+//                        public void afterTextChanged(Editable c) {
+//                            dde_questions.setAnswer(c.toString());
+//                        /*LinearLayout layout = (LinearLayout) et_email.getParent();
+//                        String tag = (String) layout.getTag();
+//                        //  checkRuleCondition(tag, c.toString());*/
+//                        }
+//                    });
+//                    break;
+
+                case "number":
+                    View queNumberLayout = LayoutInflater.from(this).inflate(R.layout.layout_edittext, rootQuestionLL, false);
+                    final EditText number = queNumberLayout.findViewById(R.id.edt_Answer);
+                    rootQuestionLL.addView(number);
+//                    final EditText number = new EditText(this);
+//                    number.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                    //number.setPadding(15, 5, 5, 5);
+
+                    for (int i = 1; i < validationArray.size(); i++) {
+                        JsonObject jsonObject = validationArray.get(i).getAsJsonObject();
+                        String validation = jsonObject.get("validationName").getAsString();
+                        if (validation.equals("ALLOWDECIMAL")) {
+                            if (jsonObject.get("ValidationApply").getAsBoolean()) {
+                                if (jsonObject.get("ValidationValue").getAsString().equalsIgnoreCase("true"))
+                                    number.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                                else number.setInputType(InputType.TYPE_CLASS_NUMBER);
+                            } else {
+                                number.setInputType(InputType.TYPE_CLASS_NUMBER);
+                            }
                         }
                     }
-                }
-                number.setSingleLine(true);
-                number.setLayoutParams(params);
-                number.setTag("ans" + dde_questions.getQuestionId());
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            String ans = ansObject.get("Answers").getAsString();
-                            number.setText(ans);
-                            dde_questions.setAnswer(ans);
+                    number.setSingleLine(true);
+//                number.setLayoutParams(params);
+                    number.setTag("ans" + dde_questions.getQuestionId());
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                String ans = ansObject.get("Answers").getAsString();
+                                number.setText(ans);
+                                dde_questions.setAnswer(ans);
                           /*  String tag = (String) layout.getTag();
                             checkRuleCondition(tag, ans, "number");*/
-                        }
-                    }
-                } else {
-                    number.setText(validationValue);
-                    dde_questions.setAnswer(validationValue);
-                }
-                number.addTextChangedListener(new TextWatcher() {
-
-                    // the user's changes are saved here
-                    public void onTextChanged(CharSequence c, int start, int before, int count) {
-                        //  mCrime.setTitle(c.toString());
-                    }
-
-                    public void beforeTextChanged(CharSequence c, int start, int count, int after) {
-                        // this space intentionally left blank
-                    }
-
-                    public void afterTextChanged(Editable c) {
-                        dde_questions.setAnswer(c.toString());
-                        LinearLayout layout = (LinearLayout) number.getParent();
-                        String tag = (String) layout.getTag();
-                        checkRuleCondition(tag, c.toString(), "number");
-                    }
-                });
-                layout.addView(number);
-                break;
-
-            case "multiple":
-                String ans = "";
-                JsonArray optionCheckBox = dde_questions.getQuestionOption();
-                GridLayout gridLayout = new GridLayout(this);
-                gridLayout.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                gridLayout.setColumnCount(1);
-                if (!validationValue.isEmpty() && !validationValue.endsWith(","))
-                    validationValue += ",";
-
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            ans = ansObject.get("Answers").getAsString();
-                            if (!ans.endsWith(",")) ans += ",";
-                        }
-                    }
-                } else {
-                    dde_questions.setAnswer(validationValue);
-                }
-                for (int i = 0; i < optionCheckBox.size(); i++) {
-                    final CheckBox checkBox = new CheckBox(this);
-                    checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
-                            String selectedAnswers = dde_questions.getAnswer();
-                            if (selectedAnswers.length() > 0) {
-                                if (!selectedAnswers.endsWith(",")) {
-                                    selectedAnswers += ",";
-                                }
                             }
-                            String tag = compoundButton.getTag().toString();
-                            String[] splitted = tag.split(":::");
-                            if (isSelected) {
-                                if (!selectedAnswers.contains(splitted[1] + ",")) {
-                                    selectedAnswers += splitted[1] + ",";
-                                }
-                            } else {
-                                Log.d("replace..", selectedAnswers + "//" + splitted[1]);
-                                selectedAnswers = selectedAnswers.replace(splitted[1] + ",", "");
+                        }
+                    } else {
+                        number.setText(validationValue);
+                        dde_questions.setAnswer(validationValue);
+                    }
+                    number.addTextChangedListener(new TextWatcher() {
+
+                        // the user's changes are saved here
+                        public void onTextChanged(CharSequence c, int start, int before, int count) {
+                            //  mCrime.setTitle(c.toString());
+                        }
+
+                        public void beforeTextChanged(CharSequence c, int start, int count, int after) {
+                            // this space intentionally left blank
+                        }
+
+                        public void afterTextChanged(Editable c) {
+                            dde_questions.setAnswer(c.toString());
+                            LinearLayout layout = (LinearLayout) number.getParent();
+                            String tag = (String) layout.getTag();
+                            checkRuleCondition(tag, c.toString(), "number");
+                        }
+                    });
+//                layout.addView(number);
+                    break;
+
+                case "multiple":
+                    String ans = "";
+                    JsonArray optionCheckBox = dde_questions.getQuestionOption();
+                    View queMultipleLayout = LayoutInflater.from(this).inflate(R.layout.layout_imagecheckbox_group, rootQuestionLL, false);
+                    final GridLayout gridLayout = queMultipleLayout.findViewById(R.id.gl_checkboxGroup);
+//                    GridLayout gridLayout = new GridLayout(this);
+//                    gridLayout.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                    gridLayout.setColumnCount(1);
+                    if (!validationValue.isEmpty() && !validationValue.endsWith(","))
+                        validationValue += ",";
+
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                ans = ansObject.get("Answers").getAsString();
+                                if (!ans.endsWith(",")) ans += ",";
                             }
+                        }
+                    } else {
+                        dde_questions.setAnswer(validationValue);
+                    }
+                    for (int i = 0; i < optionCheckBox.size(); i++) {
+                        View queCheckBoxLayout = LayoutInflater.from(this).inflate(R.layout.layout_checkbox, gridLayout, false);
+                        final CheckBox checkBox = queCheckBoxLayout.findViewById(R.id.cb_option);
+//                        final CheckBox checkBox = new CheckBox(this);
+                        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
+                                String selectedAnswers = dde_questions.getAnswer();
+                                if (selectedAnswers == null)
+                                    selectedAnswers = "";
+                                if (selectedAnswers.length() > 0) {
+                                    if (!selectedAnswers.endsWith(",")) {
+                                        selectedAnswers += ",";
+                                    }
+                                }
+                                String tag = compoundButton.getTag().toString();
+                                String[] splitted = tag.split(":::");
+                                if (isSelected) {
+                                    if (!selectedAnswers.contains(splitted[1] + ",")) {
+                                        selectedAnswers += splitted[1] + ",";
+                                    }
+                                } else {
+                                    Log.d("replace..", selectedAnswers + "//" + splitted[1]);
+                                    selectedAnswers = selectedAnswers.replace(splitted[1] + ",", "");
+                                }
                             /*if (selectedAnswers.endsWith(",")) {
                                 selectedAnswers = selectedAnswers.substring(0, selectedAnswers.length() - 1);
                             }*/
-                            dde_questions.setAnswer(selectedAnswers);
-                            //String queParent = ((LinearLayout) compoundButton.getParent().getParent()).getTag().toString();
-                            String queParent = layout.getTag().toString();
-                            checkRuleCondition(queParent, selectedAnswers, "multiple");
+                                dde_questions.setAnswer(selectedAnswers);
+                                //String queParent = ((LinearLayout) compoundButton.getParent().getParent()).getTag().toString();
+//                                String queParent = layout.getTag().toString();
+                                String queParent = rootQuestionLL.getTag().toString();
+                                checkRuleCondition(queParent, selectedAnswers, "multiple");
+                            }
+                        });
+                        JsonElement jsonElement = optionCheckBox.get(i);
+                        JsonObject jsonObject = jsonElement.getAsJsonObject();
+                        checkBox.setTag(dde_questions.getQuestionId() + ":::" + jsonObject.get("value").getAsString());
+                        String text = jsonObject.get("display").getAsString();
+                        String value = jsonObject.get("value").getAsString();
+                        checkBox.setText(text);
+                        if (editFormFlag) {
+                            if (ans.contains(value + ",")) {
+                                checkBox.setChecked(true);
+                                dde_questions.setAnswer(ans);
+                            }
+                        } else {
+                            if (validationValue.contains(value + ",")) {
+                                checkBox.setChecked(true);
+                                dde_questions.setAnswer(validationValue);
+                            }
                         }
-                    });
-                    JsonElement jsonElement = optionCheckBox.get(i);
-                    JsonObject jsonObject = jsonElement.getAsJsonObject();
-                    checkBox.setTag(dde_questions.getQuestionId() + ":::" + jsonObject.get("value").getAsString());
-                    String text = jsonObject.get("display").getAsString();
-                    String value = jsonObject.get("value").getAsString();
-                    checkBox.setText(text);
+                        checkBoxList.add(checkBox);
+//                        GridLayout.LayoutParams paramGrid = new GridLayout.LayoutParams();
+//                        paramGrid.height = GridLayout.LayoutParams.WRAP_CONTENT;
+//                        paramGrid.width = GridLayout.LayoutParams.WRAP_CONTENT;
+//                        paramGrid.setGravity(Gravity.FILL_HORIZONTAL);
+//                        checkBox.setLayoutParams(paramGrid);
+                        gridLayout.addView(checkBox);
+                    }
+                    rootQuestionLL.addView(gridLayout);
+//                layout.addView(gridLayout);
+                    break;
+                case "image":
+                    View queImageLayout = LayoutInflater.from(this).inflate(R.layout.layout_singleimage, rootQuestionLL, false);
+                    final LinearLayout imageLayout = queImageLayout.findViewById(R.id.image_ll);
+                    final Button imageBtn = imageLayout.findViewById(R.id.btn_imgPicker);
+                    final ImageView selectedImageTemp = imageLayout.findViewById(R.id.iv_imageView);
+                    rootQuestionLL.addView(imageLayout);
+//                    LinearLayout outerLinearLayout = new LinearLayout(this);
+//                    outerLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
+//                    final TextView tv_img = new TextView(this);
+//                    tv_img.setPadding(5, 5, 5, 5);
+//                    tv_img.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+//                    tv_img.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+//                    tv_img.setText("Select Image");
+//                    outerLinearLayout.addView(tv_img);
+                    // selectedImage.setLayoutParams(new android.view.ViewGroup.LayoutParams(150, 150));
+//                    selectedImageTemp.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+//                    selectedImageTemp.setPadding(10, 5, 5, 5);
+//                    LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(200, 200);
+//                    buttonLayoutParams.setMargins(50, 0, 0, 0);
+//                    selectedImageTemp.setLayoutParams(buttonLayoutParams);
+//                    outerLinearLayout.addView(selectedImageTemp);
+
                     if (editFormFlag) {
-                        if (ans.contains(value + ",")) {
-                            checkBox.setChecked(true);
-                            dde_questions.setAnswer(ans);
-                        }
-                    } else {
-                        if (validationValue.contains(value + ",")) {
-                            checkBox.setChecked(true);
-                            dde_questions.setAnswer(validationValue);
-                        }
-                    }
-                    checkBoxList.add(checkBox);
-                    GridLayout.LayoutParams paramGrid = new GridLayout.LayoutParams();
-                    paramGrid.height = GridLayout.LayoutParams.WRAP_CONTENT;
-                    paramGrid.width = GridLayout.LayoutParams.WRAP_CONTENT;
-                    paramGrid.setGravity(Gravity.FILL_HORIZONTAL);
-                    checkBox.setLayoutParams(paramGrid);
-                    gridLayout.addView(checkBox);
-                }
-                layout.addView(gridLayout);
-                break;
-            case "image":
-                LinearLayout outerLinearLayout = new LinearLayout(this);
-                outerLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
-                final TextView tv_img = new TextView(this);
-                tv_img.setPadding(5, 5, 5, 5);
-                tv_img.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                tv_img.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-                tv_img.setText("Select Image");
-                outerLinearLayout.addView(tv_img);
-                final ImageView selectedImageTemp = new ImageView(this);
-                // selectedImage.setLayoutParams(new android.view.ViewGroup.LayoutParams(150, 150));
-                selectedImageTemp.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                selectedImageTemp.setPadding(10, 5, 5, 5);
-                LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(200, 200);
-                buttonLayoutParams.setMargins(50, 0, 0, 0);
-                selectedImageTemp.setLayoutParams(buttonLayoutParams);
-                outerLinearLayout.addView(selectedImageTemp);
-
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            ans = ansObject.get("Answers").getAsString();
-                            Bitmap bmp = BitmapFactory.decodeFile(path + "/" + ans);
-                            selectedImageTemp.setImageBitmap(bmp);
-                            dde_questions.setAnswer(ans);
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                ans = ansObject.get("Answers").getAsString();
+                                Bitmap bmp = BitmapFactory.decodeFile(path + "/" + ans);
+                                selectedImageTemp.setImageBitmap(bmp);
+                                dde_questions.setAnswer(ans);
+                            }
                         }
                     }
-                }
-                layout.addView(outerLinearLayout);
+//                layout.addView(outerLinearLayout);
 
-                tv_img.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        final ChooseImageDialog chooseImageDialog = new ChooseImageDialog(DisplayQuestions.this);
-                        chooseImageDialog.btn_take_photo.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                chooseImageDialog.cancel();
-                                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-                                    String[] permissionArray = new String[]{PermissionUtils.Manifest_CAMERA};
+                    imageBtn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            final ChooseImageDialog chooseImageDialog = new ChooseImageDialog(DisplayQuestions.this);
+                            chooseImageDialog.btn_take_photo.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    chooseImageDialog.cancel();
+                                    if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+                                        String[] permissionArray = new String[]{PermissionUtils.Manifest_CAMERA};
 
-                                    if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
-                                        Toast.makeText(DisplayQuestions.this, "Give Camera permissions through settings and restart the app.", Toast.LENGTH_SHORT).show();
+                                        if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
+                                            Toast.makeText(DisplayQuestions.this, "Give Camera permissions through settings and restart the app.", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
+                                            dde_questions.setAnswer(imageName);
+                                            selectedImage = selectedImageTemp;
+                                            Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                            startActivityForResult(takePicture, CAPTURE_IMAGE);
+                                        }
                                     } else {
                                         imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
                                         dde_questions.setAnswer(imageName);
@@ -633,25 +669,27 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                         Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                                         startActivityForResult(takePicture, CAPTURE_IMAGE);
                                     }
-                                } else {
-                                    imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
-                                    dde_questions.setAnswer(imageName);
-                                    selectedImage = selectedImageTemp;
-                                    Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                    startActivityForResult(takePicture, CAPTURE_IMAGE);
                                 }
-                            }
-                        });
+                            });
 
-                        chooseImageDialog.btn_choose_from_gallery.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                chooseImageDialog.cancel();
-                                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-                                    String[] permissionArray = new String[]{PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE};
+                            chooseImageDialog.btn_choose_from_gallery.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    chooseImageDialog.cancel();
+                                    if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+                                        String[] permissionArray = new String[]{PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE};
 
-                                    if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
-                                        Toast.makeText(DisplayQuestions.this, "Give Storage permissions through settings and restart the app.", Toast.LENGTH_SHORT).show();
+                                        if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
+                                            Toast.makeText(DisplayQuestions.this, "Give Storage permissions through settings and restart the app.", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
+                                            dde_questions.setAnswer(imageName);
+                                            selectedImage = selectedImageTemp;
+                                            Intent intent = new Intent();
+                                            intent.setType("image/*");
+                                            intent.setAction(Intent.ACTION_GET_CONTENT);
+                                            startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_FROM_GALLERY);
+                                        }
                                     } else {
                                         imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
                                         dde_questions.setAnswer(imageName);
@@ -661,394 +699,401 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                         intent.setAction(Intent.ACTION_GET_CONTENT);
                                         startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_FROM_GALLERY);
                                     }
-                                } else {
-                                    imageName = entryID + "_" + dde_questions.getQuestionId() + ".jpg";
-                                    dde_questions.setAnswer(imageName);
-                                    selectedImage = selectedImageTemp;
-                                    Intent intent = new Intent();
-                                    intent.setType("image/*");
-                                    intent.setAction(Intent.ACTION_GET_CONTENT);
-                                    startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_FROM_GALLERY);
                                 }
-                            }
-                        });
+                            });
 
-                        chooseImageDialog.show();
-                    }
-                });
-                break;
-
-            case "date":
-                final TextView date = new TextView(this);
-                date.setPadding(10, 5, 5, 5);
-                date.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                date.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-                date.setText("Select Date");
-                date.setTag("ans" + dde_questions.getQuestionId());
-                date.setLayoutParams(paramsWrapContaint);
-                layout.addView(date);
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            ans = ansObject.get("Answers").getAsString();
-                            date.setText(ans);
-                            dde_questions.setAnswer(ans);
+                            chooseImageDialog.show();
                         }
-                    }
-                } else {
-                    if (parseDate(validationValue) != null) {
-                        date.setText(parseDate(validationValue));
-                        dde_questions.setAnswer(validationValue);
-                    }
-                }
-                date.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Calendar calendar = Calendar.getInstance();
-                        int mYear = calendar.get(Calendar.YEAR);
-                        int mMonth = calendar.get(Calendar.MONTH);
-                        int mDay = calendar.get(Calendar.DAY_OF_MONTH);
-                        DatePickerDialog datePickerDialog;
+                    });
+                    break;
 
-                        datePickerDialog = new DatePickerDialog(DisplayQuestions.this, new DatePickerDialog.OnDateSetListener() {
-                            @Override
-                            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                                month++;
-                                dde_questions.setAnswer("" + year + "/" + month + "/" + day);
-                                date.setText("" + year + "/" + month + "/" + day);
-                            }
-
-                        }, mYear, mMonth, mDay);
-
-                        /*GETTING RANGE OF DATE FROM QUESTION */
-                        DatePicker datePicker = datePickerDialog.getDatePicker();
-                        datePicker.init(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth(), new DatePicker.OnDateChangedListener() {
-                            @Override
-                            public void onDateChanged(DatePicker datePicker, int i, int i1, int i2) {
-                                // Toast.makeText(DisplayQuestions.this, "Date changed", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        Calendar c = Calendar.getInstance();
-                        String minDateString = dde_questions.getMINRANGE();
-                        String maxDateString = dde_questions.getMAXRANGE();
-                        if (minDateString != null) {
-                            int minYear = 0, minMonth = 0, minDay = 0;
-                            try {
-                                JSONObject mindateJsonObject = new JSONObject(minDateString);
-                                minYear = mindateJsonObject.getInt("year");
-                                minMonth = mindateJsonObject.getInt("month") - 1;
-                                minDay = mindateJsonObject.getInt("day");
-
-                                c.set(minYear, minMonth, minDay);
-                                datePicker.setMinDate(c.getTimeInMillis());
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        if (maxDateString != null) {
-                            int maxYear = 0, maxMonth = 0, maxDay = 0;
-
-                            JSONObject maxdateJsonObject = null;
-                            try {
-                                maxdateJsonObject = new JSONObject(maxDateString);
-                                maxYear = maxdateJsonObject.getInt("year");
-                                maxMonth = maxdateJsonObject.getInt("month") - 1;
-                                maxDay = maxdateJsonObject.getInt("day");
-
-                                c.set(maxYear, maxMonth, maxDay);
-                                datePicker.setMaxDate(c.getTimeInMillis());
-                            } catch (JSONException e1) {
-                                e1.printStackTrace();
-                            }
-                        }
-
-                        datePickerDialog.setTitle("Select Date");
-                        datePickerDialog.show();
-
-                    }
-                });
-                break;
-
-
-            case "time":
-                final TextView time = new TextView(this);
-                time.setPadding(10, 5, 5, 5);
-                time.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                time.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-                time.setText("Select Time");
-                time.setLayoutParams(paramsWrapContaint);
-                time.setTag("ans" + dde_questions.getQuestionId());
-                String text = null;
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            ans = ansObject.get("Answers").getAsString();
-                            time.setText(ans);
-                            dde_questions.setAnswer(ans);
-                        }
-                    }
-                } else {
-                    try {
-                        final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
-                        final Date dateObj = sdf.parse(validationValue);
-                        text = new SimpleDateFormat("K:mm aa").format(dateObj);
-                        time.setText(text);
-                        dde_questions.setAnswer(text);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
-                layout.addView(time);
-                time.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Calendar calendar = Calendar.getInstance();
-                        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-                        int minute = calendar.get(Calendar.MINUTE);
-                        TimePickerDialog mtimePickerDialog;
-                        mtimePickerDialog = new TimePickerDialog(DisplayQuestions.this, new TimePickerDialog.OnTimeSetListener() {
-                            @Override
-                            public void onTimeSet(TimePicker timePicker, int hours, int mins) {
-                                String timeSet = "";
-                                if (hours > 12) {
-                                    hours -= 12;
-                                    timeSet = "PM";
-                                } else if (hours == 0) {
-                                    hours += 12;
-                                    timeSet = "AM";
-                                } else if (hours == 12) timeSet = "PM";
-                                else timeSet = "AM";
-
-
-                                String minutes = "";
-                                if (mins < 10) minutes = "0" + mins;
-                                else minutes = String.valueOf(mins);
-
-                                // Append in a StringBuilder
-                                String aTime = new StringBuilder().append(hours).append(':').append(minutes).append(" ").append(timeSet).toString();
-
-                                time.setText(aTime);
-                                dde_questions.setAnswer(aTime);
-                            }
-                        }, hour, minute, false);
-                        mtimePickerDialog.setTitle("Select time");
-                        mtimePickerDialog.show();
-                    }
-                });
-
-                break;
-
-            case "dropdown":
-                List<DisplayValue> display = new ArrayList();
-                // List value = new ArrayList();
-                Spinner spinnerDropdown = new Spinner(this);
-                spinnerDropdown.setBackground(ContextCompat.getDrawable(this, R.drawable.spinnerbg));
-                JsonArray optionDropDown = dde_questions.getQuestionOption();
-                display.add(new DisplayValue("select option", "select option"));
-                for (int i = 0; i < optionDropDown.size(); i++) {
-                    JsonElement jsonElement = optionDropDown.get(i);
-                    JsonObject jsonObject = jsonElement.getAsJsonObject();
-                    display.add(new DisplayValue(jsonObject.get("display").getAsString(), jsonObject.get("value").getAsString()));
-                }
-                ArrayAdapter<DisplayValue> spinnerArrayAdapter = new ArrayAdapter<DisplayValue>(this, android.R.layout.simple_selectable_list_item, display);
-                spinnerDropdown.setAdapter(spinnerArrayAdapter);
-                spinnerDropdown.setLayoutParams(params);
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            ans = ansObject.get("Answers").getAsString();
-                            int index = -1;
-                            for (int i = 0; i < display.size(); i++) {
-                                if (display.get(i).getValue().equals(ans)) {
-                                    index = i;
-                                    break;
-                                }
-                            }
-                            if (index != -1) {
-                                spinnerDropdown.setSelection(index);
+                case "date":
+                    View queDateLayout = LayoutInflater.from(this).inflate(R.layout.layout_date, rootQuestionLL, false);
+                    final Button date = queDateLayout.findViewById(R.id.btn_datePicker);
+//                    final TextView date = new TextView(this);
+//                    date.setPadding(10, 5, 5, 5);
+//                    date.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+//                    date.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+//                    date.setText("Select Date");
+                    date.setTag("ans" + dde_questions.getQuestionId());
+//                    date.setLayoutParams(paramsWrapContaint);
+                    rootQuestionLL.addView(date);
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                ans = ansObject.get("Answers").getAsString();
+                                date.setText(ans);
                                 dde_questions.setAnswer(ans);
                             }
-                            break;
+                        }
+                    } else {
+                        if (!validationValue.isEmpty() && parseDate(validationValue) != null) {
+                            date.setText(parseDate(validationValue));
+                            dde_questions.setAnswer(validationValue);
                         }
                     }
-                } else {
-                    int index = getIndex(spinnerDropdown, validationValue);
-                    if (index != -1) {
-                        spinnerDropdown.setSelection(index);
-                        dde_questions.setAnswer(validationValue);
-                    }
-                }
-                spinnerDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        LinearLayout linearLayout = (LinearLayout) adapterView.getParent();
-                        String tag = linearLayout.getTag().toString();
-                        if (adapterView.getSelectedItem().toString().equals("select option")) {
-                            dde_questions.setAnswer("");
-                            checkRuleCondition(tag, "", "dropdown");
-                        } else {
-                            DisplayValue displayValue = (DisplayValue) adapterView.getSelectedItem();
+                    date.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Calendar calendar = Calendar.getInstance();
+                            int mYear = calendar.get(Calendar.YEAR);
+                            int mMonth = calendar.get(Calendar.MONTH);
+                            int mDay = calendar.get(Calendar.DAY_OF_MONTH);
+                            DatePickerDialog datePickerDialog;
 
-                            dde_questions.setAnswer(displayValue.getValue());
+                            datePickerDialog = new DatePickerDialog(DisplayQuestions.this, new DatePickerDialog.OnDateSetListener() {
+                                @Override
+                                public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                                    month++;
+                                    dde_questions.setAnswer("" + year + "/" + month + "/" + day);
+                                    date.setText("" + year + "/" + month + "/" + day);
+                                }
 
-                            checkRuleCondition(tag, ((DisplayValue) adapterView.getSelectedItem()).getValue(), "dropdown");
+                            }, mYear, mMonth, mDay);
+
+                            /*GETTING RANGE OF DATE FROM QUESTION */
+                            DatePicker datePicker = datePickerDialog.getDatePicker();
+                            datePicker.init(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth(), new DatePicker.OnDateChangedListener() {
+                                @Override
+                                public void onDateChanged(DatePicker datePicker, int i, int i1, int i2) {
+                                    // Toast.makeText(DisplayQuestions.this, "Date changed", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            Calendar c = Calendar.getInstance();
+                            String minDateString = dde_questions.getMINRANGE();
+                            String maxDateString = dde_questions.getMAXRANGE();
+                            if (minDateString != null) {
+                                int minYear = 0, minMonth = 0, minDay = 0;
+                                try {
+                                    JSONObject mindateJsonObject = new JSONObject(minDateString);
+                                    minYear = mindateJsonObject.getInt("year");
+                                    minMonth = mindateJsonObject.getInt("month") - 1;
+                                    minDay = mindateJsonObject.getInt("day");
+
+                                    c.set(minYear, minMonth, minDay);
+                                    datePicker.setMinDate(c.getTimeInMillis());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            if (maxDateString != null) {
+                                int maxYear = 0, maxMonth = 0, maxDay = 0;
+
+                                JSONObject maxdateJsonObject = null;
+                                try {
+                                    maxdateJsonObject = new JSONObject(maxDateString);
+                                    maxYear = maxdateJsonObject.getInt("year");
+                                    maxMonth = maxdateJsonObject.getInt("month") - 1;
+                                    maxDay = maxdateJsonObject.getInt("day");
+
+                                    c.set(maxYear, maxMonth, maxDay);
+                                    datePicker.setMaxDate(c.getTimeInMillis());
+                                } catch (JSONException e1) {
+                                    e1.printStackTrace();
+                                }
+                            }
+
+                            datePickerDialog.setTitle("Select Date");
+                            datePickerDialog.show();
+
+                        }
+                    });
+                    break;
+
+
+                case "time":
+                    View queTimeLayout = LayoutInflater.from(this).inflate(R.layout.layout_time, rootQuestionLL, false);
+                    final Button time = queTimeLayout.findViewById(R.id.btn_timePicker);
+//                    final TextView time = new TextView(this);
+//                    time.setPadding(10, 5, 5, 5);
+//                    time.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+//                    time.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+//                    time.setText("Select Time");
+//                    time.setLayoutParams(paramsWrapContaint);
+                    time.setTag("ans" + dde_questions.getQuestionId());
+                    rootQuestionLL.addView(time);
+                    String text = null;
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                ans = ansObject.get("Answers").getAsString();
+                                time.setText(ans);
+                                dde_questions.setAnswer(ans);
+                            }
+                        }
+                    } else {
+                        try {
+                            if (!validationValue.isEmpty()) {
+                                final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
+                                final Date dateObj = sdf.parse(validationValue);
+                                text = new SimpleDateFormat("K:mm aa").format(dateObj);
+                            } else text = /*Utility.getTimeForDateQuestion()*/"";
+                            time.setText(text);
+                            dde_questions.setAnswer(text);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
                         }
                     }
+//                layout.addView(time);
+                    time.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Calendar calendar = Calendar.getInstance();
+                            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+                            int minute = calendar.get(Calendar.MINUTE);
+                            TimePickerDialog mtimePickerDialog;
+                            mtimePickerDialog = new TimePickerDialog(DisplayQuestions.this, new TimePickerDialog.OnTimeSetListener() {
+                                @Override
+                                public void onTimeSet(TimePicker timePicker, int hours, int mins) {
+                                    String timeSet = "";
+                                    if (hours > 12) {
+                                        hours -= 12;
+                                        timeSet = "PM";
+                                    } else if (hours == 0) {
+                                        hours += 12;
+                                        timeSet = "AM";
+                                    } else if (hours == 12) timeSet = "PM";
+                                    else timeSet = "AM";
 
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
 
+                                    String minutes = "";
+                                    if (mins < 10) minutes = "0" + mins;
+                                    else minutes = String.valueOf(mins);
+
+                                    // Append in a StringBuilder
+                                    String aTime = new StringBuilder().append(hours).append(':').append(minutes).append(" ").append(timeSet).toString();
+
+                                    time.setText(aTime);
+                                    dde_questions.setAnswer(aTime);
+                                }
+                            }, hour, minute, false);
+                            mtimePickerDialog.setTitle("Select time");
+                            mtimePickerDialog.show();
+                        }
+                    });
+
+                    break;
+
+                case "dropdown":
+                    View queDropdownLayout = LayoutInflater.from(this).inflate(R.layout.layout_spinner, rootQuestionLL, false);
+                    final Spinner spinnerDropdown = queDropdownLayout.findViewById(R.id.sp_Answer);
+                    rootQuestionLL.addView(spinnerDropdown);
+                    List<DisplayValue> display = new ArrayList();
+                    // List value = new ArrayList();
+//                    Spinner spinnerDropdown = new Spinner(this);
+//                    spinnerDropdown.setBackground(ContextCompat.getDrawable(this, R.drawable.spinnerbg));
+                    JsonArray optionDropDown = dde_questions.getQuestionOption();
+                    display.add(new DisplayValue("select option", "select option"));
+                    for (int i = 0; i < optionDropDown.size(); i++) {
+                        JsonElement jsonElement = optionDropDown.get(i);
+                        JsonObject jsonObject = jsonElement.getAsJsonObject();
+                        display.add(new DisplayValue(jsonObject.get("display").getAsString(), jsonObject.get("value").getAsString()));
                     }
-                });
-                layout.addView(spinnerDropdown);
-                break;
+                    ArrayAdapter<DisplayValue> spinnerArrayAdapter = new ArrayAdapter<DisplayValue>(this, android.R.layout.simple_selectable_list_item, display);
+                    spinnerDropdown.setAdapter(spinnerArrayAdapter);
+//                spinnerDropdown.setLayoutParams(params);
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                ans = ansObject.get("Answers").getAsString();
+                                int index = -1;
+                                for (int i = 0; i < display.size(); i++) {
+                                    if (display.get(i).getValue().equals(ans)) {
+                                        index = i;
+                                        break;
+                                    }
+                                }
+                                if (index != -1) {
+                                    spinnerDropdown.setSelection(index);
+                                    dde_questions.setAnswer(ans);
+                                }
+                                break;
+                            }
+                        }
+                    } else {
+                        int index = getIndex(spinnerDropdown, validationValue);
+                        if (index != -1) {
+                            spinnerDropdown.setSelection(index);
+                            dde_questions.setAnswer(validationValue);
+                        }
+                    }
+                    spinnerDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                            LinearLayout linearLayout = (LinearLayout) adapterView.getParent();
+                            String tag = linearLayout.getTag().toString();
+                            if (adapterView.getSelectedItem().toString().equals("select option")) {
+                                dde_questions.setAnswer("");
+                                checkRuleCondition(tag, "", "dropdown");
+                            } else {
+                                DisplayValue displayValue = (DisplayValue) adapterView.getSelectedItem();
 
-            case "datasourcelist":
-                if (dde_questions.getDependentQuestionIdentifier() == null)
-                    new ShowDataSources(DisplayQuestions.this, layout, dde_questions, "", "").execute();
-                else
-                    new ShowDataSources(DisplayQuestions.this, layout, dde_questions, "", "firstInitializaion").execute();
-                break;
-            case "singleimage":
-                //  JsonArray option = dde_questions.getQuestionOption();
-                HorizontalScrollView horizontalScrollView = new HorizontalScrollView(this);
-                horizontalScrollView.setLayoutParams(params);
-                RadioGroup.LayoutParams paramsWrapContaintRadio = new RadioGroup.LayoutParams(getDp(130), getDp(130), 1);
-                paramsWrapContaint.setMargins(20, 20, 20, 20);
-                RadioGroup imageRadio = new RadioGroup(this);
-                imageRadio.setOrientation(LinearLayout.HORIZONTAL);
-                String path = Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEDownloadedImages/unzipped/" + dde_questions.getQuestionId() + "/file/";
-                Log.d("Files", "Path: " + path);
-                File directory = new File(path);
-                File[] files = directory.listFiles();
-                if (files != null && files.length > 0) {
-                    Log.d("Files", "Size: " + files.length);
-                    for (int i = 0; i < files.length; i++) {
-                        Log.d("Files", "FileName:" + files[i].getName());
-                        RadioButton radioButton = new RadioButton(this);
-                        radioButton.setId(i);
-                        // radioButton.setButtonDrawable(R.drawable.selector);
-                        radioButton.setLayoutParams(paramsWrapContaintRadio);
-                        radioButton.setTag(files[i].getName());
-                        // radioButton.setText(files[i].getName());
-                        String pathName = path + files[i].getName();
-                        Resources res = getResources();
-                        Bitmap bitmap = BitmapFactory.decodeFile(pathName);
-                        Drawable bd = new BitmapDrawable(res, bitmap);
-                        radioButton.setBackground(bd);
-                        radioButton.setButtonDrawable(R.drawable.selector);
+                                dde_questions.setAnswer(displayValue.getValue());
+
+                                checkRuleCondition(tag, ((DisplayValue) adapterView.getSelectedItem()).getValue(), "dropdown");
+                            }
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> adapterView) {
+
+                        }
+                    });
+//                layout.addView(spinnerDropdown);
+                    break;
+
+                case "datasourcelist":
+                    //todo
+                    if (dde_questions.getDependentQuestionIdentifier() == null)
+                        new ShowDataSources(DisplayQuestions.this, layout, rootQuestionLL, dde_questions, "", "").execute();
+                    else
+                        new ShowDataSources(DisplayQuestions.this, layout, rootQuestionLL, dde_questions, "", "firstInitializaion").execute();
+                    break;
+                case "singleimage":
+                    View queSingleImageLayout = LayoutInflater.from(this).inflate(R.layout.layout_imageradiogroup, rootQuestionLL, false);
+                    final HorizontalScrollView horizontalLayoutRadioImage = queSingleImageLayout.findViewById(R.id.horizontal_grid);
+//                    gridLayoutRadioImage.setColumnCount(2);
+                    final RadioGroup imageRadio = horizontalLayoutRadioImage.findViewById(R.id.rg_imgoptions);
+//
+                    String path = Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEDownloadedImages/unzipped/" + dde_questions.getQuestionId() + "/file/";
+                    Log.d("Files", "Path: " + path);
+                    File directory = new File(path);
+                    File[] files = directory.listFiles();
+                    if (files != null && files.length > 0) {
+                        Log.d("Files", "Size: " + files.length);
+                        for (int i = 0; i < files.length; i++) {
+                            Log.d("Files", "FileName:" + files[i].getName());
+                            View queRadioImageLayout = LayoutInflater.from(this).inflate(R.layout.layout_imageradiobutton, imageRadio, false);
+                            final RadioButton radioImageButton = queRadioImageLayout.findViewById(R.id.rb_imgoption);
+//                            RadioButton radioButton = new RadioButton(this);
+                            radioImageButton.setId(i);
+                            // radioButton.setButtonDrawable(R.drawable.selector);
+//                            radioButton.setLayoutParams(paramsWrapContaintRadio);
+                            radioImageButton.setTag(files[i].getName());
+                            // radioButton.setText(files[i].getName());
+                            String pathName = path + files[i].getName();
+                            Resources res = getResources();
+                            Bitmap bitmap = BitmapFactory.decodeFile(pathName);
+                            Drawable bd = new BitmapDrawable(res, bitmap);
+                            radioImageButton.setBackground(bd);
+                            radioImageButton.setButtonDrawable(R.drawable.selector);
 //                        radioButton.setPadding(20,20,20,20);
 
-                        //radioButton.setCompoundDrawablesWithIntrinsicBounds(null, null, bd, null);
+                            //radioButton.setCompoundDrawablesWithIntrinsicBounds(null, null, bd, null);
 
-                        if (editFormFlag) {
-                            String dest_column = dde_questions.getDestColumname();
-                            for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                                JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                                if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                                    String ansimage = ansObject.get("Answers").getAsString();
-                                    radioButton.setChecked(true);
-                                    dde_questions.setAnswer(ansimage);
-                                }
-                            }
-                        } else {
-                            if (validationValue.equalsIgnoreCase(radioButton.getTag().toString())) {
-                                radioButton.setChecked(true);
-                                dde_questions.setAnswer(validationValue);
-                            }
-                        }
-                        radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                            @Override
-                            public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
-                                if (isSelected) {
-                                    dde_questions.setAnswer(dde_questions.getQuestionId() + "/" + compoundButton.getTag().toString());
-                                    LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent().getParent();
-                                    String tag = (String) layout.getTag();
-                                    checkRuleCondition(tag, compoundButton.getTag().toString(), "singleimage");
-                                }
-                            }
-                        });
-                        imageRadio.addView(radioButton);
-                    }
-                    imageRadio.setLayoutParams(params);
-                    horizontalScrollView.addView(imageRadio);
-                    layout.addView(horizontalScrollView);
-                } else {
-                    Toast.makeText(this, "Image not found", Toast.LENGTH_SHORT).show();
-                }
-                break;
-            case "multipleimage":
-                String ansImage = "";
-                String pathImageCheckBox = Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEDownloadedImages/unzipped/" + dde_questions.getQuestionId() + "/file/";
-                Log.d("Files", "Path: " + pathImageCheckBox);
-                File directoryImageCheckBox = new File(pathImageCheckBox);
-                File[] filesImageCheckBox = directoryImageCheckBox.listFiles();
-                GridLayout gridLayoutImage = new GridLayout(this);
-                gridLayoutImage.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                gridLayoutImage.setColumnCount(2);
-                if (!validationValue.isEmpty() && !validationValue.endsWith("|"))
-                    validationValue += "|";
-
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            ansImage = ansObject.get("Answers").getAsString();
-                            if (!ansImage.endsWith("|")) ansImage += "|";
-                        }
-                    }
-                } else {
-                    dde_questions.setAnswer(validationValue);
-                }
-                if (filesImageCheckBox != null && filesImageCheckBox.length > 0) {
-                    for (int i = 0; i < filesImageCheckBox.length; i++) {
-                        final CheckBox checkBox = new CheckBox(this);
-                        // checkBox.setButtonDrawable(R.drawable.selector);
-                        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                            @Override
-                            public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
-                                String selectedAnswers = dde_questions.getAnswer();
-                                if (selectedAnswers.length() > 0) {
-                                    if (!selectedAnswers.endsWith("|")) {
-                                        selectedAnswers += "|";
+                            if (editFormFlag) {
+                                String dest_column = dde_questions.getDestColumname();
+                                for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                                    JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                                    if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                        String ansimage = ansObject.get("Answers").getAsString();
+                                        radioImageButton.setChecked(true);
+                                        dde_questions.setAnswer(ansimage);
                                     }
                                 }
-                                String tag = compoundButton.getTag().toString();
-                                String[] splitted = tag.split(":::");
-                                if (isSelected) {
-                                    if (!selectedAnswers.contains(splitted[1] + "|")) {
-                                        selectedAnswers += splitted[1] + "|";
-                                    }
-                                } else {
-                                    Log.d("replace..", selectedAnswers + "//" + splitted[1]);
-                                    selectedAnswers = selectedAnswers.replace(splitted[1] + "|", "");
+                            } else {
+                                if (validationValue.equalsIgnoreCase(radioImageButton.getTag().toString())) {
+                                    radioImageButton.setChecked(true);
+                                    dde_questions.setAnswer(validationValue);
                                 }
+                            }
+                            radioImageButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                                @Override
+                                public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
+                                    if (isSelected) {
+                                        dde_questions.setAnswer(dde_questions.getQuestionId() + "/" + compoundButton.getTag().toString());
+                                        LinearLayout layout = (LinearLayout) compoundButton.getParent().getParent().getParent();
+                                        String tag = (String) layout.getTag();
+                                        checkRuleCondition(tag, compoundButton.getTag().toString(), "singleimage");
+                                    }
+                                }
+                            });
+                            imageRadio.addView(radioImageButton);
+                        }
+                        rootQuestionLL.addView(queSingleImageLayout);
+//                    imageRadio.setLayoutParams(params);
+//                    horizontalScrollView.addView(imageRadio);
+//                    layout.addView(horizontalScrollView);
+                    } else {
+                        Toast.makeText(this, "Image not found", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                case "multipleimage":
+                    View queMultipleImageLayout = LayoutInflater.from(this).inflate(R.layout.layout_imagecheckbox_group, rootQuestionLL, false);
+                    final GridLayout gridLayoutImage = queMultipleImageLayout.findViewById(R.id.gl_checkboxGroup);
+//                    GridLayout gridLayoutImage = new GridLayout(this);
+//                    gridLayoutImage.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                    gridLayoutImage.setColumnCount(2);
+                    String ansImage = "";
+                    String pathImageCheckBox = Environment.getExternalStorageDirectory().toString() + "/.DDE/DDEDownloadedImages/unzipped/" + dde_questions.getQuestionId() + "/file/";
+                    Log.d("Files", "Path: " + pathImageCheckBox);
+                    File directoryImageCheckBox = new File(pathImageCheckBox);
+                    File[] filesImageCheckBox = directoryImageCheckBox.listFiles();
+                    if (!validationValue.isEmpty() && !validationValue.endsWith("|"))
+                        validationValue += "|";
+
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                ansImage = ansObject.get("Answers").getAsString();
+                                if (!ansImage.endsWith("|")) ansImage += "|";
+                            }
+                        }
+                    } else {
+                        dde_questions.setAnswer(validationValue);
+                    }
+                    if (filesImageCheckBox != null && filesImageCheckBox.length > 0) {
+                        for (File imageCheckBox : filesImageCheckBox) {
+                            View queImageCheckBoxLayout = LayoutInflater.from(this).inflate(R.layout.layout_imagecheckbox, gridLayoutImage, false);
+                            final CheckBox imgCheckBox = queImageCheckBoxLayout.findViewById(R.id.cb_imgoptions);
+//                            final CheckBox checkBox = new CheckBox(this);
+//                            imgCheckBox.setButtonDrawable(R.drawable.selector);
+                            imgCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                                @Override
+                                public void onCheckedChanged(CompoundButton compoundButton, boolean isSelected) {
+                                    String selectedAnswers = dde_questions.getAnswer();
+                                    if (selectedAnswers.length() > 0) {
+                                        if (!selectedAnswers.endsWith("|")) {
+                                            selectedAnswers += "|";
+                                        }
+                                    }
+                                    String tag = compoundButton.getTag().toString();
+                                    String[] splitted = tag.split(":::");
+                                    if (isSelected) {
+                                        if (!selectedAnswers.contains(splitted[1] + "|")) {
+                                            selectedAnswers += splitted[1] + "|";
+                                        }
+                                    } else {
+                                        Log.d("replace..", selectedAnswers + "//" + splitted[1]);
+                                        selectedAnswers = selectedAnswers.replace(splitted[1] + "|", "");
+                                    }
                           /* if (selectedAnswers.endsWith(",")) {
                                 selectedAnswers = selectedAnswers.substring(0, selectedAnswers.length() - 1);
                             }*/
-                                dde_questions.setAnswer(selectedAnswers);
-                                //String queParent = ((LinearLayout) compoundButton.getParent().getParent()).getTag().toString();
-                                String queParent = layout.getTag().toString();
-                                checkRuleCondition(queParent, selectedAnswers, "multipleimage");
-                            }
-                        });
-                        String pathName = pathImageCheckBox + filesImageCheckBox[i].getName();
-                        Resources res = getResources();
-                        Bitmap bitmap = BitmapFactory.decodeFile(pathName);
-                        Drawable bd = new BitmapDrawable(res, bitmap);
-                        checkBox.setBackground(bd);
-                        checkBox.setButtonDrawable(R.drawable.selector);
+                                    dde_questions.setAnswer(selectedAnswers);
+                                    //String queParent = ((LinearLayout) compoundButton.getParent().getParent()).getTag().toString();
+                                    String queParent = rootQuestionLL.getTag().toString();
+                                    checkRuleCondition(queParent, selectedAnswers, "multipleimage");
+                                }
+                            });
+                            String pathName = pathImageCheckBox + imageCheckBox.getName();
+                            Resources res = getResources();
+                            Bitmap bitmap = BitmapFactory.decodeFile(pathName);
+                            Drawable bd = new BitmapDrawable(res, bitmap);
+                            imgCheckBox.setBackground(bd);
+                            imgCheckBox.setButtonDrawable(R.drawable.selector);
 //                        checkBox.setButtonDrawable(bd);
-                        //checkBox.setBackground(R.drawable.selector);
-                        //checkBox.setCompoundDrawablesWithIntrinsicBounds(null, null, null, bd);
-                        checkBox.setTag(dde_questions.getQuestionId() + ":::" + dde_questions.getQuestionId() + "/" + filesImageCheckBox[i].getName());
+                            //checkBox.setBackground(R.drawable.selector);
+                            //checkBox.setCompoundDrawablesWithIntrinsicBounds(null, null, null, bd);
+                            imgCheckBox.setTag(dde_questions.getQuestionId() + ":::" + dde_questions.getQuestionId() + "/" + imageCheckBox.getName());
 
                    /* JsonElement jsonElement = optionImageCheckBox.get(i);
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
@@ -1056,111 +1101,125 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                     String text = jsonObject.get("display").getAsString();
                     String value = jsonObject.get("value").getAsString();*/
 //                        checkBox.setText(pathImageCheckBox + filesImageCheckBox[i].getName());
-                        if (editFormFlag) {
-                            if (ansImage.contains(filesImageCheckBox[i].getName() + "|")) {
-                                checkBox.setChecked(true);
-                                dde_questions.setAnswer(ansImage);
-                            }
-                        } else {
-                            if (validationValue.contains(filesImageCheckBox[i].getName() + "|")) {
-                                checkBox.setChecked(true);
-                                dde_questions.setAnswer(validationValue);
-                            }
-                        }
-                        checkBoxImageList.add(checkBox);
-                        GridLayout.LayoutParams paramGrid = new GridLayout.LayoutParams();
-                        paramGrid.height = getDp(130);
-                        paramGrid.width = getDp(130);
-                        paramGrid.setMargins(20, 20, 20, 20);
-                        checkBox.setLayoutParams(paramGrid);
-                        gridLayoutImage.addView(checkBox);
-                    }
-                }
-                layout.addView(gridLayoutImage);
-                break;
-
-            case "rating":
-                LinearLayout.LayoutParams paramsRating = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
-                paramsRating.setMargins(10, 0, 0, 0);
-                final RatingBar ratingBar = new RatingBar(this);
-                ratingBar.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                ratingBar.setNumStars(5);
-                ratingBar.setMax(5);
-                ratingBar.setLayoutParams(paramsRating);
-                layout.addView(ratingBar);
-
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            String ansRating = ansObject.get("Answers").getAsString();
-                            ratingBar.setRating(Float.parseFloat(ansRating));
-                            dde_questions.setAnswer(ansRating);
-                        }
-                    }
-                } else {
-                    try {
-                        ratingBar.setRating(Float.parseFloat(validationValue));
-                        dde_questions.setAnswer(validationValue);
-                    } catch (NumberFormatException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-                    @Override
-                    public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
-                        dde_questions.setAnswer(String.valueOf(rating));
-                    }
-                });
-
-                break;
-            case "location":
-                final TextView textView1 = new TextView(DisplayQuestions.this);
-                textView1.setBackground(ContextCompat.getDrawable(DisplayQuestions.this, R.drawable.rectangular_box));
-                textView1.setLayoutParams(params);
-                textView1.setTextSize(1, 18);
-                final Button button = new Button(this);
-                button.setText("View Map");
-                final Button getLocation = new Button(this);
-                getLocation.setText("get location");
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            String ansLocation = ansObject.get("Answers").getAsString();
-                            textView1.setText(ansLocation);
-                            dde_questions.setAnswer(ansLocation);
-                        }
-                    }
-                } else {
-                    textView1.setText(validationValue);
-                    dde_questions.setAnswer(validationValue);
-                }
-
-
-                button.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (locationService.checkLocationEnabled()) {
-                            // textView1.setText(locationService.getLocation().toString());
-                            Location location = locationService.mlocation;
-                            if (location != null) {
-
-                                FragmentTransaction ft = getFragmentManager().beginTransaction();
-                                Fragment prev = getFragmentManager().findFragmentByTag("dialog");
-                                if (prev != null) {
-                                    ft.remove(prev);
+                            if (editFormFlag) {
+                                if (ansImage.contains(imageCheckBox.getName() + "|")) {
+                                    imgCheckBox.setChecked(true);
+                                    dde_questions.setAnswer(ansImage);
                                 }
-                                ft.addToBackStack(null);
+                            } else {
+                                if (validationValue.contains(imageCheckBox.getName() + "|")) {
+                                    imgCheckBox.setChecked(true);
+                                    dde_questions.setAnswer(validationValue);
+                                }
+                            }
+                            checkBoxImageList.add(imgCheckBox);
+//                            GridLayout.LayoutParams paramGrid = new GridLayout.LayoutParams();
+//                            paramGrid.height = getDp(130);
+//                            paramGrid.width = getDp(130);
+//                            paramGrid.setMargins(20, 20, 20, 20);
+//                            imgCheckBox.setLayoutParams(paramGrid);
+                            gridLayoutImage.addView(imgCheckBox);
+                        }
+                    }
+                    rootQuestionLL.addView(gridLayoutImage);
+//                layout.addView(gridLayoutImage);
+                    break;
 
-                                // Create and show the dialog.
-                                newFragment = MapDialog.newInstance(locationService.mlocation.getLatitude(), locationService.mlocation.getLongitude());
-                                newFragment.show(ft, "dialog");
+                case "rating":
+//                    LinearLayout.LayoutParams paramsRating = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0);
+//                    paramsRating.setMargins(10, 0, 0, 0);
+                    View queRatingLayout = LayoutInflater.from(this).inflate(R.layout.layout_rating, rootQuestionLL, false);
+                    final RatingBar ratingBar = queRatingLayout.findViewById(R.id.rb_Rating);
+                    rootQuestionLL.addView(ratingBar);
 
-                                //  textView1.setText("Latitude:" + location.getLatitude() + ",Longitude" + location.getLongitude());
+//                    final RatingBar ratingBar = new RatingBar(this);
+//                    ratingBar.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                    ratingBar.setNumStars(5);
+                    ratingBar.setMax(5);
+//                    ratingBar.setLayoutParams(paramsRating);
+//                layout.addView(ratingBar);
+
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                String ansRating = ansObject.get("Answers").getAsString();
+                                if (!ansRating.isEmpty())
+                                    ratingBar.setRating(Float.parseFloat(ansRating));
+                                else
+                                    ratingBar.setRating(0.0f);
+                                dde_questions.setAnswer(ansRating);
+                            }
+                        }
+                    } else {
+                        try {
+                            if (!validationValue.isEmpty())
+                                ratingBar.setRating(Float.parseFloat(validationValue));
+                            else
+                                ratingBar.setRating(0.0f);
+                            dde_questions.setAnswer(validationValue);
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+                        @Override
+                        public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+                            dde_questions.setAnswer(String.valueOf(rating));
+                        }
+                    });
+
+                    break;
+                case "location":
+                    View queLocationLayout = LayoutInflater.from(this).inflate(R.layout.layout_location, rootQuestionLL, false);
+                    final LinearLayout locationLL = queLocationLayout.findViewById(R.id.locationLL);
+                    rootQuestionLL.addView(locationLL);
+                    final TextView latLong = locationLL.findViewById(R.id.tv_location);
+//                    textView1.setBackground(ContextCompat.getDrawable(DisplayQuestions.this, R.drawable.rectangular_box));
+//                textView1.setLayoutParams(params);
+//                    latLong.setTextSize(1, 18);
+                    final Button buttonLocation = locationLL.findViewById(R.id.btn_Location);
+//                    button.setText("View Map");
+                    final Button buttonMap = locationLL.findViewById(R.id.btn_viewMap);
+//                    getLocation.setText("get location");
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                String ansLocation = ansObject.get("Answers").getAsString();
+                                latLong.setText(ansLocation);
+                                dde_questions.setAnswer(ansLocation);
+                            }
+                        }
+                    } else {
+                        latLong.setText(validationValue);
+                        dde_questions.setAnswer(validationValue);
+                    }
+
+
+                    buttonMap.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (locationService.checkLocationEnabled()) {
+                                // textView1.setText(locationService.getLocation().toString());
+                                Location location = locationService.mlocation;
+                                if (location != null) {
+
+                                    FragmentTransaction ft = getFragmentManager().beginTransaction();
+                                    Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+                                    if (prev != null) {
+                                        ft.remove(prev);
+                                    }
+                                    ft.addToBackStack(null);
+
+                                    // Create and show the dialog.
+                                    newFragment = MapDialog.newInstance(locationService.mlocation.getLatitude(), locationService.mlocation.getLongitude());
+                                    newFragment.show(ft, "dialog");
+
+                                    //  textView1.setText("Latitude:" + location.getLatitude() + ",Longitude" + location.getLongitude());
                                 /*dde_questions.setAnswer("Latitude:" + location.getLatitude() + ",Longitude" + location.getLongitude());
                                 mapView.setCameraDistance(2);
                                 mapView.getMapAsync(new OnMapReadyCallback() {
@@ -1172,141 +1231,145 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                                     }
                                 });*/
 
+                                }
+
+                            } else {
+                                locationService.checkLocation();
                             }
-
-                        } else {
-                            locationService.checkLocation();
                         }
-                    }
-                });
+                    });
 
-                getLocation.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+                    buttonLocation.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
 
-                        if (locationService.checkLocationEnabled()) {
-                            //
-                            Location location = locationService.mlocation;
-                            if (location != null) {
-                                textView1.setText("Latitude:" + location.getLatitude() + ",Longitude" + location.getLongitude());
-                                dde_questions.setAnswer("Latitude:" + location.getLatitude() + ",Longitude" + location.getLongitude());
+                            if (locationService.checkLocationEnabled()) {
+                                //
+                                Location location = locationService.mlocation;
+                                if (location != null) {
+                                    latLong.setText("Latitude:" + location.getLatitude() + ",Longitude" + location.getLongitude());
+                                    dde_questions.setAnswer("Latitude:" + location.getLatitude() + ",Longitude" + location.getLongitude());
+                                }
+                            } else {
+                                locationService.checkLocation();
                             }
-                        } else {
-                            locationService.checkLocation();
                         }
-                    }
-                });
+                    });
 
 
-                // layout.addView(mapView);
-                // mapView.setActivated(true);
-                layout.addView(textView1);
-                layout.addView(getLocation);
-                layout.addView(button);
-                break;
-            case "video":
-                LinearLayout outerLinearLayoutVideo = new LinearLayout(this);
-                outerLinearLayoutVideo.setOrientation(LinearLayout.HORIZONTAL);
-                final TextView tv_video = new TextView(this);
-                tv_video.setPadding(5, 5, 5, 5);
-                tv_video.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
-                tv_video.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-                tv_video.setText("Record video");
-                outerLinearLayoutVideo.addView(tv_video);
-                final ImageView selectedVideo = new ImageView(this);
-                selectedVideo.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+                    // layout.addView(mapView);
+                    // mapView.setActivated(true);
+//                layout.addView(textView1);
+//                layout.addView(getLocation);
+//                layout.addView(button);
+                    break;
+                case "video":
+                    View queVideoLayout = LayoutInflater.from(this).inflate(R.layout.layout_video, rootQuestionLL, false);
+                    final LinearLayout videoLL = queVideoLayout.findViewById(R.id.videoLL);
+                    rootQuestionLL.addView(videoLL);
+                    final Button record = videoLL.findViewById(R.id.btn_Record);
+//                    LinearLayout outerLinearLayoutVideo = new LinearLayout(this);
+//                    outerLinearLayoutVideo.setOrientation(LinearLayout.HORIZONTAL);
+//                    final TextView tv_video = new TextView(this);
+//                    tv_video.setPadding(5, 5, 5, 5);
+//                    tv_video.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+//                    tv_video.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+//                    tv_video.setText("Record video");
+//                    outerLinearLayoutVideo.addView(tv_video);
+                    final ImageView selectedVideo = videoLL.findViewById(R.id.iv_thumbnail);
+//                    selectedVideo.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
 
-                // selectedVideo.setMediaController(mediaController);
+                    // selectedVideo.setMediaController(mediaController);
                /* selectedVideo.setLayoutParams(new android.view.ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 150));
                 selectedVideo.setPadding(10, 5, 5, 5);*/
-                LinearLayout.LayoutParams buttonLayoutParamsVideo = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200);
-                buttonLayoutParamsVideo.setMargins(50, 0, 50, 0);
-                selectedVideo.setLayoutParams(buttonLayoutParamsVideo);
-                outerLinearLayoutVideo.addView(selectedVideo);
+//                    LinearLayout.LayoutParams buttonLayoutParamsVideo = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200);
+//                    buttonLayoutParamsVideo.setMargins(50, 0, 50, 0);
+//                    selectedVideo.setLayoutParams(buttonLayoutParamsVideo);
+//                    outerLinearLayoutVideo.addView(selectedVideo);
 
-                if (editFormFlag) {
-                    String dest_column = dde_questions.getDestColumname();
-                    for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
-                        JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
-                        if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
-                            ans = ansObject.get("Answers").getAsString();
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                ans = ansObject.get("Answers").getAsString();
                            /* Bitmap bmp = BitmapFactory.decodeFile(path + "/" + ans);
                             selectedImageTemp.setImageBitmap(bmp);*/
-                            // selectedVideo.setVideoPath(videoPath + "/" + ans);
+                                // selectedVideo.setVideoPath(videoPath + "/" + ans);
 
-                            final String finalAns = ans;
-                            BitmapFactory.Options options = new BitmapFactory.Options();
-                            options.inSampleSize = 1;
-                            Bitmap thumb = ThumbnailUtils.createVideoThumbnail(videoPath + "/" + finalAns, MediaStore.Images.Thumbnails.MICRO_KIND);
-                            selectedVideo.setImageBitmap(thumb);
-                           
-                            selectedVideo.setTag(R.id.path, videoPath + "/" + finalAns);
-                            selectedVideo.setTag(R.id.name, finalAns);
-                            selectedVideo.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    final Dialog dialog = new Dialog(DisplayQuestions.this);
-                                    dialog.setContentView(R.layout.videoplayer);
-                                    dialog.show();
-                                    WindowManager.LayoutParams lp = new WindowManager.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                                    lp.copyFrom(dialog.getWindow().getAttributes());
-                                    dialog.getWindow().setAttributes(lp);
-                                    final VideoView videoview = (VideoView) dialog.findViewById(R.id.videoView);
-                                    videoview.setVideoPath(videoPath + "/" + finalAns);
-                                    videoview.setZOrderOnTop(true);
-                                    videoview.setZOrderMediaOverlay(true);
-                                    videoview.setMediaController(mediaController);
-                                    mediaController.setAnchorView(videoview);
-                                    videoview.start();
-                                }
-                            });
-                            dde_questions.setAnswer(ans);
+                                final String finalAns = ans;
+                                BitmapFactory.Options options = new BitmapFactory.Options();
+                                options.inSampleSize = 1;
+                                Bitmap thumb = ThumbnailUtils.createVideoThumbnail(videoPath + "/" + finalAns, MediaStore.Images.Thumbnails.MICRO_KIND);
+                                selectedVideo.setImageBitmap(thumb);
+
+                                selectedVideo.setTag(R.id.path, videoPath + "/" + finalAns);
+                                selectedVideo.setTag(R.id.name, finalAns);
+                                selectedVideo.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        final Dialog dialog = new Dialog(DisplayQuestions.this);
+                                        dialog.setContentView(R.layout.videoplayer);
+                                        dialog.show();
+                                        WindowManager.LayoutParams lp = new WindowManager.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                        lp.copyFrom(dialog.getWindow().getAttributes());
+                                        dialog.getWindow().setAttributes(lp);
+                                        final VideoView videoview = (VideoView) dialog.findViewById(R.id.videoView);
+                                        videoview.setVideoPath(videoPath + "/" + finalAns);
+                                        videoview.setZOrderOnTop(true);
+                                        videoview.setZOrderMediaOverlay(true);
+                                        videoview.setMediaController(mediaController);
+                                        mediaController.setAnchorView(videoview);
+                                        videoview.start();
+                                    }
+                                });
+                                dde_questions.setAnswer(ans);
+                            }
                         }
                     }
-                }
-                layout.addView(outerLinearLayoutVideo);
+//                layout.addView(outerLinearLayoutVideo);
 
-                tv_video.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (hasCamera()) {
-                            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-                                String[] permissionArray = new String[]{PermissionUtils.Manifest_CAMERA};
+                    record.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (hasCamera()) {
+                                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+                                    String[] permissionArray = new String[]{PermissionUtils.Manifest_CAMERA};
 
-                                if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
-                                    Toast.makeText(DisplayQuestions.this, "Give Camera permissions through settings and restart the app.", Toast.LENGTH_SHORT).show();
+                                    if (!isPermissionsGranted(DisplayQuestions.this, permissionArray)) {
+                                        Toast.makeText(DisplayQuestions.this, "Give Camera permissions through settings and restart the app.", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        videoName = entryID + "_" + dde_questions.getQuestionId() + ".mp4";
+                                        dde_questions.setAnswer(videoName);
+                                        selectedView = selectedVideo;
+                                        Intent takePicture = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+                                        takePicture.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 3 * 60);
+                                        takePicture.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
+                                        startActivityForResult(takePicture, VIDEO_CAPTURE);
+                                    }
                                 } else {
                                     videoName = entryID + "_" + dde_questions.getQuestionId() + ".mp4";
                                     dde_questions.setAnswer(videoName);
                                     selectedView = selectedVideo;
                                     Intent takePicture = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
                                     takePicture.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 3 * 60);
-                                    takePicture.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
                                     startActivityForResult(takePicture, VIDEO_CAPTURE);
                                 }
+
                             } else {
-                                videoName = entryID + "_" + dde_questions.getQuestionId() + ".mp4";
-                                dde_questions.setAnswer(videoName);
-                                selectedView = selectedVideo;
-                                Intent takePicture = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-                                takePicture.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 3 * 60);
-                                startActivityForResult(takePicture, VIDEO_CAPTURE);
+                                Toast.makeText(DisplayQuestions.this, "Camera not found", Toast.LENGTH_SHORT).show();
                             }
-
-                        } else {
-                            Toast.makeText(DisplayQuestions.this, "Camera not found", Toast.LENGTH_SHORT).show();
                         }
-                    }
-                });
+                    });
 
-                break;
-        }
-        renderAllQuestionsLayout.addView(layout);
-        /*check dependency if depends then hide*/
-        if (depQueID.contains(dde_questions.getQuestionId())) {
-            layout.setVisibility(View.GONE);
-        } /*else {
-         *//*LinearLayout.LayoutParams parameters = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2, 0);
+                    break;
+            }
+            renderAllQuestionsLayout.addView(layout);
+            /*check dependency if depends then hide*/
+            if (depQueID.contains(dde_questions.getQuestionId())) {
+                layout.setVisibility(View.GONE);
+            } /*else {
+             *//*LinearLayout.LayoutParams parameters = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2, 0);
             View view = new View(DisplayQuestions.this);
             view.setLayoutParams(parameters);
             renderAllQuestionsLayout.addView(view);*//*
@@ -1318,18 +1381,16 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         //view.setAlpha(0.3f);
         view.setBackgroundColor(getResources().getColor(R.color.black));
         renderAllQuestionsLayout.addView(view);*/
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
     private boolean hasCamera() {
-        if (getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_CAMERA)) {
-            return true;
-        } else {
-            return false;
-        }
+        return getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA);
     }
-
 
     private ArrayList<String> getDependentValues(ArrayList<String> answerList, String destColName, String conditionColName, String conditionColValue, NavigableMap<String, String> map) {
 
@@ -1407,7 +1468,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
     private class ShowDataSources extends AsyncTask<Void, Void, Void> {
         Context context;
-        LinearLayout layout;
+        View layout;
+        LinearLayout rootQuestionLL;
         DDE_Questions dde_questions;
         String answer;
         String destColumnParent;
@@ -1420,9 +1482,10 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         private int index;
         ProgressDialog dialogForSpinners;
 
-        public ShowDataSources(Context context, LinearLayout layout, DDE_Questions dde_questions, String answer, String destColumnParent) {
+        public ShowDataSources(Context context, View layout, LinearLayout rootQuestionLL, DDE_Questions dde_questions, String answer, String destColumnParent) {
             this.context = context;
             this.layout = layout;
+            this.rootQuestionLL = rootQuestionLL;
             this.dde_questions = dde_questions;
             this.answer = answer;
             this.destColumnParent = destColumnParent;
@@ -1434,7 +1497,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             super.onPreExecute();
             if (!dialog.isShowing() && !dialogForSpinners.isShowing()) {
                 dialogForSpinners = new ProgressDialog(DisplayQuestions.this);
-                dialogForSpinners.setTitle("Loading Data Spinner");
+                dialogForSpinners.setTitle("Preparing form");
 //                dialogForSpinners.getWindow().setDimAmount(1f);
                 dialogForSpinners.setCancelable(false);
                 dialogForSpinners.show();
@@ -1445,8 +1508,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             if (layoutObj != null) {
                 spinnerDataSource = (Spinner) layoutObj.getChildAt(1);
             } else {
-                spinnerDataSource = new Spinner(context);
-                spinnerDataSource.setBackground(ContextCompat.getDrawable(context, R.drawable.spinnerbg));
+                View queDSDropdownLayout = LayoutInflater.from(DisplayQuestions.this).inflate(R.layout.layout_spinner, rootQuestionLL, false);
+//                final Spinner spinnerDropdown = queDSDropdownLayout.findViewById(R.id.sp_Answer);
+                spinnerDataSource = queDSDropdownLayout.findViewById(R.id.sp_Answer);
+//                spinnerDataSource.setBackground(ContextCompat.getDrawable(context, R.drawable.spinnerbg));
+                rootQuestionLL.addView(spinnerDataSource);
             }
         }
 
@@ -1546,7 +1612,10 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             depForms = depForms + ", " + appDatabase.getDDE_FormsDao().getFormName(dependingForm.get(depIndex));
                     }
                     AlertDialog builder = new AlertDialog.Builder(DisplayQuestions.this).create();
-                    builder.setMessage(Html.fromHtml("Linked form or question might be deleted / not present / datasource linked improperly. Download <b>" + depForms + "</b> form(s) again."));
+                    if (depForms == null)
+                        builder.setMessage(Html.fromHtml("Linked form or question might be deleted / not present / datasource linked improperly. Download <b> dependent </b> form(s) again."));
+                    else
+                        builder.setMessage(Html.fromHtml("Linked form or question might be deleted / not present / datasource linked improperly. Download <b>" + depForms + "</b> form(s) again."));
                     builder.setCancelable(false);
                     builder.setButton(DialogInterface.BUTTON_POSITIVE, "Ok", new DialogInterface.OnClickListener() {
                         @Override
@@ -1570,7 +1639,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             //answerList.add(0,"select options");
             ArrayAdapter<String> spinnerArrayAdapterDS = new ArrayAdapter<String>(context, android.R.layout.simple_selectable_list_item, answerList);
             spinnerDataSource.setAdapter(spinnerArrayAdapterDS);
-            spinnerDataSource.setLayoutParams(paramsWrapContent);
+//            spinnerDataSource.setLayoutParams(paramsWrapContent);
             if (editFormFlag) {
                 String dest_column = dde_questions.getDestColumname();
                 for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
@@ -1595,7 +1664,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         for (int depQueIndex = 0; depQueIndex < formIdWiseQuestions.size(); depQueIndex++) {
                             if (dde_questions.getQuestionId().equals(formIdWiseQuestions.get(depQueIndex).getDependentQuestionIdentifier())) {
                                 index = depQueIndex;
-                                new ShowDataSources(DisplayQuestions.this, layout, formIdWiseQuestions.get(index), selectedOption, "onClick").execute();
+                                new ShowDataSources(DisplayQuestions.this, layout, rootQuestionLL, formIdWiseQuestions.get(index), selectedOption, "onClick").execute();
                                 //mHandler.sendEmptyMessage(0);
                             }
                         }
@@ -1604,7 +1673,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                         for (int depQueIndex = 0; depQueIndex < formIdWiseQuestions.size(); depQueIndex++) {
                             if (dde_questions.getQuestionId().equals(formIdWiseQuestions.get(depQueIndex).getDependentQuestionIdentifier())) {
                                 index = depQueIndex;
-                                new ShowDataSources(DisplayQuestions.this, layout, formIdWiseQuestions.get(index), selectedOption, destCol).execute();
+                                new ShowDataSources(DisplayQuestions.this, layout, rootQuestionLL, formIdWiseQuestions.get(index), selectedOption, destCol).execute();
                                 //mHandler.sendEmptyMessage(1);
                             }
                         }
@@ -1619,11 +1688,11 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
                 }
             });
-            if (layoutObj != null) {
-                /* spinnerDataSource = (Spinner) layoutObj.getChildAt(1);*/
-            } else {
-                layout.addView(spinnerDataSource);
-            }
+//            if (layoutObj != null) {
+//                /* spinnerDataSource = (Spinner) layoutObj.getChildAt(1);*/
+//            } else {
+//                layout.addView(spinnerDataSource);
+//            }
         }
 
         Handler mHandler = new Handler(new Handler.Callback() {
@@ -1631,10 +1700,10 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
             public boolean handleMessage(Message msg) {
                 switch (msg.what) {
                     case 0:
-                        new ShowDataSources(DisplayQuestions.this, layout, formIdWiseQuestions.get(index), selectedOption, "onClick").execute();
+                        new ShowDataSources(DisplayQuestions.this, layout, rootQuestionLL, formIdWiseQuestions.get(index), selectedOption, "onClick").execute();
                         break;
                     case 1:
-                        new ShowDataSources(DisplayQuestions.this, layout, formIdWiseQuestions.get(index), selectedOption, destCol).execute();
+                        new ShowDataSources(DisplayQuestions.this, layout, rootQuestionLL, formIdWiseQuestions.get(index), selectedOption, destCol).execute();
                         break;
                 }
                 return false;
@@ -1745,164 +1814,191 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 */
 
     private void checkRuleCondition(String tag, String ans, String queType) {
-        for (int i = 0; i < allRules.size(); i++) {
-            JsonArray questionCondition = allRules.get(i).getQuestionCondition();
-            Set conditionId = new LinkedHashSet();
-            for (int cntCondId = 0; cntCondId < questionCondition.size(); cntCondId++) {
-                JsonObject jsonObjectTemp = questionCondition.get(cntCondId).getAsJsonObject();
-                conditionId.add(jsonObjectTemp.get("ConditionId").getAsString());
-            }
-            for (int j = 0; j < questionCondition.size(); j++) {
-                JsonObject condition = questionCondition.get(j).getAsJsonObject();
-                String QuestionIdentifier = condition.get("QuestionIdentifier").getAsString();
-                String ConditionId = condition.get("ConditionId").getAsString();
-                if (QuestionIdentifier.equals(tag)) {
-                    String answerFromJsonToMatch = "";
-                    String ConditionType = condition.get("ConditionType").getAsString();
-                    Set ConditionsSatisfied = allRules.get(i).getContionsSatisfied();
-                    if (queType.equalsIgnoreCase("number")) {
-                        if (!condition.get("SelectValueQuestion").isJsonNull()) {
-                            answerFromJsonToMatch = condition.get("SelectValueQuestion").getAsString();
+        try {
+            for (int i = 0; i < allRules.size(); i++) {
+                JsonArray questionCondition = allRules.get(i).getQuestionCondition();
+                Set conditionId = new LinkedHashSet();
+                for (int cntCondId = 0; cntCondId < questionCondition.size(); cntCondId++) {
+                    JsonObject jsonObjectTemp = questionCondition.get(cntCondId).getAsJsonObject();
+                    conditionId.add(jsonObjectTemp.get("ConditionId").getAsString());
+                }
+                for (int j = 0; j < questionCondition.size(); j++) {
+                    JsonObject condition = questionCondition.get(j).getAsJsonObject();
+                    String QuestionIdentifier = condition.get("QuestionIdentifier").getAsString();
+                    String ConditionId = condition.get("ConditionId").getAsString();
+                    if (QuestionIdentifier.equals(tag)) {
+                        String answerFromJsonToMatch = "";
+                        String ConditionType = condition.get("ConditionType").getAsString();
+                        Set ConditionsSatisfied = allRules.get(i).getContionsSatisfied();
+                        if (queType.equalsIgnoreCase("number")) {
+                            if (!condition.get("SelectValueQuestion").isJsonNull()) {
+                                answerFromJsonToMatch = condition.get("SelectValueQuestion").getAsString();
+                            } else {
+                                answerFromJsonToMatch = "";
+                            }
                         } else {
-                            answerFromJsonToMatch = "";
+                            JsonArray ja = condition.get("SelectValue").getAsJsonArray();
+                            for (int cnt = 0; cnt < ja.size(); cnt++) {
+                                answerFromJsonToMatch += ja.get(cnt).getAsString() + ",";
+                            }
                         }
-                    } else {
-                        JsonArray ja = condition.get("SelectValue").getAsJsonArray();
-                        for (int cnt = 0; cnt < ja.size(); cnt++) {
-                            answerFromJsonToMatch += ja.get(cnt).getAsString() + ",";
+
+                        if (checkConditionType(ConditionType, ans, answerFromJsonToMatch, queType)) {
+                            ConditionsSatisfied.add(ConditionId);
+                        } else {
+                            ConditionsSatisfied.remove(ConditionId);
                         }
-                    }
+                        String showQueTag = allRules.get(i).getShowQuestionIdentifier();
+                        LinearLayout layout = renderAllQuestionsLayout.findViewWithTag(showQueTag);
+                        if (layout != null) {
+                            if (conditionMatch(allRules.get(i).getConditionsMatch(), conditionId.size(), ConditionsSatisfied.size())) {
+                                ((CardView) layout.getParent()).setVisibility(View.VISIBLE);
+//                                layout.setVisibility(View.VISIBLE);
+                                DDE_Questions visibleTempQue = null;
+                                for (int queCnt = 0; queCnt < formIdWiseQuestions.size(); queCnt++) {
+                                    if (formIdWiseQuestions.get(queCnt).getQuestionId().equals(showQueTag)) {
+                                        visibleTempQue = formIdWiseQuestions.get(queCnt);
+                                        String defaultValue = visibleTempQue.getDefaultValue();
+                                        if (defaultValue != null) {
+                                            //setting default values
+                                            switch (visibleTempQue.getQuestionType()) {
+                                                case "singlechoice":
+                                                    visibleTempQue.setAnswer(defaultValue);
+                                                    RadioGroup tempGroup = (RadioGroup) layout.getChildAt(1);
+                                                    for (int radioButtonIndex = 0; radioButtonIndex < tempGroup.getChildCount(); radioButtonIndex++) {
+                                                        if (((RadioButton) tempGroup.getChildAt(radioButtonIndex)).getText().equals(defaultValue)) {
+                                                            ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setChecked(true);
+                                                        } else {
+                                                            ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setChecked(false);
+                                                        }
+                                                    }
+                                                    break;
+                                                case "multiple":
+                                                    visibleTempQue.setAnswer(defaultValue);
+                                                    GridLayout tempGrid = (GridLayout) layout.getChildAt(1);
+                                                    String defaultval = defaultValue;
+                                                    if (!defaultval.isEmpty() && !defaultval.equalsIgnoreCase("null") && !defaultval.endsWith(","))
+                                                        defaultval += ",";
+                                                    for (int checkBoxIndex = 0; checkBoxIndex < tempGrid.getChildCount(); checkBoxIndex++) {
+                                                        String checkBoxTag = tempGrid.getChildAt(checkBoxIndex).getTag().toString();
+                                                        String[] splitted = checkBoxTag.split(":::");
+                                                        if (defaultval.contains(splitted[1] + ",")) {
+                                                            ((CheckBox) tempGrid.getChildAt(checkBoxIndex)).setChecked(true);
+                                                        } else {
+                                                            ((CheckBox) tempGrid.getChildAt(checkBoxIndex)).setChecked(false);
+                                                        }
+                                                    }
+                                                    break;
+                                                case "text":
+                                                case "number":
+                                                case "email":
+                                                    visibleTempQue.setAnswer(defaultValue);
+                                                    EditText tempEditText = (EditText) layout.getChildAt(1);
+                                                    tempEditText.setText(defaultValue);
+                                                    break;
+                                                case "date":
+                                                    if (!defaultValue.isEmpty() && parseDate(defaultValue) != null) {
+                                                        visibleTempQue.setAnswer(defaultValue);
+                                                        TextView tempDate = (TextView) layout.getChildAt(1);
+                                                        tempDate.setText(parseDate(defaultValue));
+                                                    }
+                                                    break;
+                                                case "time":
+                                                    String defaultTime = defaultValue;
+                                                    try {
+                                                        final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
+                                                        final Date dateObj;
+                                                        dateObj = sdf.parse(defaultTime);
+                                                        defaultTime = new SimpleDateFormat("K:mm aa").format(dateObj);
+                                                        TextView tempTime = (TextView) layout.getChildAt(1);
+                                                        tempTime.setText(defaultTime);
+                                                        visibleTempQue.setAnswer(defaultTime);
+                                                    } catch (ParseException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                    break;
+                                                case "dropdown":
+                                                    Spinner spinner = (Spinner) layout.getChildAt(1);
+                                                    spinner.setSelection(getIndex(spinner, defaultValue));
+                                                    visibleTempQue.setAnswer(defaultValue);
+                                                    break;
+                                                case "video":
+                                                    LinearLayout linearLayout = (LinearLayout) layout.getChildAt(1);
+                                                    ImageView view = (ImageView) linearLayout.getChildAt(1);
+                                                    String path = (String) view.getTag(R.id.path);
+                                                    if (path != null) {
+                                                        BitmapFactory.Options options = new BitmapFactory.Options();
+                                                        options.inSampleSize = 1;
+                                                        Bitmap thumb = ThumbnailUtils.createVideoThumbnail(path, MediaStore.Images.Thumbnails.MICRO_KIND);
+                                                        view.setImageBitmap(thumb);
+                                                        visibleTempQue.setAnswer(view.getTag(R.id.name).toString());
+                                                    }
 
-                    if (checkConditionType(ConditionType, ans, answerFromJsonToMatch, queType)) {
-                        ConditionsSatisfied.add(ConditionId);
-                    } else {
-                        ConditionsSatisfied.remove(ConditionId);
-                    }
-                    String showQueTag = allRules.get(i).getShowQuestionIdentifier();
-                    LinearLayout layout = renderAllQuestionsLayout.findViewWithTag(showQueTag);
-                    if (layout != null) {
-                        if (conditionMatch(allRules.get(i).getConditionsMatch(), conditionId.size(), ConditionsSatisfied.size())) {
-                            layout.setVisibility(View.VISIBLE);
-                            DDE_Questions visibleTempQue = null;
-                            for (int queCnt = 0; queCnt < formIdWiseQuestions.size(); queCnt++) {
-                                if (formIdWiseQuestions.get(queCnt).getQuestionId().equals(showQueTag)) {
-                                    visibleTempQue = formIdWiseQuestions.get(queCnt);
-                                    switch (visibleTempQue.getQuestionType()) {
-                                        case "singlechoice":
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            RadioGroup tempGroup = (RadioGroup) layout.getChildAt(1);
-                                            for (int radioButtonIndex = 0; radioButtonIndex < tempGroup.getChildCount(); radioButtonIndex++) {
-                                                if (((RadioButton) tempGroup.getChildAt(radioButtonIndex)).getText().equals(visibleTempQue.getDefaultValue())) {
-                                                    ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setChecked(true);
-                                                } else {
-                                                    ((RadioButton) tempGroup.getChildAt(radioButtonIndex)).setChecked(false);
-                                                }
                                             }
-                                            break;
-                                        case "multiple":
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            GridLayout tempGrid = (GridLayout) layout.getChildAt(1);
-                                            String defaultval = visibleTempQue.getDefaultValue();
-                                            if (defaultval != null && !defaultval.isEmpty() && !defaultval.equalsIgnoreCase("null") && !defaultval.endsWith(","))
-                                                defaultval += ",";
-                                            for (int checkBoxIndex = 0; checkBoxIndex < tempGrid.getChildCount(); checkBoxIndex++) {
-                                                String checkBoxTag = tempGrid.getChildAt(checkBoxIndex).getTag().toString();
-                                                String[] splitted = checkBoxTag.split(":::");
-                                                if (defaultval.contains(splitted[1] + ",")) {
-                                                    ((CheckBox) tempGrid.getChildAt(checkBoxIndex)).setChecked(true);
-                                                } else {
-                                                    ((CheckBox) tempGrid.getChildAt(checkBoxIndex)).setChecked(false);
-                                                }
-                                            }
-                                            break;
-                                        case "text":
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            EditText tempEditText = (EditText) layout.getChildAt(1);
-                                            tempEditText.setText(visibleTempQue.getDefaultValue());
-                                            break;
-                                        case "number":
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            EditText tempEditNumber = (EditText) layout.getChildAt(1);
-                                            tempEditNumber.setText(visibleTempQue.getDefaultValue());
-                                            break;
-                                        case "email":
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            EditText tempEditEmail = (EditText) layout.getChildAt(1);
-                                            tempEditEmail.setText(visibleTempQue.getDefaultValue());
-                                            break;
-
-                                        case "date":
-                                            String defaultDate = visibleTempQue.getDefaultValue();
-                                            if (parseDate(defaultDate) != null) {
-                                                visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                                TextView tempDate = (TextView) layout.getChildAt(1);
-                                                tempDate.setText(parseDate(defaultDate));
-                                            }
-                                            break;
-                                        case "time":
-                                            String defaultTime = visibleTempQue.getDefaultValue();
-                                            try {
-                                                final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
-                                                final Date dateObj;
-                                                dateObj = sdf.parse(defaultTime);
-                                                defaultTime = new SimpleDateFormat("K:mm aa").format(dateObj);
-                                                TextView tempTime = (TextView) layout.getChildAt(1);
-                                                tempTime.setText(defaultTime);
-                                                visibleTempQue.setAnswer(defaultTime);
-                                            } catch (ParseException e) {
-                                                e.printStackTrace();
-                                            }
-                                            break;
-                                        case "dropdown":
-                                            Spinner spinner = (Spinner) layout.getChildAt(1);
-                                            spinner.setSelection(getIndex(spinner, visibleTempQue.getDefaultValue()));
-                                            visibleTempQue.setAnswer(visibleTempQue.getDefaultValue());
-                                            break;
-                                        case "video":
-                                            LinearLayout linearLayout = (LinearLayout) layout.getChildAt(1);
-                                            ImageView view = (ImageView) linearLayout.getChildAt(1);
-                                            String path = (String) view.getTag(R.id.path);
-                                            if (path != null) {
-                                                BitmapFactory.Options options = new BitmapFactory.Options();
-                                                options.inSampleSize = 1;
-                                                Bitmap thumb = ThumbnailUtils.createVideoThumbnail(path, MediaStore.Images.Thumbnails.MICRO_KIND);
-                                                view.setImageBitmap(thumb);
-                                                visibleTempQue.setAnswer(view.getTag(R.id.name).toString());
-                                            }
-
+                                        }
                                     }
+                                }
+                                checkRuleCondition(showQueTag, visibleTempQue.getAnswer(), visibleTempQue.getQuestionType());
+                            } else {
+                                DDE_Questions hiddenTempQue = null;
+                                for (int queCnt = 0; queCnt < formIdWiseQuestions.size(); queCnt++) {
+                                    if (formIdWiseQuestions.get(queCnt).getQuestionId().equals(showQueTag)) {
+                                        hiddenTempQue = formIdWiseQuestions.get(queCnt);
+                                        hiddenTempQue.setAnswer("");
+                                        break;
+                                    }
+                                }
 
+                                ((CardView) layout.getParent()).setVisibility(View.GONE);
+//                                layout.setVisibility(View.GONE);
+                                try {
+                                    View view = layout.getChildAt(1);
+                                    if (view instanceof Spinner) {
+                                        ((Spinner) view).setSelection(0);
+                                    } else if (view instanceof RatingBar) {
+                                        ((RatingBar) view).setRating(0.0f);
+                                    } else if (view instanceof RadioGroup) {
+                                        ((RadioGroup) view).clearCheck();
+                                    } else if (view instanceof EditText) {
+                                        ((EditText) view).setText("");
+                                    } else if (view instanceof Button) {
+                                        ((Button) view).setText("");
+                                    } else if (view instanceof GridLayout) {
+                                        GridLayout layTemp = ((GridLayout) view);
+                                        int childCount = layTemp.getChildCount();
+                                        for (int cntr = 0; cntr < childCount; cntr++) {
+                                            View v = layTemp.getChildAt(i);
+                                            if (v instanceof CheckBox)
+                                                ((CheckBox) v).setChecked(false);
+                                        }
+                                    } else if (view instanceof HorizontalScrollView) {
+                                        View ansView = ((HorizontalScrollView) view).getChildAt(0);
+                                        if (ansView instanceof RadioGroup) {
+                                            ((RadioGroup) ansView).clearCheck();
+                                        }
+                                    } else if (view instanceof LinearLayout) {
+                                        View textView = ((LinearLayout) view).getChildAt(0);
+                                        if (textView instanceof TextView) {
+                                            ((TextView) textView).setText("");
+                                        }
+                                        View ansView = ((LinearLayout) view).getChildAt(1);
+                                        if (ansView instanceof ImageView) {
+                                            ((ImageView) ansView).setImageResource(android.R.color.transparent);
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
-                            }
-                            checkRuleCondition(showQueTag, visibleTempQue.getAnswer(), visibleTempQue.getQuestionType());
-                        } else {
-                            DDE_Questions hiddenTempQue = null;
-                            for (int queCnt = 0; queCnt < formIdWiseQuestions.size(); queCnt++) {
-                                if (formIdWiseQuestions.get(queCnt).getQuestionId().equals(showQueTag)) {
-                                    hiddenTempQue = formIdWiseQuestions.get(queCnt);
-                                    hiddenTempQue.setAnswer("");
-                                    break;
+                                if (hiddenTempQue != null) {
+                                    checkRuleCondition(showQueTag, "$$", hiddenTempQue.getQuestionType());
                                 }
-                            }
-
-                            layout.setVisibility(View.GONE);
-                            View view = layout.getChildAt(1);
-                            layout.getTag();
-                            if (view instanceof EditText) {
-                                ((EditText) view).setText("");
-                            } else if (view instanceof LinearLayout) {
-                                View ansView = ((LinearLayout) view).getChildAt(1);
-                                if (ansView instanceof ImageView) {
-                                    ((ImageView) ansView).setImageResource(android.R.color.transparent);
-                                }
-                            }
-                            if (hiddenTempQue != null) {
-                                checkRuleCondition(showQueTag, "$$", hiddenTempQue.getQuestionType());
                             }
                         }
                     }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -2173,7 +2269,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
                             parentScroll.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    parentScroll.scrollTo(0, linearLayout.getTop());
+                                    linearLayout.getParent().requestChildFocus(linearLayout, linearLayout);
+//                                    parentScroll.scrollTo(0, linearLayout.getTop());
                                 }
                             });
                             return false;
@@ -2191,7 +2288,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
     private boolean checkValue(String questionId, String questionType, String validationName, String validationType, String validationValue, String answer) {
         try {
-            if (renderAllQuestionsLayout.findViewWithTag(questionId).getVisibility() == View.VISIBLE) {
+            if (((CardView) renderAllQuestionsLayout.findViewWithTag(questionId).getParent()).getVisibility() == View.VISIBLE) {
                 if (validationValue.isEmpty())
                     return true;
                 switch (validationName) {

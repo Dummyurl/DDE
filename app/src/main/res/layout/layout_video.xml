@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@+id/videoLL"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="horizontal"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--Imageview Button-->
+    <Button
+        android:id="@+id/btn_Record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="@dimen/_8sdp"
+        android:background="@drawable/custom_button_border"
+        android:drawableLeft="@drawable/ic_camcoder"
+        android:drawablePadding="@dimen/_10sdp"
+        android:padding="@dimen/_16sdp"
+        android:text="Record"
+        android:textColor="@color/cardButton"
+        android:textSize="@dimen/_12sdp"
+        android:textStyle="bold" />
+
+    <!--Recorded Imageview for Thumbnail-->
+    <ImageView
+        android:id="@+id/iv_thumbnail"
+        android:layout_width="@dimen/_150sdp"
+        android:layout_height="@dimen/_150sdp"
+        android:layout_margin="@dimen/_8sdp"
+        android:background="@drawable/custom_button_border" />
+    <!--
+                &lt;!&ndash;Recorded Video Thumbnail&ndash;&gt;
+                <VideoView
+                    android:id="@+id/videoView"
+                    android:layout_width="@dimen/_150sdp"
+                    android:layout_height="@dimen/_150sdp"
+                    android:layout_margin="@dimen/_8sdp"
+                    android:background="@drawable/custom_button_border" />
+    -->
+
+</LinearLayout>

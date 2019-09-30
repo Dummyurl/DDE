@@ -81,8 +81,8 @@ public class MainActivity extends BaseActivity implements PermissionResult {
     private void startApp() {
         if (appDatabase.getStatusDao().getValueByKey("LastPulledDate") == null)
             initialiseStatusTable();
-        /*input_email.setText("jaylonkar");
-        input_password.setText("pratham");*/
+//        input_email.setText("mh_balusingh");
+//        input_password.setText("pratham");
     }
 
     @Override
@@ -189,15 +189,15 @@ public class MainActivity extends BaseActivity implements PermissionResult {
         }
 
 
-//        if (userName.equals("") || password.equals(""))
-//            Utility.showDialogue(this, "Insert Username and Password correctly");
-//        else if (!validateUserFromLocalDatabase())
-//            getNewTokenFromServer(Utility.getProperty("prodcheckCredentials", mContext));
-//        else startNextActivity();
         if (userName.equals("") || password.equals(""))
             Utility.showDialogue(this, "Insert Username and Password correctly");
-        else
+        else if (!validateUserFromLocalDatabase())
             getNewTokenFromServer(Utility.getProperty("prodcheckCredentials", mContext));
+        else startNextActivity();
+//        if (userName.equals("") || password.equals(""))
+//            Utility.showDialogue(this, "Insert Username and Password correctly");
+//        else
+//            getNewTokenFromServer(Utility.getProperty("prodcheckCredentials", mContext));
     }
 
     User user;
@@ -232,8 +232,8 @@ public class MainActivity extends BaseActivity implements PermissionResult {
                 }
             });
         } else {
-            startNextActivity();
-            //Toast.makeText(this, "Internet not available", Toast.LENGTH_SHORT).show();
+//            startNextActivity();
+            Toast.makeText(this, "Internet not available", Toast.LENGTH_SHORT).show();
         }
     }
 

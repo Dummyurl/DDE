@@ -6,11 +6,11 @@
         android:width="3dp"
         android:color="#555555" />
     <size
-        android:width="130dp"
-        android:height="130dp" />
-    <padding
+        android:width="@dimen/_125sdp"
+        android:height="@dimen/_125sdp" />
+    <!--<padding
         android:bottom="20dp"
         android:left="20dp"
         android:right="20dp"
-        android:top="20dp" />
+        android:top="20dp" />-->
 </shape>

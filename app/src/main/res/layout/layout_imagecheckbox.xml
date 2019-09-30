@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheckBox xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cb_imgoptions"
+    android:layout_width="@dimen/_125sdp"
+    android:layout_height="@dimen/_125sdp"
+    android:layout_gravity="center"
+    android:background="@drawable/ic_image"
+    android:button="@android:color/transparent"
+    android:gravity="center"
+    android:maxWidth="@dimen/_125sdp"
+    android:maxHeight="@dimen/_125sdp"
+    android:scaleType="fitXY" />

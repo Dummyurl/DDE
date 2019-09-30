@@ -17,4 +17,10 @@
     <color name="black">#000000</color>
     <color name="greenLight">#c4fac6</color>
 
+    <color name="cardLightCyanBackground">#f3fdff</color>
+    <color name="cardHint">#aec4c7</color>
+    <color name="text">#000000</color>
+    <color name="cardText">#616161</color>
+    <color name="cardButton">#69ceec</color>
+
 </resources>
