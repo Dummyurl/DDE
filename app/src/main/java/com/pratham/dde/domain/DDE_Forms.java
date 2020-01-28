@@ -18,6 +18,7 @@ public class DDE_Forms {
     private String PulledDateTime;
     private String dataupdateddate;
     private String userId;
+    private int isPublished;
 
     /*private String updateddate;*/
     private String pbreporturl;
@@ -93,5 +94,13 @@ public class DDE_Forms {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public int getIsPublished() {
+        return isPublished;
+    }
+
+    public void setIsPublished(int isPublished) {
+        this.isPublished = isPublished;
     }
 }

@@ -795,6 +795,7 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                         dde_form.setFormpassword(tempObj.getString("formpassword"));
                         dde_form.setProgramid(tempObj.getString("programid"));
                         dde_form.setTablename(tempObj.getString("tablename"));
+                        dde_form.setIsPublished(1);
                         // setting userIds for downloaded forms
                         String userIds = BaseActivity.appDatabase.getDDE_FormsDao().getUserIdsByFormId(String.valueOf(tempObj.getInt("formid")));
                         if (userIds == null) {
@@ -840,27 +841,41 @@ public class HomeScreen extends AppCompatActivity implements FabInterface, FillA
                     // deleting local forms which are updated on server.
                     DDE_Forms[] db_dde_forms;
                     List<String> dbFormIds = new ArrayList<>();
+                    List<String> unpublishedDbFormIds = new ArrayList<>();
                     boolean flag;
                     db_dde_forms = BaseActivity.appDatabase.getDDE_FormsDao().getAllForms();
                     if (db_dde_forms != null && db_dde_forms.length > 0) {
-                        for (int dbFormNo = 0; dbFormNo < db_dde_forms.length; dbFormNo++) {
+                        for (DDE_Forms db_dde_form : db_dde_forms) {
                             flag = false;
-                            for (int formNo = 0; formNo < dde_forms.length; formNo++) {
-                                if (db_dde_forms[dbFormNo].getFormid() == dde_forms[formNo].getFormid()) {
+                            for (DDE_Forms ddeForm : dde_forms) {
+                                if (db_dde_form.getFormid() == ddeForm.getFormid()) {
                                     flag = true;
                                     break;
                                 }
                             }
+                            String f_id = String.valueOf(db_dde_form.getFormid());
                             if (flag) {
-                                if (!dbFormIds.contains(String.valueOf(db_dde_forms[dbFormNo].getFormid())))
-                                    dbFormIds.add(String.valueOf(db_dde_forms[dbFormNo].getFormid()));
+                                if (!dbFormIds.contains(f_id))
+                                    dbFormIds.add(f_id);
+                            } else {
+                                // unpublished form and if it contains current user in it then delete it
+                                if (db_dde_form.getUserId().contains("," + userId + ","))
+                                    if (!unpublishedDbFormIds.contains(f_id))
+                                        unpublishedDbFormIds.add(f_id);
                             }
                         }
                     }
+                    // hard delete forms which are updated from server
                     for (int formCounter = 0; formCounter < dbFormIds.size(); formCounter++) {
                         //  appDatabase.getDDE_QuestionsDao().deleteQuestionsByFormID(dbFormIds.get(formCounter));
 //                        appDatabase.getAnswerDao().setPushedStatusByFormId(dbFormIds.get(formCounter), 1);
+//                        BaseActivity.appDatabase.getDDE_FormsDao().deleteFormById(dbFormIds.get(formCounter));
                         BaseActivity.appDatabase.getDDE_FormsDao().deleteFormById(dbFormIds.get(formCounter));
+                    }
+
+                    // soft delete forms which are unpublished from server
+                    for (int formCntr = 0; formCntr < unpublishedDbFormIds.size(); formCntr++) {
+                        BaseActivity.appDatabase.getDDE_FormsDao().softDeleteForm(unpublishedDbFormIds.get(formCntr));
                     }
 
                     // inserting downloaded forms to database

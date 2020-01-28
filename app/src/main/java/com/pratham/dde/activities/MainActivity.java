@@ -133,9 +133,7 @@ public class MainActivity extends BaseActivity implements PermissionResult {
     }
 
     private boolean isCurrentVersionLesserThanPlayStoreVersion(String currentVersion, String playStoreVersion) {
-        if ((Float.parseFloat(currentVersion) - Float.parseFloat(playStoreVersion)) >= 0)
-            return false;
-        return true;
+        return !((Float.parseFloat(currentVersion) - Float.parseFloat(playStoreVersion)) >= 0);
     }
 
     private void initialiseStatusTable() {

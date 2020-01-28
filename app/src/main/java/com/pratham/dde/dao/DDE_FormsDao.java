@@ -21,6 +21,9 @@ public interface DDE_FormsDao {
     @Query("DELETE FROM DDE_Forms where formid=:formId")
     void deleteFormById(String formId);
 
+    @Query("UPDATE DDE_Forms SET isPublished=0 WHERE  formid=:formId")
+    void softDeleteForm(String formId);
+
     @Query("SELECT * FROM DDE_Forms where programid=:programId")
     List<DDE_Forms> getFormProgramIdWise(String programId);
 
@@ -29,6 +32,9 @@ public interface DDE_FormsDao {
 
     @Query("SELECT formname FROM DDE_Forms where formid=:formId")
     String getFormName(String formId);
+
+    @Query("SELECT isPublished FROM DDE_Forms where formid=:formId")
+    int isPublished(String formId);
 
     @Query("UPDATE DDE_Forms SET PulledDateTime=:date  WHERE  formid=:formId1")
     void updatePulledDate(String formId1, String date);
@@ -45,6 +51,6 @@ public interface DDE_FormsDao {
     @Query("SELECT userId FROM DDE_Forms where formid=:formId")
     String getUserIdsByFormId(String formId);
 
-    @Query("SELECT * FROM DDE_Forms where userId LIKE :userId")
+    @Query("SELECT * FROM DDE_Forms where userId LIKE :userId and isPublished=1")
     List<DDE_Forms> getAllFormsByUserId(String userId);
 }

@@ -22,6 +22,7 @@ import android.widget.TextView;
 import com.pratham.dde.BaseActivity;
 import com.pratham.dde.R;
 import com.pratham.dde.activities.DisplayQuestions;
+import com.pratham.dde.domain.AnswersSingleForm;
 import com.pratham.dde.interfaces.FabInterface;
 
 import java.util.List;
@@ -29,8 +30,6 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-
-import com.pratham.dde.domain.AnswersSingleForm;
 
 /**
  * Created by abc on 7/4/2018.
@@ -45,6 +44,7 @@ public class SavedFormsFragment extends android.app.Fragment {
     @BindView(R.id.savedform)
     TextView title;
 
+    Boolean flag = false;
     FabInterface fabInterface;
     String userID;
 
@@ -71,10 +71,16 @@ public class SavedFormsFragment extends android.app.Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         showOldSavedForm();
     }
 
     private void showOldSavedForm() {
+        linearlayout.removeAllViews();
         // pass user to verify
         List distinctEntrys = BaseActivity.appDatabase.getAnswerDao().getDistinctEntries(userID, 0);
         List partiallyPushed = BaseActivity.appDatabase.getAnswerDao().getDistinctEntries(userID, 1);
@@ -109,12 +115,11 @@ public class SavedFormsFragment extends android.app.Fragment {
                 formName.setTextSize(1, 15);
                 formName.setAllCaps(true);
                 formName.setTypeface(null, Typeface.BOLD_ITALIC);
-                String formNameText = BaseActivity.appDatabase.getDDE_FormsDao().getFormName(answersSingleForm.getFormId());
-                if (formNameText == null) {
+                int published = BaseActivity.appDatabase.getDDE_FormsDao().isPublished(answersSingleForm.getFormId());
+                if (published == 0) {
                     formName.setText("Form deleted from server");
-                }
-                else
-                    formName.setText(formNameText);
+                } else
+                    formName.setText(BaseActivity.appDatabase.getDDE_FormsDao().getFormName(answersSingleForm.getFormId()));
                 /*SET FORM DATE*/
                 TextView formDate = new TextView(getActivity());
                 formDate.setLayoutParams(textViewParam);
@@ -143,11 +148,11 @@ public class SavedFormsFragment extends android.app.Fragment {
                             alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    String tagEntyId = right.getTag().toString();
+                                    String tagEntryId = right.getTag().toString();
                                     Intent intent = new Intent(getActivity(), DisplayQuestions.class);
-                                    intent.putExtra("formId", BaseActivity.appDatabase.getAnswerDao().getFormIDByEntryID(tagEntyId));
-                                    intent.putExtra("userId", BaseActivity.appDatabase.getAnswerDao().getUserIDByEntryID(tagEntyId));
-                                    intent.putExtra("entryId", tagEntyId);
+                                    intent.putExtra("formId", BaseActivity.appDatabase.getAnswerDao().getFormIDByEntryID(tagEntryId));
+                                    intent.putExtra("userId", BaseActivity.appDatabase.getAnswerDao().getUserIDByEntryID(tagEntryId));
+                                    intent.putExtra("entryId", tagEntryId);
                                     intent.putExtra("formEdit", "true");
                                     startActivity(intent);
 
@@ -209,7 +214,7 @@ public class SavedFormsFragment extends android.app.Fragment {
                     uploading.setTextSize(1, 20);
                     uploading.setTypeface(null, Typeface.ITALIC);
                     uploading.setTextColor(Color.parseColor("#FF5733"));
-                  //  right.setBackgroundColor(Color.parseColor("#DAF7A6"));
+                    //  right.setBackgroundColor(Color.parseColor("#DAF7A6"));
                     right.addView(uploading);
                 }
                 linLayoutSingleEntry.addView(left);

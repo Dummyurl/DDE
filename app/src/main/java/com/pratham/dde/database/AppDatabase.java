@@ -1,9 +1,12 @@
 package com.pratham.dde.database;
 
+import android.arch.persistence.db.SupportSQLiteDatabase;
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
+import android.arch.persistence.room.migration.Migration;
 import android.content.Context;
+import android.util.Log;
 
 import com.pratham.dde.dao.AnswerDao;
 import com.pratham.dde.dao.DDE_FormWiseDataSourceDao;
@@ -24,7 +27,7 @@ import com.pratham.dde.domain.ErrorLog;
 import com.pratham.dde.domain.Status;
 import com.pratham.dde.domain.User;
 
-@Database(entities = {User.class, Status.class, DDE_Questions.class, DDE_Forms.class, DDE_FormWiseDataSource.class, AnswersSingleForm.class, DDE_RuleTable.class, DataSourceEntries.class, ErrorLog.class}, version = 1, exportSchema = false)
+@Database(entities = {User.class, Status.class, DDE_Questions.class, DDE_Forms.class, DDE_FormWiseDataSource.class, AnswersSingleForm.class, DDE_RuleTable.class, DataSourceEntries.class, ErrorLog.class}, version = 2, exportSchema = false)
 
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -50,10 +53,20 @@ public abstract class AppDatabase extends RoomDatabase {
 
     public abstract ErrorLogDao getErrorLogDao();
 
+    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            // Since we didn't alter the table, there's nothing else to do here.
+            database.execSQL("ALTER TABLE 'DDE_Forms' ADD COLUMN 'isPublished' INTEGER NOT NULL DEFAULT 1");
+            Log.d("VROM","Migration");
+        }
+    };
+
     public static AppDatabase getDatabaseInstance(final Context context) {
         if (INSTANCE == null) {
             INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                     AppDatabase.class, DB_NAME)
+                    .addMigrations(MIGRATION_1_2)
                     .allowMainThreadQueries() // SHOULD NOT BE USED IN PRODUCTION !!!
                     .build();
 
