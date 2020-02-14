@@ -17,6 +17,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.location.Location;
@@ -67,6 +68,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.zxing.Result;
 import com.pratham.dde.BaseActivity;
 import com.pratham.dde.DDE_Application;
 import com.pratham.dde.MapDialog;
@@ -108,6 +110,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -115,8 +118,9 @@ import java.util.TreeSet;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
-public class DisplayQuestions extends BaseActivity implements FillAgainListner, PreviewFormListener, updateTokenListener, CurrentLocationListener {
+public class DisplayQuestions extends BaseActivity implements FillAgainListner, PreviewFormListener, updateTokenListener, CurrentLocationListener, ZXingScannerView.ResultHandler {
     @BindView(R.id.homeButton)
     ImageView homeButton;
     @BindView(R.id.formNameHeader)
@@ -157,7 +161,8 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     LocationService locationService;
     //  MapView mapView;
     MediaController mediaController;
-
+    EditText qrEdittext;
+    DDE_Questions qr_dde_questions;
     MapDialog newFragment;
 
     @Override
@@ -357,6 +362,48 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
 
                         public void afterTextChanged(Editable c) {
                             dde_questions.setAnswer(c.toString());
+                        }
+                    });
+                    break;
+                case "qrcode":
+                    View queQrLayout = LayoutInflater.from(this).inflate(R.layout.layout_qr, rootQuestionLL, false);
+                    final LinearLayout qrLayout = queQrLayout.findViewById(R.id.image_ll);
+                    final Button btn_qrScan = qrLayout.findViewById(R.id.btn_qrScan);
+                    final EditText et_answer = qrLayout.findViewById(R.id.edt_ScanAnswer);
+//                    final TextView time = new TextView(this);
+//                    time.setPadding(10, 5, 5, 5);
+//                    time.setBackground(ContextCompat.getDrawable(this, R.drawable.rectangular_box));
+//                    time.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+//                    time.setText("Select Time");
+//                    time.setLayoutParams(paramsWrapContaint);
+                    qrLayout.setTag("ans" + dde_questions.getQuestionId());
+                    rootQuestionLL.addView(qrLayout);
+                    if (editFormFlag) {
+                        String dest_column = dde_questions.getDestColumname();
+                        for (int ansObjIndex = 0; ansObjIndex < answerJsonArray.size(); ansObjIndex++) {
+                            JsonObject ansObject = answerJsonArray.get(ansObjIndex).getAsJsonObject();
+                            if (ansObject.get("DestColumnName").getAsString().equalsIgnoreCase(dest_column)) {
+                                String ans = ansObject.get("Answers").getAsString();
+                                et_answer.setText(ans);
+                                dde_questions.setAnswer(ans);
+                            }
+                        }
+                        qrEdittext = et_answer;
+                        qr_dde_questions = dde_questions;
+                    } else {
+                        String text = "";
+                        if (!validationValue.isEmpty())
+                            text = validationValue;
+                        et_answer.setText(text);
+                        dde_questions.setAnswer(text);
+                    }
+//                layout.addView(time);
+                    btn_qrScan.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            qrEdittext = et_answer;
+                            qr_dde_questions = dde_questions;
+                            scanQR();
                         }
                     });
                     break;
@@ -1386,6 +1433,43 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         }
     }
 
+    Dialog dialogQR;
+    ZXingScannerView mScannerView;
+
+    public void scanQR() {
+        dialogQR = new Dialog(DisplayQuestions.this);
+        dialogQR.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogQR.setContentView(R.layout.qr_scan_dialog);
+        Objects.requireNonNull(dialogQR.getWindow()).setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        dialogQR.setCancelable(true);
+        dialogQR.setCanceledOnTouchOutside(false);
+        Button btn_reset = dialogQR.findViewById(R.id.dia_btn_cancel);
+        ViewGroup content_frame = dialogQR.findViewById(R.id.content_frame);
+
+        mScannerView = new ZXingScannerView(DisplayQuestions.this);
+        mScannerView.setResultHandler(DisplayQuestions.this);
+        mScannerView.startCamera();
+        mScannerView.resumeCameraPreview(DisplayQuestions.this);
+        content_frame.addView((mScannerView));
+        dialogQR.show();
+        btn_reset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mScannerView.resumeCameraPreview(DisplayQuestions.this);
+            }
+        });
+    }
+
+    @Override
+    public void handleResult(Result result) {
+        Toast.makeText(mContext, "" + result.getText(), Toast.LENGTH_SHORT).show();
+        Log.d("RawResult:::", "****" + result.getText());
+        if (qrEdittext != null && qr_dde_questions != null) {
+            qrEdittext.setText(result.getText());
+            qr_dde_questions.setAnswer(result.getText());
+        }
+        dialogQR.dismiss();
+    }
 
     private boolean hasCamera() {
         return getPackageManager().hasSystemFeature(
@@ -2748,13 +2832,15 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
     public int getDp(int value) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
     }
-   /* @Override
-    protected void onResume() {
-        super.onResume();
-        mapView.onResume();
-    }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (mScannerView != null)
+            mScannerView.resumeCameraPreview(DisplayQuestions.this);
+    }
+
+   /* @Override
     protected void onStart() {
         super.onStart();
         mapView.onStart();

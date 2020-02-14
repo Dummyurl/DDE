@@ -1,0 +1,74 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_420sdp"
+        android:layout_centerInParent="true"
+        android:background="@null">
+
+        <ImageView
+            android:layout_width="@dimen/_70sdp"
+            android:layout_height="@dimen/_70sdp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:elevation="5dp"
+            android:padding="8dp"
+            android:background="@drawable/dialog_image_bg"
+            app:srcCompat="@drawable/ic_qrcode_blue" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/_45sdp"
+            android:background="@drawable/dialog_bg"
+            android:gravity="center">
+            <FrameLayout
+                android:id="@+id/content_frame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentBottom="true"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginStart="@dimen/_8sdp"
+                android:layout_marginEnd="@dimen/_8sdp"
+                android:layout_marginBottom="@dimen/_8sdp" />
+
+            <TextView
+                android:id="@+id/dia_title"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_25sdp"
+                android:gravity="center"
+                android:layout_marginTop="@dimen/_25sdp"
+                android:layout_alignParentTop="true"
+                android:lines="2"
+                android:text="Scan QR to load data"
+                android:textColor="@color/cardButton"
+                android:textSize="@dimen/_15sdp" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/bot_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:elevation="5dp">
+
+            <Button
+                android:id="@+id/dia_btn_cancel"
+                android:layout_width="@dimen/_70sdp"
+                android:layout_height="@dimen/_40sdp"
+                android:elevation="5dp"
+                android:text="Reset"
+                android:background="@color/cardButton"
+                android:textColor="@color/text"
+                android:textSize="@dimen/_10sdp" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+</RelativeLayout>

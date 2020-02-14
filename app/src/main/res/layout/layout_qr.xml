@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@+id/image_ll"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="horizontal"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditText
+        android:id="@+id/edt_ScanAnswer"
+        android:layout_width="@dimen/_150sdp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_edittext_box"
+        android:hint="scanned text"
+        android:imeOptions="actionDone"
+        android:minHeight="@dimen/_30sdp"
+        android:padding="@dimen/_4sdp"
+        android:textColor="@color/cardText"
+        android:textColorHint="@color/cardHint"
+        android:textSize="@dimen/_12sdp" />
+
+    <!--Imageview Button-->
+    <Button
+        android:id="@+id/btn_qrScan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="@dimen/_4sdp"
+        android:background="@drawable/custom_button_border"
+        android:drawableLeft="@drawable/ic_qrcode_blue"
+        android:drawablePadding="@dimen/_10sdp"
+        android:padding="@dimen/_8sdp"
+        android:text="Scan"
+        android:textColor="@color/cardButton"
+        android:textSize="@dimen/_12sdp"
+        android:textStyle="bold" />
+
+</LinearLayout>
