@@ -6,7 +6,7 @@ ext.versionMajor = 1
 /*Minor Version : While adding a functionality , minor changes like color change or icon changes*/
 ext.versionMinor = 2
 /*Patch : Bug fixing*/
-ext.versionPatch = 8
+ext.versionPatch = 9 //datasource mandatory validation problem fixed
 ext.minSdkVersion = 17
 
 android {
@@ -16,7 +16,7 @@ android {
         minSdkVersion project.ext.minSdkVersion
         targetSdkVersion 28
         versionCode generateVersionCode()
-        versionName "1.86"//prod apk - cms
+        versionName "1.87"//datasource mandatory validation problem fixed by setting J index to 0
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }

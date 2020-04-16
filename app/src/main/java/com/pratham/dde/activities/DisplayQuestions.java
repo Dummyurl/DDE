@@ -2314,7 +2314,7 @@ public class DisplayQuestions extends BaseActivity implements FillAgainListner, 
         try {
             for (int i = 0; i < formIdWiseQuestions.size(); i++) {
                 JsonArray jsonArray = formIdWiseQuestions.get(i).getValidations();
-                for (int j = 1; j < jsonArray.size(); j++) {
+                for (int j = 0; j < jsonArray.size(); j++) {
                     String queId = formIdWiseQuestions.get(i).getQuestionId();
                     JsonObject validationObject = jsonArray.get(j).getAsJsonObject();
                     if (validationObject.get("ValidationApply").getAsBoolean()) {
